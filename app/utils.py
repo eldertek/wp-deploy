@@ -95,13 +95,13 @@ def create_nginx_config(domain_name):
     
     os.symlink(config_path, f"/etc/nginx/sites-enabled/{domain_name}")
     socketio.emit('message', f'Configuration Nginx pour {domain_name} créée.')
-    os.system('systemctl reload nginx')
+    os.system('sudo systemctl reload nginx')
 
 def setup_ssl(domain_name):
     settings = load_settings()
     registrant_email = settings['registrant']['email']
     # Install Certbot and obtain SSL certificate
-    os.system(f"certbot --nginx -d {domain_name} --non-interactive --agree-tos -m {registrant_email}")
+    os.system(f"sudo certbot --nginx -d {domain_name} --non-interactive --agree-tos -m {registrant_email}")
     socketio.emit('message', f'SSL configuré pour {domain_name}.')
 
 def install_wordpress(domain_name):
@@ -112,13 +112,13 @@ def install_wordpress(domain_name):
     wp_path = f"/var/www/{domain_name}"
     
     # Download WordPress
-    os.system(f"wp core download --path={wp_path}")
+    os.system(f"sudo wp core download --path={wp_path}")
     
     # Create wp-config.php
     unique_db_name = f"wordpress_{domain_name.replace('.', '_')}"
-    os.system(f"wp config create --path={wp_path} --dbname={unique_db_name} --dbuser=root --dbpass={mysql_password} --dbhost=localhost --skip-check")
+    os.system(f"sudo wp config create --path={wp_path} --dbname={unique_db_name} --dbuser=root --dbpass={mysql_password} --dbhost=localhost --skip-check")
     
     # Install WordPress
-    os.system(f"wp core install --path={wp_path} --url=https://{domain_name} --title='My WordPress Site' --admin_user=admin --admin_password=admin_password --admin_email=admin@example.com")
+    os.system(f"sudo wp core install --path={wp_path} --url=https://{domain_name} --title='My WordPress Site' --admin_user=admin --admin_password=admin_password --admin_email=admin@example.com")
     
     socketio.emit('message', f'WordPress installé pour {domain_name}.')
