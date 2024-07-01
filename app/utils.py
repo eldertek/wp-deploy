@@ -1,11 +1,14 @@
 from internetbs import Domain, DNS
 from app import socketio
+from app.utils import load_settings
 import os
 import json
 
-api_key = 'testapi'
-password = 'testpass'
-test_mode = True
+# Load settings
+settings = load_settings()
+api_key = settings['testapi_token']
+password = settings['testapi_secret']
+test_mode = settings['test_mode']
 
 domain = Domain(api_key, password, test_mode)
 dns = DNS(api_key, password, test_mode)
