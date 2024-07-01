@@ -1,14 +1,27 @@
 {% extends "base.html" %}
 
-{% block title %}Ajouter un Domaine{% endblock %}
+{% block title %}Créer une installation{% endblock %}
 
 {% block content %}
-    <h1>Ajouter un domaine</h1>
-    <form method="post">
-        <div class="form-group">
-            <label for="domain">Domaine</label>
-            <input type="text" class="form-control" id="domain" name="domain" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Ajouter</button>
-    </form>
+    <div class="container mt-5">
+        <h1 class="mb-4">Créer une installation</h1>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <form method="post">
+            <div class="form-group mb-3">
+                <label for="domain">Domaine</label>
+                <input type="text" class="form-control" id="domain" name="domain" required>
+                <small class="form-text text-muted">Entrez le nom de domaine de votre installation.</small>
+            </div>
+            <button type="submit" class="btn btn-primary">Démarrer</button>
+        </form>
+    </div>
 {% endblock %}

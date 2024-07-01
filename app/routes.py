@@ -1,24 +1,8 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
-
-app = Flask(__name__)
-app.secret_key = 'your_secret_key'
-
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'
-
-login_manager.login_message = "Veuillez vous connecter pour accéder à cette page."
-login_manager.login_message_category = "info"
-
-# In-memory storage for simplicity
-users = {'admin': {'password': 'password'}}
-domains = []
-articles = []
-
-class User(UserMixin):
-    def __init__(self, id):
-        self.id = id
+from flask import render_template, request, redirect, url_for, flash
+from flask_login import login_user, login_required, logout_user
+from app import app, login_manager
+from app.models import User, users, domains
+from app.utils import is_domain_owned, is_domain_available, purchase_domain, configure_dns, create_nginx_config, setup_ssl, install_wordpress
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -52,13 +36,38 @@ def index():
 @login_required
 def add_domain():
     if request.method == 'POST':
-        domain = request.form['domain']
-        availability = check_domain_availability(domain)
-        if availability['status'] == 'available':
-            flash('Domaine disponible', 'success')
+        domain_name = request.form['domain']
+        
+        # Step 1: Check domain ownership
+        if is_domain_owned(domain_name):
+            flash('Vérification de la possession du domaine....OK', 'info')
         else:
-            flash('Domaine non disponible', 'danger')
-        return redirect(url_for('index'))
+            # Step 2: Check domain availability
+            if is_domain_available(domain_name):
+                flash('Vérification de la disponibilité du domaine...OK', 'info')
+
+                # Step 3: Purchase domain
+                purchase_domain(domain_name)
+                flash('Achat du nom de domaine...OK', 'info')
+            
+        # Step 4: Configure DNS
+        configure_dns(domain_name, 'A', '51.210.255.66')
+        configure_dns(domain_name, 'AAAA', '2001:41d0:304:200::5ec6')
+        flash('Paramètrages DNS vers le serveur...OK', 'info')
+            
+        # Step 5: Create Nginx configuration
+        create_nginx_config(domain_name)
+        flash('Création des fichiers de configuration Nginx...OK', 'info')
+            
+        # Step 6: Setup SSL
+        setup_ssl(domain_name)
+        flash('Paramètres du SSL...OK', 'info')
+            
+        # Step 7: Install WordPress
+        install_wordpress(domain_name)
+        flash('Installation de Wordpress...OK', 'info')
+            
+        flash("L'installation est terminée", 'success')
     return render_template('add_domain.html')
 
 @app.route('/editor', methods=['GET', 'POST'])
@@ -83,6 +92,3 @@ def publish_article(site, title, content):
 
 def check_sites_status():
     return [{'domain': domain, 'status': 'online', 'last_deployment': '2023-10-01'} for domain in domains]
-
-if __name__ == '__main__':
-    app.run(debug=True)
