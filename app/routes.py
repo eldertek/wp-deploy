@@ -9,12 +9,6 @@ from app import socketio
 
 def load_settings():
     config_path = 'app/config.json'
-    model_path = 'app/settings.json'
-    
-    if not os.path.exists(config_path):
-        with open(model_path, 'r') as model_file:
-            settings = json.load(model_file)
-        save_settings(settings)
         
     if os.path.exists(config_path):
         with open(config_path, 'r') as config_file:
@@ -132,7 +126,7 @@ def settings():
         settings['test_mode'] = 'test_mode' in request.form
         
         save_settings(settings)
-        flash('Contact details updated successfully', 'success')
+        flash('Paramètres mise à jour avec succès', 'success')
         return redirect(url_for('settings'))
     return render_template('settings.html', contacts=settings)
 
