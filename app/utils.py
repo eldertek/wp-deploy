@@ -90,6 +90,9 @@ def create_nginx_config(domain_name):
     with open(config_path, 'w') as f:
         f.write(config)
     
+    if os.path.exists(f"/etc/nginx/sites-enabled/{domain_name}"):
+        os.remove(f"/etc/nginx/sites-enabled/{domain_name}")
+    
     os.symlink(config_path, f"/etc/nginx/sites-enabled/{domain_name}")
     socketio.emit('message', f'Configuration Nginx pour {domain_name} créée.')
     os.system('systemctl reload nginx')
