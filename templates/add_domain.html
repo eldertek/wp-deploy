@@ -20,7 +20,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script>
-    var socket = io.connect('http://' + document.domain + ':' + location.port);
+    var socket = io.connect('https://' + document.domain + ':' + location.port);
     socket.on('message', function(msg) {
         var messages = document.getElementById('messages');
         var message = document.createElement('div');
@@ -41,12 +41,10 @@
             processData: false,
             contentType: false,
             success: function(response) {
-                console.log('Form submitted successfully');
                 submitButton.disabled = false;
                 document.getElementById('domain').value = '';
             },
             error: function(error) {
-                console.error('Error submitting form', error);
                 submitButton.disabled = false;
             }
         });
