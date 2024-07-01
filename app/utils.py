@@ -1,5 +1,5 @@
 from internetbs import Domain, DNS
-from app import socketio, load_settings
+from app import socketio
 import json, os
 
 def load_settings():
