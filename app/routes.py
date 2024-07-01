@@ -1,4 +1,5 @@
 import json
+import os
 from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_user, login_required, logout_user
 from app import app, login_manager
@@ -7,12 +8,21 @@ from app.utils import is_domain_owned, is_domain_available, purchase_domain, con
 from app import socketio
 
 def load_settings():
-    with open('app/settings.json', 'r') as f:
-        return json.load(f)
+    config_path = 'app/config.json'
+    model_path = 'app/settings.json'
+    
+    if not os.path.exists(config_path):
+        with open(model_path, 'r') as model_file:
+            settings = json.load(model_file)
+        save_settings(settings)
+        
+    with open(config_path, 'r') as config_file:
+        return json.load(config_file)
 
 def save_settings(settings):
-    with open('app/settings.json', 'w') as f:
-        json.dump(settings, f, indent=4)
+    config_path = 'app/config.json'
+    with open(config_path, 'w') as config_file:
+        json.dump(settings, config_file, indent=4)
 
 @login_manager.user_loader
 def load_user(user_id):
