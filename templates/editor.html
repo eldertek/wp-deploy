@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Éditeur{% endblock %}
+
+{% block content %}
+    <h1>Éditeur</h1>
+    <form method="post">
+        <div class="form-group">
+            <label for="site">Site</label>
+            <select class="form-control" id="site" name="site" required>
+                {% for domain in domains %}
+                    <option value="{{ domain }}">{{ domain }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="title">Titre</label>
+            <input type="text" class="form-control" id="title" name="title" required>
+        </div>
+        <div class="form-group">
+            <label for="content">Contenu</label>
+            <textarea class="form-control" id="content" name="content" rows="5" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Publier</button>
+    </form>
+{% endblock %}

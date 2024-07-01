@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Ajouter un Domaine{% endblock %}
+
+{% block content %}
+    <h1>Ajouter un domaine</h1>
+    <form method="post">
+        <div class="form-group">
+            <label for="domain">Domaine</label>
+            <input type="text" class="form-control" id="domain" name="domain" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Ajouter</button>
+    </form>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Accueil{% endblock %}
+
+{% block content %}
+<div class="card shadow-lg p-4 mb-4 w-100">
+    <h3 class="card-title">Monitoring des sites</h3>
+    <div class="row">
+        {% for site in site_status %}
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{{ site.domain }}</h5>
+                    <p class="card-text">
+                        État: <span class="badge badge-{{ 'success' if site.status == 'online' else 'danger' }}">{{ site.status }}</span><br>
+                        Dernier déploiement: {{ site.last_deployment }}
+                    </p>
+                    <a href="#" class="btn btn-primary">Se connecter au backoffice</a>
+                    <a href="{{ url_for('editor') }}" class="btn btn-secondary">Rédiger un article</a>
+                    <a href="#" class="btn btn-danger">Supprimer</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
