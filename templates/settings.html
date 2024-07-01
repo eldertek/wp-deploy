@@ -19,6 +19,9 @@
             <li class="nav-item">
                 <a class="nav-link" id="billing-tab" data-toggle="tab" href="#billing" role="tab" aria-controls="billing" aria-selected="false">Contact de Facturation</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" id="other-tab" data-toggle="tab" href="#other" role="tab" aria-controls="other" aria-selected="false">Autres</a>
+            </li>
         </ul>
         <div class="tab-content" id="contactTabsContent">
             <div class="tab-pane fade show active" id="registrant" role="tabpanel" aria-labelledby="registrant-tab">
@@ -219,6 +222,24 @@
                 <div class="form-group">
                     <label>Code postal:</label>
                     <input type="text" class="form-control" name="billing_postalCode" value="{{ contacts.billing.postalCode }}">
+                </div>
+            </div>
+            <div class="tab-pane fade" id="other" role="tabpanel" aria-labelledby="other-tab">
+                <div class="form-group mt-3">
+                    <label>Mot de passe MySQL:</label>
+                    <input type="password" class="form-control" name="mysql_password" value="{{ contacts.mysql_password }}">
+                </div>
+                <div class="form-group">
+                    <label>Token API de test:</label>
+                    <input type="text" class="form-control" name="testapi_token" value="{{ contacts.testapi_token }}">
+                </div>
+                <div class="form-group">
+                    <label>Secret API de test:</label>
+                    <input type="text" class="form-control" name="testapi_secret" value="{{ contacts.testapi_secret }}">
+                </div>
+                <div class="form-group">
+                    <label>Mode test:</label>
+                    <input type="checkbox" class="form-control" name="test_mode" {% if contacts.test_mode %}checked{% endif %}>
                 </div>
             </div>
         </div>

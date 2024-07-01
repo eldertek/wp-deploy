@@ -111,6 +111,13 @@ def settings():
             }
             if contact_type == 'registrant':
                 settings[contact_type]['dotfrcontactentitytype'] = request.form.get('registrant_dotfrcontactentitytype', '')
+        
+        # Update other settings
+        settings['mysql_password'] = request.form.get('mysql_password', '')
+        settings['testapi_token'] = request.form.get('testapi_token', '')
+        settings['testapi_secret'] = request.form.get('testapi_secret', '')
+        settings['test_mode'] = 'test_mode' in request.form
+        
         save_settings(settings)
         flash('Contact details updated successfully', 'success')
         return redirect(url_for('settings'))
