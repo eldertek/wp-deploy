@@ -9,6 +9,12 @@ from app import socketio
 
 def load_settings():
     config_path = 'app/config.json'
+    model_path = 'app/settings.json'
+    
+    if not os.path.exists(config_path):
+        with open(model_path, 'r') as model_file:
+            settings = json.load(model_file)
+        save_settings(settings)
         
     if os.path.exists(config_path):
         with open(config_path, 'r') as config_file:
