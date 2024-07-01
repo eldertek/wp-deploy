@@ -1,27 +1,31 @@
 {% extends "base.html" %}
 
-{% block title %}Créer une installation{% endblock %}
+{% block title %}Ajouter un domaine{% endblock %}
 
 {% block content %}
-    <div class="container mt-5">
-        <h1 class="mb-4">Créer une installation</h1>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-        <form method="post">
-            <div class="form-group mb-3">
-                <label for="domain">Domaine</label>
-                <input type="text" class="form-control" id="domain" name="domain" required>
-                <small class="form-text text-muted">Entrez le nom de domaine de votre installation.</small>
-            </div>
-            <button type="submit" class="btn btn-primary">Démarrer</button>
-        </form>
-    </div>
+<div class="card shadow-lg p-4 mb-4 w-100">
+    <h1 class="card-title">Ajouter un domaine</h1>
+    <form method="post">
+        <div class="form-group">
+            <label for="domain">Nom de domaine</label>
+            <input type="text" class="form-control" id="domain" name="domain" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Ajouter</button>
+    </form>
+</div>
+<div id="messages"></div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
+<script>
+    var socket = io();
+    socket.on('message', function(msg) {
+        var messages = document.getElementById('messages');
+        var message = document.createElement('div');
+        message.className = 'alert alert-info mt-4';
+        message.innerText = msg;
+        messages.appendChild(message);
+    });
+</script>
 {% endblock %}

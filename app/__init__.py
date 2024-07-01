@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_login import LoginManager
 import os
+from flask_socketio import SocketIO
 
 app = Flask(__name__, template_folder='../templates', static_folder='../static')
 app.config.from_object('app.config.Config')
@@ -12,4 +13,9 @@ login_manager.login_view = 'routes.login'
 login_manager.login_message = "Veuillez vous connecter pour accéder à cette page."
 login_manager.login_message_category = "info"
 
+socketio = SocketIO(app)
+
 from app import routes
+
+if __name__ == '__main__':
+    socketio.run(app)

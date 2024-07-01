@@ -3,6 +3,9 @@ from flask_login import login_user, login_required, logout_user
 from app import app, login_manager
 from app.models import User, users, domains
 from app.utils import is_domain_owned, is_domain_available, purchase_domain, configure_dns, create_nginx_config, setup_ssl, install_wordpress
+from flask_socketio import SocketIO, emit
+
+socketio = SocketIO(app)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -40,34 +43,34 @@ def add_domain():
         
         # Step 1: Check domain ownership
         if is_domain_owned(domain_name):
-            flash('Vérification de la possession du domaine....OK', 'info')
+            socketio.emit('message', 'Vérification de la possession du domaine....OK')
         else:
             # Step 2: Check domain availability
             if is_domain_available(domain_name):
-                flash('Vérification de la disponibilité du domaine...OK', 'info')
+                socketio.emit('message', 'Vérification de la disponibilité du domaine...OK')
 
                 # Step 3: Purchase domain
                 purchase_domain(domain_name)
-                flash('Achat du nom de domaine...OK', 'info')
+                socketio.emit('message', 'Achat du nom de domaine...OK')
             
         # Step 4: Configure DNS
         configure_dns(domain_name, 'A', '51.210.255.66')
         configure_dns(domain_name, 'AAAA', '2001:41d0:304:200::5ec6')
-        flash('Paramètrages DNS vers le serveur...OK', 'info')
+        socketio.emit('message', 'Paramètrages DNS vers le serveur...OK')
             
         # Step 5: Create Nginx configuration
         create_nginx_config(domain_name)
-        flash('Création des fichiers de configuration Nginx...OK', 'info')
+        socketio.emit('message', 'Création des fichiers de configuration Nginx...OK')
             
         # Step 6: Setup SSL
         setup_ssl(domain_name)
-        flash('Paramètres du SSL...OK', 'info')
+        socketio.emit('message', 'Paramètres du SSL...OK')
             
         # Step 7: Install WordPress
         install_wordpress(domain_name)
-        flash('Installation de Wordpress...OK', 'info')
+        socketio.emit('message', 'Installation de Wordpress...OK')
             
-        flash("L'installation est terminée", 'success')
+        socketio.emit('message', "L'installation est terminée")
     return render_template('add_domain.html')
 
 @app.route('/editor', methods=['GET', 'POST'])
