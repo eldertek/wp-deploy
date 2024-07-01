@@ -1,5 +1,5 @@
 from internetbs import Domain, DNS
-from flask_socketio import SocketIO
+from app import socketio
 
 api_key = 'testapi'
 password = 'testpass'
@@ -8,9 +8,8 @@ test_mode = True
 domain = Domain(api_key, password, test_mode)
 dns = DNS(api_key, password, test_mode)
 
-socketio = SocketIO()
-
 def is_domain_owned(domain_name):
+    socketio.emit('message', f'Vérification de la possession du domaine {domain_name}...')
     domains = domain.list_domains()
     for d in domains:
         if d.domain_name == domain_name:
@@ -23,8 +22,8 @@ def is_domain_available(domain_name):
     socketio.emit('message', f'Domaine {domain_name} est disponible.' if available else f'Domaine {domain_name} n\'est pas disponible.')
     return available
 
-def purchase_domain(domain_name):
-    result = domain.create_domain(domain_name)
+def purchase_domain(domain_name, contacts):
+    result = domain.create_domain(domain_name, contacts)
     socketio.emit('message', f'Domaine {domain_name} a été acheté.')
     return result
 

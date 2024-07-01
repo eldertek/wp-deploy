@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}Paramètres{% endblock %}
+
+{% block content %}
+<div class="card shadow-lg p-4 mb-4 w-100">
+    <h1 class="card-title">Paramètres</h1>
+    <form method="POST">
+        <ul class="nav nav-tabs" id="contactTabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="registrant-tab" data-toggle="tab" href="#registrant" role="tab" aria-controls="registrant" aria-selected="true">Contact du Registrant</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="admin-tab" data-toggle="tab" href="#admin" role="tab" aria-controls="admin" aria-selected="false">Contact Administratif</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="technical-tab" data-toggle="tab" href="#technical" role="tab" aria-controls="technical" aria-selected="false">Contact Technique</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="billing-tab" data-toggle="tab" href="#billing" role="tab" aria-controls="billing" aria-selected="false">Contact de Facturation</a>
+            </li>
+        </ul>
+        <div class="tab-content" id="contactTabsContent">
+            <div class="tab-pane fade show active" id="registrant" role="tabpanel" aria-labelledby="registrant-tab">
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Prénom:</label>
+                            <input type="text" class="form-control" name="registrant_firstName" value="{{ contacts.registrant.firstName }}">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Nom:</label>
+                            <input type="text" class="form-control" name="registrant_lastName" value="{{ contacts.registrant.lastName }}">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Organisation:</label>
+                    <input type="text" class="form-control" name="registrant_organization" value="{{ contacts.registrant.organization }}">
+                </div>
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" class="form-control" name="registrant_email" value="{{ contacts.registrant.email }}">
+                </div>
+                <div class="form-group">
+                    <label>Numéro de téléphone:</label>
+                    <input type="text" class="form-control" name="registrant_phoneNumber" value="{{ contacts.registrant.phoneNumber }}">
+                </div>
+                <div class="form-group">
+                    <label>Rue:</label>
+                    <input type="text" class="form-control" name="registrant_street" value="{{ contacts.registrant.street }}">
+                </div>
+                <div class="form-group">
+                    <label>Rue 2:</label>
+                    <input type="text" class="form-control" name="registrant_street2" value="{{ contacts.registrant.street2 }}">
+                </div>
+                <div class="form-group">
+                    <label>Rue 3:</label>
+                    <input type="text" class="form-control" name="registrant_street3" value="{{ contacts.registrant.street3 }}">
+                </div>
+                <div class="form-group">
+                    <label>Ville:</label>
+                    <input type="text" class="form-control" name="registrant_city" value="{{ contacts.registrant.city }}">
+                </div>
+                <div class="form-group">
+                    <label>Code pays:</label>
+                    <input type="text" class="form-control" name="registrant_countryCode" value="{{ contacts.registrant.countryCode }}">
+                </div>
+                <div class="form-group">
+                    <label>Code postal:</label>
+                    <input type="text" class="form-control" name="registrant_postalCode" value="{{ contacts.registrant.postalCode }}">
+                </div>
+                <div class="form-group">
+                    <label>Type d'entité (dotFR):</label>
+                    <input type="text" class="form-control" name="registrant_dotfrcontactentitytype" value="{{ contacts.registrant.dotfrcontactentitytype }}">
+                </div>
+            </div>
+            <div class="tab-pane fade" id="admin" role="tabpanel" aria-labelledby="admin-tab">
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Prénom:</label>
+                            <input type="text" class="form-control" name="admin_firstName" value="{{ contacts.admin.firstName }}">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Nom:</label>
+                            <input type="text" class="form-control" name="admin_lastName" value="{{ contacts.admin.lastName }}">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" class="form-control" name="admin_email" value="{{ contacts.admin.email }}">
+                </div>
+                <div class="form-group">
+                    <label>Numéro de téléphone:</label>
+                    <input type="text" class="form-control" name="admin_phoneNumber" value="{{ contacts.admin.phoneNumber }}">
+                </div>
+                <div class="form-group">
+                    <label>Rue:</label>
+                    <input type="text" class="form-control" name="admin_street" value="{{ contacts.admin.street }}">
+                </div>
+                <div class="form-group">
+                    <label>Rue 2:</label>
+                    <input type="text" class="form-control" name="admin_street2" value="{{ contacts.admin.street2 }}">
+                </div>
+                <div class="form-group">
+                    <label>Rue 3:</label>
+                    <input type="text" class="form-control" name="admin_street3" value="{{ contacts.admin.street3 }}">
+                </div>
+                <div class="form-group">
+                    <label>Ville:</label>
+                    <input type="text" class="form-control" name="admin_city" value="{{ contacts.admin.city }}">
+                </div>
+                <div class="form-group">
+                    <label>Code pays:</label>
+                    <input type="text" class="form-control" name="admin_countryCode" value="{{ contacts.admin.countryCode }}">
+                </div>
+                <div class="form-group">
+                    <label>Code postal:</label>
+                    <input type="text" class="form-control" name="admin_postalCode" value="{{ contacts.admin.postalCode }}">
+                </div>
+            </div>
+            <div class="tab-pane fade" id="technical" role="tabpanel" aria-labelledby="technical-tab">
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Prénom:</label>
+                            <input type="text" class="form-control" name="technical_firstName" value="{{ contacts.technical.firstName }}">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Nom:</label>
+                            <input type="text" class="form-control" name="technical_lastName" value="{{ contacts.technical.lastName }}">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" class="form-control" name="technical_email" value="{{ contacts.technical.email }}">
+                </div>
+                <div class="form-group">
+                    <label>Numéro de téléphone:</label>
+                    <input type="text" class="form-control" name="technical_phoneNumber" value="{{ contacts.technical.phoneNumber }}">
+                </div>
+                <div class="form-group">
+                    <label>Rue:</label>
+                    <input type="text" class="form-control" name="technical_street" value="{{ contacts.technical.street }}">
+                </div>
+                <div class="form-group">
+                    <label>Rue 2:</label>
+                    <input type="text" class="form-control" name="technical_street2" value="{{ contacts.technical.street2 }}">
+                </div>
+                <div class="form-group">
+                    <label>Rue 3:</label>
+                    <input type="text" class="form-control" name="technical_street3" value="{{ contacts.technical.street3 }}">
+                </div>
+                <div class="form-group">
+                    <label>Ville:</label>
+                    <input type="text" class="form-control" name="technical_city" value="{{ contacts.technical.city }}">
+                </div>
+                <div class="form-group">
+                    <label>Code pays:</label>
+                    <input type="text" class="form-control" name="technical_countryCode" value="{{ contacts.technical.countryCode }}">
+                </div>
+                <div class="form-group">
+                    <label>Code postal:</label>
+                    <input type="text" class="form-control" name="technical_postalCode" value="{{ contacts.technical.postalCode }}">
+                </div>
+            </div>
+            <div class="tab-pane fade" id="billing" role="tabpanel" aria-labelledby="billing-tab">
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Prénom:</label>
+                            <input type="text" class="form-control" name="billing_firstName" value="{{ contacts.billing.firstName }}">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Nom:</label>
+                            <input type="text" class="form-control" name="billing_lastName" value="{{ contacts.billing.lastName }}">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" class="form-control" name="billing_email" value="{{ contacts.billing.email }}">
+                </div>
+                <div class="form-group">
+                    <label>Numéro de téléphone:</label>
+                    <input type="text" class="form-control" name="billing_phoneNumber" value="{{ contacts.billing.phoneNumber }}">
+                </div>
+                <div class="form-group">
+                    <label>Rue:</label>
+                    <input type="text" class="form-control" name="billing_street" value="{{ contacts.billing.street }}">
+                </div>
+                <div class="form-group">
+                    <label>Rue 2:</label>
+                    <input type="text" class="form-control" name="billing_street2" value="{{ contacts.billing.street2 }}">
+                </div>
+                <div class="form-group">
+                    <label>Rue 3:</label>
+                    <input type="text" class="form-control" name="billing_street3" value="{{ contacts.billing.street3 }}">
+                </div>
+                <div class="form-group">
+                    <label>Ville:</label>
+                    <input type="text" class="form-control" name="billing_city" value="{{ contacts.billing.city }}">
+                </div>
+                <div class="form-group">
+                    <label>Code pays:</label>
+                    <input type="text" class="form-control" name="billing_countryCode" value="{{ contacts.billing.countryCode }}">
+                </div>
+                <div class="form-group">
+                    <label>Code postal:</label>
+                    <input type="text" class="form-control" name="billing_postalCode" value="{{ contacts.billing.postalCode }}">
+                </div>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Enregistrer</button>
+    </form>
+</div>
+{% endblock %}

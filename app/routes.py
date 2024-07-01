@@ -1,11 +1,18 @@
+import json
 from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_user, login_required, logout_user
 from app import app, login_manager
 from app.models import User, users, domains
 from app.utils import is_domain_owned, is_domain_available, purchase_domain, configure_dns, create_nginx_config, setup_ssl, install_wordpress
-from flask_socketio import SocketIO, emit
+from app import socketio
 
-socketio = SocketIO(app)
+def load_settings():
+    with open('app/settings.json', 'r') as f:
+        return json.load(f)
+
+def save_settings(settings):
+    with open('app/settings.json', 'w') as f:
+        json.dump(settings, f, indent=4)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -42,33 +49,25 @@ def add_domain():
         domain_name = request.form['domain']
         
         # Step 1: Check domain ownership
-        if is_domain_owned(domain_name):
-            socketio.emit('message', 'Vérification de la possession du domaine....OK')
-        else:
+        if not is_domain_owned(domain_name):
             # Step 2: Check domain availability
             if is_domain_available(domain_name):
-                socketio.emit('message', 'Vérification de la disponibilité du domaine...OK')
-
                 # Step 3: Purchase domain
-                purchase_domain(domain_name)
+                purchase_domain(domain_name, load_settings())
                 socketio.emit('message', 'Achat du nom de domaine...OK')
             
         # Step 4: Configure DNS
         configure_dns(domain_name, 'A', '51.210.255.66')
         configure_dns(domain_name, 'AAAA', '2001:41d0:304:200::5ec6')
-        socketio.emit('message', 'Paramètrages DNS vers le serveur...OK')
             
         # Step 5: Create Nginx configuration
         create_nginx_config(domain_name)
-        socketio.emit('message', 'Création des fichiers de configuration Nginx...OK')
             
         # Step 6: Setup SSL
         setup_ssl(domain_name)
-        socketio.emit('message', 'Paramètres du SSL...OK')
             
         # Step 7: Install WordPress
         install_wordpress(domain_name)
-        socketio.emit('message', 'Installation de Wordpress...OK')
             
         socketio.emit('message', "L'installation est terminée")
     return render_template('add_domain.html')
@@ -89,6 +88,33 @@ def editor():
 def dashboard():
     site_status = check_sites_status()
     return render_template('dashboard.html', site_status=site_status)
+
+@app.route('/settings', methods=['GET', 'POST'])
+@login_required
+def settings():
+    settings = load_settings()
+    if request.method == 'POST':
+        contact_types = ['registrant', 'admin', 'technical', 'billing']
+        for contact_type in contact_types:
+            settings[contact_type] = {
+                'firstName': request.form.get(f'{contact_type}_firstName', ''),
+                'lastName': request.form.get(f'{contact_type}_lastName', ''),
+                'organization': request.form.get(f'{contact_type}_organization', ''),
+                'email': request.form.get(f'{contact_type}_email', ''),
+                'phoneNumber': request.form.get(f'{contact_type}_phoneNumber', ''),
+                'street': request.form.get(f'{contact_type}_street', ''),
+                'street2': request.form.get(f'{contact_type}_street2', ''),
+                'street3': request.form.get(f'{contact_type}_street3', ''),
+                'city': request.form.get(f'{contact_type}_city', ''),
+                'countryCode': request.form.get(f'{contact_type}_countryCode', ''),
+                'postalCode': request.form.get(f'{contact_type}_postalCode', '')
+            }
+            if contact_type == 'registrant':
+                settings[contact_type]['dotfrcontactentitytype'] = request.form.get('registrant_dotfrcontactentitytype', '')
+        save_settings(settings)
+        flash('Contact details updated successfully', 'success')
+        return redirect(url_for('settings'))
+    return render_template('settings.html', contacts=settings)
 
 def publish_article(site, title, content):
     pass
