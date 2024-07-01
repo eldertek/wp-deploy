@@ -16,8 +16,11 @@ def load_settings():
             settings = json.load(model_file)
         save_settings(settings)
         
-    with open(config_path, 'r') as config_file:
-        return json.load(config_file)
+    if os.path.exists(config_path):
+        with open(config_path, 'r') as config_file:
+            return json.load(config_file)
+    else:
+        return {}
 
 def save_settings(settings):
     config_path = 'app/config.json'
@@ -138,3 +141,4 @@ def publish_article(site, title, content):
 
 def check_sites_status():
     return [{'domain': domain, 'status': 'online', 'last_deployment': '2023-10-01'} for domain in domains]
+
