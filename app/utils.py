@@ -1,8 +1,6 @@
 from internetbs import Domain, DNS
-from app import socketio
-from app.utils import load_settings
-import os
-import json
+from app import socketio, load_settings
+import json, os
 
 # Load settings
 settings = load_settings()
