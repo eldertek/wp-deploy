@@ -52,7 +52,17 @@ def logout():
 @app.route('/')
 @login_required
 def index():
-    return render_template('index.html')
+    sites = []
+    for domain in os.listdir('/var/www/'):
+        if os.path.isdir(os.path.join('/var/www/', domain)):
+            site_info = {
+                'domain': domain,
+                'status': 'online',
+                'last_deployment': 'N/A'
+            }
+            sites.append(site_info)
+    
+    return render_template('index.html', sites=sites)
 
 @app.route('/add_domain', methods=['GET', 'POST'])
 @login_required
