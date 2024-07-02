@@ -153,8 +153,8 @@
     function createNginxConfig(domain) {
         $.post('{{ url_for("create_nginx_config_route") }}', {domain: domain}, function(data) {
             if (data.status === 'created') {
-                // Nginx config created and SSL set up, install WordPress
-                installWordPress(domain);
+                // Nginx config created, set up SSL
+                setupSSL(domain);
             } else if (data.status === 'ssl_error') {
                 // Error setting up SSL, show error message
                 var messages = document.getElementById('messages');
@@ -221,3 +221,4 @@
     });
 </script>
 {% endblock %}
+
