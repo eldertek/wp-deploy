@@ -138,10 +138,10 @@ def setup_ssl(domain_name):
         socketio.emit('error', f'Erreur lors de la configuration SSL pour {domain_name}: {str(e)}')
         return False
 
-def install_wordpress(domain_name):
+def install_wordpress(domain_name, force=False):
     try:
         wp_path = f"/var/www/{domain_name}"
-        if os.path.exists(wp_path):
+        if os.path.exists(wp_path) and not force:
             socketio.emit('confirm', {'message': f'WordPress est déjà installé pour {domain_name}. Voulez-vous continuer ?', 'action': 'install_wordpress'})
             return False
         
@@ -174,3 +174,4 @@ def install_wordpress(domain_name):
     except Exception as e:
         socketio.emit('error', f'Erreur lors de l\'installation de WordPress pour {domain_name}: {str(e)}')
         return False
+
