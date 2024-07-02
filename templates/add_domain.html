@@ -83,6 +83,8 @@
                 console.log('Confirmation action successful');
                 $('#confirmationModal').modal('hide');
                 if (action === 'create_nginx_config') {
+                    createNginxConfig(domain);
+                } else if (action === 'install_wordpress') {
                     installWordPress(domain);
                 }
             }
@@ -231,3 +233,4 @@
     });
 </script>
 {% endblock %}
+

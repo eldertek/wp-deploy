@@ -142,7 +142,7 @@ def install_wordpress(domain_name):
     try:
         wp_path = f"/var/www/{domain_name}"
         if os.path.exists(wp_path):
-            socketio.emit('confirm', f'WordPress est déjà installé pour {domain_name}. Voulez-vous continuer ?')
+            socketio.emit('confirm', {'message': f'WordPress est déjà installé pour {domain_name}. Voulez-vous continuer ?', 'action': 'install_wordpress'})
             return False
         
         # Generate random names for the database and user
