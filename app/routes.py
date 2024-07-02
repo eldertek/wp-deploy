@@ -59,7 +59,6 @@ def index():
                 'domain': domain,
                 'status': 'online',
                 'last_deployment': 'N/A',
-                'url_count': count_wordpress_urls(domain)
             }
             sites.append(site_info)
     
