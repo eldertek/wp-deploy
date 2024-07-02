@@ -4,6 +4,7 @@ import json, os
 import subprocess
 import random
 import string
+import requests
 
 def load_settings():
     config_path = 'app/config.json'
@@ -178,3 +179,14 @@ def install_wordpress(domain_name, force=False):
         socketio.emit('error', f'Erreur lors de l\'installation de WordPress pour {domain_name}: {str(e)}')
         return False
 
+def count_wordpress_urls(domain_name):
+    try:
+        response = requests.get(f"https://{domain_name}/wp-json/wp/v2/posts")
+        if response.status_code == 200:
+            posts = response.json()
+            return len(posts)
+        else:
+            return 0
+    except Exception as e:
+        socketio.emit('error', f'Erreur lors de la récupération des URLs pour {domain_name}: {str(e)}')
+        return 0
