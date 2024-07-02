@@ -174,7 +174,7 @@ def confirm_action():
     domain_name = data.get('domain')
     
     if action == 'create_nginx_config':
-        if create_nginx_config(domain_name):
+        if create_nginx_config(domain_name, force=True):
             socketio.emit('message', f'Configuration Nginx pour {domain_name} créée.')
     elif action == 'install_wordpress':
         if install_wordpress(domain_name):
@@ -187,3 +187,4 @@ def publish_article(site, title, content):
 
 def check_sites_status():
     return [{'domain': domain, 'status': 'online', 'last_deployment': '2023-10-01'} for domain in domains]
+

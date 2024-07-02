@@ -82,11 +82,11 @@ def run_command(command):
         socketio.emit('error', f'Erreur: {e.stderr.decode("utf-8")}')
         return None
 
-def create_nginx_config(domain_name):
+def create_nginx_config(domain_name, force=False):
     try:
         config_path = f"/etc/nginx/sites-available/{domain_name}"
-        if os.path.exists(config_path):
-            socketio.emit('confirm', f'Configuration Nginx pour {domain_name} existe déjà. Voulez-vous continuer ?')
+        if os.path.exists(config_path) and not force:
+            socketio.emit('confirm', {'message': f'Configuration Nginx pour {domain_name} existe déjà. Voulez-vous continuer ?', 'action': 'create_nginx_config'})
             return False
         
         config = f"""

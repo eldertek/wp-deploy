@@ -59,10 +59,10 @@
         messages.insertBefore(message, messages.firstChild);
     });
 
-    socket.on('confirm', function(msg) {
+    socket.on('confirm', function(data) {
         $('#confirmationModal').modal('show');
-        $('#confirmationMessage').text(msg);
-        $('#confirmButton').data('action', msg.action);
+        $('#confirmationMessage').text(data.message);
+        $('#confirmButton').data('action', data.action);
     });
 
     $('#confirmButton').on('click', function() {
