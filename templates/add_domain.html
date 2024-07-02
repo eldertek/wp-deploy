@@ -86,28 +86,17 @@
         });
     });
 
-    function installWordPress(domain) {
-        console.log('Installing WordPress for:', domain);
-        $.post('{{ url_for("install_wordpress_route") }}', {domain: domain}, function(data) {
-            console.log('WordPress installation result:', data);
-            if (data.status === 'installed') {
-                var messages = document.getElementById('messages');
-                var message = document.createElement('div');
-                message.className = 'alert alert-success mt-4';
-                message.innerText = 'Le domaine ' + domain + ' a été ajouté avec succès.';
-                messages.insertBefore(message, messages.firstChild);
-                submitButton.disabled = false;
-                document.getElementById('domain').value = '';
-            } else if (data.status === 'error') {
-                var messages = document.getElementById('messages');
-                var message = document.createElement('div');
-                message.className = 'alert alert-danger mt-4';
-                message.innerText = 'Erreur lors de l\'installation de WordPress.';
-                messages.insertBefore(message, messages.firstChild);
-                submitButton.disabled = false;
-            }
-        });
-    }
+    const steps = [
+        { name: 'checkDomainOwnership', func: checkDomainOwnership },
+        { name: 'checkDomainAvailability', func: checkDomainAvailability },
+        { name: 'purchaseDomain', func: purchaseDomain },
+        { name: 'configureDNS', func: configureDNS },
+        { name: 'createNginxConfig', func: createNginxConfig },
+        { name: 'setupSSL', func: setupSSL },
+        { name: 'installWordPress', func: installWordPress }
+    ];
+
+    let currentStepIndex = 0;
 
     document.getElementById('domainForm').addEventListener('submit', function(event) {
         event.preventDefault();
@@ -115,111 +104,116 @@
         console.log('Form submitted with domain:', domain);
         var submitButton = document.getElementById('submitButton');
         submitButton.disabled = true;
-        checkDomainOwnership(domain);
+        currentStepIndex = 0;
+        executeNextStep(domain);
     });
 
+    function executeNextStep(domain) {
+        if (currentStepIndex < steps.length) {
+            console.log(`Executing step: ${steps[currentStepIndex].name}`);
+            steps[currentStepIndex].func(domain);
+        } else {
+            console.log('All steps completed');
+            var messages = document.getElementById('messages');
+            var message = document.createElement('div');
+            message.className = 'alert alert-success mt-4';
+            message.innerText = `Le domaine ${domain} a été ajouté avec succès.`;
+            messages.insertBefore(message, messages.firstChild);
+            document.getElementById('submitButton').disabled = false;
+            document.getElementById('domain').value = '';
+        }
+    }
+
     function checkDomainOwnership(domain) {
-        console.log('Checking domain ownership for:', domain);
         $.post('{{ url_for("check_domain_ownership") }}', {domain: domain}, function(data) {
             console.log('Domain ownership check result:', data);
             if (data.status === 'owned') {
-                configureDNS(domain);
-            } else if (data.status === 'not_owned') {
-                checkDomainAvailability(domain);
+                currentStepIndex = steps.findIndex(step => step.name === 'configureDNS');
             }
+            currentStepIndex++;
+            executeNextStep(domain);
         });
     }
 
     function checkDomainAvailability(domain) {
-        console.log('Checking domain availability for:', domain);
         $.post('{{ url_for("check_domain_availability") }}', {domain: domain}, function(data) {
             console.log('Domain availability check result:', data);
             if (data.status === 'available') {
-                purchaseDomain(domain);
-            } else if (data.status === 'not_available') {
-                var messages = document.getElementById('messages');
-                var message = document.createElement('div');
-                message.className = 'alert alert-danger mt-4';
-                message.innerText = 'Le domaine n\'est pas disponible.';
-                messages.insertBefore(message, messages.firstChild);
-                submitButton.disabled = false;
+                currentStepIndex++;
+                executeNextStep(domain);
+            } else {
+                handleError('Le domaine n\'est pas disponible.');
             }
         });
     }
 
     function purchaseDomain(domain) {
-        console.log('Purchasing domain:', domain);
         $.post('{{ url_for("purchase_domain_route") }}', {domain: domain}, function(data) {
             console.log('Domain purchase result:', data);
             if (data.status === 'purchased') {
-                configureDNS(domain);
-            } else if (data.status === 'error') {
-                var messages = document.getElementById('messages');
-                var message = document.createElement('div');
-                message.className = 'alert alert-danger mt-4';
-                message.innerText = 'Erreur lors de l\'achat du domaine.';
-                messages.insertBefore(message, messages.firstChild);
-                submitButton.disabled = false;
+                currentStepIndex++;
+                executeNextStep(domain);
+            } else {
+                handleError('Erreur lors de l\'achat du domaine.');
             }
         });
     }
 
     function configureDNS(domain) {
-        console.log('Configuring DNS for:', domain);
         $.post('{{ url_for("configure_dns_route") }}', {domain: domain}, function(data) {
             console.log('DNS configuration result:', data);
             if (data.status === 'configured') {
-                createNginxConfig(domain);
-            } else if (data.status === 'error') {
-                var messages = document.getElementById('messages');
-                var message = document.createElement('div');
-                message.className = 'alert alert-danger mt-4';
-                message.innerText = 'Erreur lors de la configuration du DNS.';
-                messages.insertBefore(message, messages.firstChild);
-                submitButton.disabled = false;
+                currentStepIndex++;
+                executeNextStep(domain);
+            } else {
+                handleError('Erreur lors de la configuration du DNS.');
             }
         });
     }
 
     function createNginxConfig(domain) {
-        console.log('Creating Nginx config for:', domain);
         $.post('{{ url_for("create_nginx_config_route") }}', {domain: domain}, function(data) {
             console.log('Nginx config creation result:', data);
             if (data.status === 'created') {
-                setupSSL(domain);
-            } else if (data.status === 'ssl_error') {
-                var messages = document.getElementById('messages');
-                var message = document.createElement('div');
-                message.className = 'alert alert-danger mt-4';
-                message.innerText = 'Erreur lors de la configuration du SSL.';
-                messages.insertBefore(message, messages.firstChild);
-                submitButton.disabled = false;
-            } else if (data.status === 'error') {
-                var messages = document.getElementById('messages');
-                var message = document.createElement('div');
-                message.className = 'alert alert-danger mt-4';
-                message.innerText = 'Erreur lors de la création de la configuration Nginx.';
-                messages.insertBefore(message, messages.firstChild);
-                submitButton.disabled = false;
+                currentStepIndex++;
+                executeNextStep(domain);
+            } else {
+                handleError('Erreur lors de la création de la configuration Nginx.');
             }
         });
     }
 
     function setupSSL(domain) {
-        console.log('Setting up SSL for:', domain);
         $.post('{{ url_for("setup_ssl_route") }}', {domain: domain}, function(data) {
             console.log('SSL setup result:', data);
             if (data.status === 'setup') {
-                installWordPress(domain);
-            } else if (data.status === 'error') {
-                var messages = document.getElementById('messages');
-                var message = document.createElement('div');
-                message.className = 'alert alert-danger mt-4';
-                message.innerText = 'Erreur lors de la configuration du SSL.';
-                messages.insertBefore(message, messages.firstChild);
-                submitButton.disabled = false;
+                currentStepIndex++;
+                executeNextStep(domain);
+            } else {
+                handleError('Erreur lors de la configuration du SSL.');
             }
         });
+    }
+
+    function installWordPress(domain) {
+        $.post('{{ url_for("install_wordpress_route") }}', {domain: domain}, function(data) {
+            console.log('WordPress installation result:', data);
+            if (data.status === 'installed') {
+                currentStepIndex++;
+                executeNextStep(domain);
+            } else {
+                handleError('Erreur lors de l\'installation de WordPress.');
+            }
+        });
+    }
+
+    function handleError(errorMessage) {
+        var messages = document.getElementById('messages');
+        var message = document.createElement('div');
+        message.className = 'alert alert-danger mt-4';
+        message.innerText = errorMessage;
+        messages.insertBefore(message, messages.firstChild);
+        document.getElementById('submitButton').disabled = false;
     }
 
     document.getElementById('submitButton').addEventListener('click', function() {
@@ -228,4 +222,3 @@
     });
 </script>
 {% endblock %}
-
