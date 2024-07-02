@@ -14,7 +14,6 @@
                         <h5 class="card-title mb-0">{{ site.domain }}</h5>
                         <span class="status-dot {{ 'bg-success' if site.status == 'online' else 'bg-danger' }}"></span>
                     </div>
-                    <p class="card-text text-muted">Dernier déploiement: {{ site.last_deployment or 'N/A' }}</p>
                     <p class="card-text">Articles publiés: {{ site.published_articles }}</p>
                     <p class="card-text">Articles indexés: {{ site.indexed_articles }}</p>
                     <p class="card-text">Pourcentage indexé: {{ site.indexed_percentage }}%</p>

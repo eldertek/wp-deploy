@@ -101,7 +101,9 @@
         { name: 'configureDNS', func: configureDNS },
         { name: 'createNginxConfig', func: createNginxConfig },
         { name: 'setupSSL', func: setupSSL },
-        { name: 'installWordPress', func: installWordPress }
+        { name: 'installWordPress', func: installWordPress },
+        { name: 'initializeGitRepo', func: initializeGitRepo },
+        { name: 'deployStatic', func: deployStatic }
     ];
 
     let currentStepIndex = 0;
@@ -217,6 +219,30 @@
         });
     }
 
+    function initializeGitRepo(domain) {
+        $.post('{{ url_for("initialize_git_repo_route") }}', {domain: domain}, function(data) {
+            console.log('Git repository initialization result:', data);
+            if (data.status === 'initialized') {
+                currentStepIndex++;
+                executeNextStep(domain);
+            } else {
+                handleError('Erreur lors de l\'initialisation du dépôt Git.');
+            }
+        });
+    }
+
+    function deployStatic(domain) {
+        $.post('{{ url_for("deploy_static_route") }}', {domain: domain}, function(data) {
+            console.log('Static deployment result:', data);
+            if (data.status === 'deployed') {
+                currentStepIndex++;
+                executeNextStep(domain);
+            } else {
+                handleError('Erreur lors du déploiement statique.');
+            }
+        });
+    }
+
     function handleError(errorMessage) {
         var messages = document.getElementById('messages');
         var message = document.createElement('div');
@@ -233,3 +259,4 @@
     });
 </script>
 {% endblock %}
+

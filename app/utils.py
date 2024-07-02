@@ -288,17 +288,23 @@ def deploy_static(domain_name):
         run_command(f"rm -rf {static_path}", elevated=True)
     
     # Run Simply Static export
-    run_command(f"wp simply-static run --path={wp_path}")
+    result = run_command(f"wp simply-static run --path={wp_path}")
     
-    # Move the first zip file in static path to the destination and unzip it
-    zip_files = [f for f in os.listdir(static_path) if f.endswith('.zip')]
-    if zip_files:
-        first_zip = zip_files[0]
-        destination_path = f"/opt/websites/{domain_name}"
-        run_command(f"unzip {os.path.join(static_path, first_zip)} -d {destination_path}")
-        
-        # Add, commit, and push changes to the git repository
-        run_command(f"cd {destination_path} && git add . && git commit -m 'Deploy static site' && git push")
-        
-        # Clear the static path
-        run_command(f"rm -rf {static_path}")
+    # Check if the export was successful
+    if "Success: Export Completed" in result:
+        # Move the first zip file in static path to the destination and unzip it
+        zip_files = [f for f in os.listdir(static_path) if f.endswith('.zip')]
+        if zip_files:
+            first_zip = zip_files[0]
+            destination_path = f"/opt/websites/{domain_name}"
+            run_command(f"unzip {os.path.join(static_path, first_zip)} -d {destination_path}")
+            
+            # Add, commit, and push changes to the git repository
+            run_command(f"cd {destination_path} && git add . && git commit -m 'Deploy static site' && git push")
+            
+            # Clear the static path
+            run_command(f"rm -rf {static_path}")
+        else:
+            socketio.emit('error', f'Aucun fichier ZIP trouvé dans {static_path}.')
+    else:
+        socketio.emit('error', 'Erreur lors de l\'exportation Simply Static.')

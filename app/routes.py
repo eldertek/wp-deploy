@@ -2,7 +2,7 @@ from flask import render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_user, login_required, logout_user
 from app import app, login_manager
 from app.models import User, users
-from app.utils import is_domain_owned, is_domain_available, purchase_domain, configure_dns, create_nginx_config, setup_ssl, install_wordpress, generate_wp_login_link, get_published_articles, get_indexed_articles, publish_article
+from app.utils import is_domain_owned, is_domain_available, purchase_domain, configure_dns, create_nginx_config, setup_ssl, install_wordpress, generate_wp_login_link, get_published_articles, get_indexed_articles, publish_article, initialize_git_repo, deploy_static
 from app import socketio
 import json, os
 
@@ -61,7 +61,6 @@ def index():
             site_info = {
                 'domain': domain,
                 'status': 'online',
-                'last_deployment': 'N/A',
                 'published_articles': published_articles,
                 'indexed_articles': indexed_articles,
                 'indexed_percentage': indexed_percentage
@@ -129,6 +128,22 @@ def install_wordpress_route():
     domain_name = request.form['domain']
     if install_wordpress(domain_name):
         return jsonify({'status': 'installed'})
+    return jsonify({'status': 'error'})
+
+@app.route('/initialize_git_repo', methods=['POST'])
+@login_required
+def initialize_git_repo_route():
+    domain_name = request.form['domain']
+    if initialize_git_repo(domain_name):
+        return jsonify({'status': 'initialized'})
+    return jsonify({'status': 'error'})
+
+@app.route('/deploy_static', methods=['POST'])
+@login_required
+def deploy_static_route():
+    domain_name = request.form['domain']
+    if deploy_static(domain_name):
+        return jsonify({'status': 'deployed'})
     return jsonify({'status': 'error'})
 
 @app.route('/editor', methods=['GET', 'POST'])
