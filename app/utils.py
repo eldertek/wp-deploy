@@ -118,8 +118,9 @@ def create_nginx_config(domain_name, force=False):
             os.remove(f"/etc/nginx/sites-enabled/{domain_name}")
         
         os.symlink(config_path, f"/etc/nginx/sites-enabled/{domain_name}")
-        socketio.emit('message', f'Configuration Nginx pour {domain_name} créée.')
         run_command('systemctl reload nginx')
+        socketio.emit('message', f'Configuration Nginx pour {domain_name} créée.')
+        
         return True
     except Exception as e:
         socketio.emit('error', f'Erreur lors de la création de la configuration Nginx pour {domain_name}: {str(e)}')

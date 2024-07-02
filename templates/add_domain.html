@@ -153,8 +153,16 @@
     function createNginxConfig(domain) {
         $.post('{{ url_for("create_nginx_config_route") }}', {domain: domain}, function(data) {
             if (data.status === 'created') {
-                // Nginx config created, set up SSL
-                setupSSL(domain);
+                // Nginx config created and SSL set up, install WordPress
+                installWordPress(domain);
+            } else if (data.status === 'ssl_error') {
+                // Error setting up SSL, show error message
+                var messages = document.getElementById('messages');
+                var message = document.createElement('div');
+                message.className = 'alert alert-danger mt-4';
+                message.innerText = 'Erreur lors de la configuration du SSL.';
+                messages.insertBefore(message, messages.firstChild);
+                submitButton.disabled = false;
             } else if (data.status === 'error') {
                 // Error creating Nginx config, show error message
                 var messages = document.getElementById('messages');
