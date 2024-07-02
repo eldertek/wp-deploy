@@ -16,7 +16,7 @@
                     </div>
                     <p class="card-text text-muted">Dernier déploiement: {{ site.last_deployment or 'N/A' }}</p>
                     <div class="mt-auto">
-                        <a href="#" class="btn btn-outline-primary btn-sm me-2">Backoffice</a>
+                        <a href="{{ url_for('backoffice', domain=site.domain) }}" class="btn btn-outline-primary btn-sm me-2">Backoffice</a>
                         <a href="{{ url_for('editor', site=site.domain) }}" class="btn btn-outline-secondary btn-sm">Rédiger</a>
                     </div>
                 </div>

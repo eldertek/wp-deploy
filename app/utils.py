@@ -187,3 +187,15 @@ def install_wordpress(domain_name, force=False):
     except Exception as e:
         socketio.emit('error', f'Erreur lors de l\'installation de WordPress pour {domain_name}: {str(e)}')
         return False
+
+def generate_wp_login_link(domain_name):
+    wp_path = f"/var/www/{domain_name}"
+    try:
+        command = f"wp user session create admin --path={wp_path} --url=https://bo.{domain_name}"
+        result = run_command(command)
+        if result:
+            login_link = result.strip()
+            return login_link
+    except Exception as e:
+        socketio.emit('error', f'Erreur lors de la génération du lien de connexion automatique pour {domain_name}: {str(e)}')
+    return None

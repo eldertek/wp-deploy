@@ -2,7 +2,7 @@ from flask import render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_user, login_required, logout_user
 from app import app, login_manager
 from app.models import User, users, domains
-from app.utils import is_domain_owned, is_domain_available, purchase_domain, configure_dns, create_nginx_config, setup_ssl, install_wordpress
+from app.utils import is_domain_owned, is_domain_available, purchase_domain, configure_dns, create_nginx_config, setup_ssl, install_wordpress, generate_wp_login_link
 from app import socketio
 import json, os
 
@@ -191,6 +191,16 @@ def confirm_action():
             socketio.emit('error', f'Erreur lors de l\'installation de WordPress pour {domain_name}.')
     
     return '', 204
+
+@app.route('/backoffice/<domain>')
+@login_required
+def backoffice(domain):
+    login_link = generate_wp_login_link(domain)
+    if login_link:
+        return redirect(login_link)
+    else:
+        flash('Erreur lors de la génération du lien de connexion automatique', 'danger')
+        return redirect(url_for('index'))
 
 def publish_article(site, title, content):
     pass
