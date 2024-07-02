@@ -2,6 +2,8 @@ from internetbs import Domain, DNS
 from app import socketio
 import json, os
 import subprocess
+import random
+import string
 
 def load_settings():
     config_path = 'app/config.json'
@@ -133,21 +135,31 @@ def setup_ssl(domain_name):
 
 def install_wordpress(domain_name):
     try:
-        settings = load_settings()
-        mysql_password = settings['mysql_password']
+        unique_db_name = f"wordpress_{domain_name.replace('.', '_')}"
+        unique_db_user = f"wordpress_{domain_name.replace('.', '_')}"
+        unique_db_password = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
         
         # Define the path where WordPress will be installed
         wp_path = f"/var/www/{domain_name}"
         
         # Download WordPress
-        run_command(f"wp core download --allow-root --path={wp_path}")
+        run_command(f"wp core download  --path={wp_path}")
+
+        # Create the database
+        run_command(f"mysql -u root -e 'CREATE DATABASE {unique_db_name};'")
+
+        # Create a unique user for WordPress
+        run_command(f"mysql -u root -e 'CREATE USER {unique_db_user}@localhost IDENTIFIED BY {unique_db_password};'")
+        run_command(f"mysql -u root -e 'GRANT ALL PRIVILEGES ON {unique_db_name}.* TO {unique_db_user}@localhost;'")
+        run_command(f"mysql -u root -e 'FLUSH PRIVILEGES;'")
+
+        socketio.emit('message', f'Base de données WordPress {unique_db_name} créée avec le mot de passe {unique_db_password} pour {unique_db_user}.')
         
         # Create wp-config.php
-        unique_db_name = f"wordpress_{domain_name.replace('.', '_')}"
-        run_command(f"wp config create --allow-root --path={wp_path} --dbname={unique_db_name} --dbuser=root --dbpass={mysql_password} --dbhost=localhost --skip-check")
+        run_command(f"wp config create --path={wp_path} --dbname={unique_db_name} --dbuser={unique_db_user} --dbpass={unique_db_password} --dbhost=localhost --skip-check")
         
         # Install WordPress
-        run_command(f"wp core install --allow-root --path={wp_path} --url=https://{domain_name} --title='My WordPress Site' --admin_user=admin --admin_password=admin_password --admin_email=admin@example.com")
+        run_command(f"wp core install --path={wp_path} --url=https://{domain_name} --title='My WordPress Site' --admin_user=admin --admin_password=admin --admin_email=admin@example.com")
         
         socketio.emit('message', f'WordPress installé pour {domain_name}.')
         return True
