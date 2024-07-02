@@ -204,7 +204,7 @@ def install_wordpress(domain_name, force=False):
         run_command(f"wp core install --path={wp_path} --url=https://bo.{domain_name} --title='{domain_name}' --admin_user=admin --admin_password={unique_db_password} --admin_email={registrant_email} --locale=fr_FR")
 
         # Update wp cli
-        run_command(f"wp cli update --path={wp_path}")
+        run_command(f"wp cli update --path={wp_path}", elevated=True)
 
         # Install WP Login
         run_command(f"wp package install aaemnnosttv/wp-cli-login-command --path={wp_path} --url=https://bo.{domain_name}")
