@@ -181,6 +181,9 @@ def install_wordpress(domain_name, force=False):
         
         # Install WordPress
         run_command(f"wp core install --allow-root --path={wp_path} --url=https://bo.{domain_name} --title='{domain_name}' --admin_user=admin --admin_password={unique_db_password} --admin_email={registrant_email} --locale=fr_FR")
+
+        # Install Companion plugin 
+        run_command(f"wp login install --activate --path={wp_path} --url=https://bo.{domain_name}")
         
         socketio.emit('message', f'WordPress installé pour {domain_name}.')
         return True
@@ -191,10 +194,11 @@ def install_wordpress(domain_name, force=False):
 def generate_wp_login_link(domain_name):
     wp_path = f"/var/www/{domain_name}"
     try:
-        command = f"wp user session create admin --path={wp_path} --url=https://bo.{domain_name}"
+        command = f"wp login create admin --allow-root --path={wp_path} --url=https://bo.{domain_name}"
         result = run_command(command)
         if result:
-            login_link = result.strip()
+            lines = result.strip().split('\n')
+            login_link = lines[2].strip()
             return login_link
     except Exception as e:
         socketio.emit('error', f'Erreur lors de la génération du lien de connexion automatique pour {domain_name}: {str(e)}')
