@@ -111,11 +111,35 @@ def create_nginx_config(domain_name, force=False):
             socketio.emit('confirm', {'message': f'Configuration Nginx pour bo.{domain_name} existe déjà. Voulez-vous continuer ?', 'action': 'create_nginx_config'})
             return False
         
-        with open('../vendor/nginx.conf', 'r') as file:
-            config = file.read().replace('{domain_name}', domain_name)
-            
-        run_command(f"echo '{config}' > {config_path}", elevated=True)
+        # Create a temporary file for the Nginx config
+        temp_config_path = f"/tmp/nginx_config_{domain_name}.conf"
+        with open(temp_config_path, 'w') as temp_config_file:
+            temp_config_file.write(f"""
+            server {{
+                listen 80;
+                server_name bo.{domain_name};
 
+                root /var/www/{domain_name};
+                index index.php index.html index.htm;
+
+                location / {{
+                    try_files $uri $uri/ /index.php?$args;
+                }}
+
+                location ~ \.php$ {{
+                    include snippets/fastcgi-php.conf;
+                    fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+                }}
+
+                location ~ /\.ht {{
+                    deny all;
+                }}
+            }}
+            """)
+
+        # Move the temporary file to the Nginx config directory with elevated privileges
+        run_command(f"mv {temp_config_path} {config_path}", elevated=True)
+        
         if os.path.exists(f"/etc/nginx/sites-enabled/bo.{domain_name}"):
             run_command(f'rm /etc/nginx/sites-enabled/bo.{domain_name}', elevated=True)
         
