@@ -5,6 +5,7 @@ import subprocess
 import random
 import string
 import requests
+from github import Github
 
 def load_settings():
     config_path = 'app/config.json'
@@ -232,3 +233,62 @@ def get_indexed_articles(domain_name):
         data = response.json()
         return data.get('total_results_count', 0)
     return 0
+
+def initialize_git_repo(domain_name):
+    repo_path = f"/opt/websites/{domain_name}"
+    if not os.path.exists(repo_path):
+        os.makedirs(repo_path)
+    
+    # Initialize a local git repository
+    run_command(f"git init {repo_path}")
+    
+    # Create a CNAME file with the domain name
+    cname_path = os.path.join(repo_path, "CNAME")
+    with open(cname_path, 'w') as cname_file:
+        cname_file.write(domain_name)
+    
+    # Add and commit the CNAME file
+    run_command(f"cd {repo_path} && git add CNAME && git commit -m 'Add CNAME file'")
+    
+    # Create a GitHub repository
+    github_token = settings['github_token']
+    g = Github(github_token)
+    user = g.get_user()
+    repo = user.create_repo(domain_name)
+    
+    # Add the remote origin and push the initial commit
+    run_command(f"cd {repo_path} && git remote add origin https://github.com/{user.login}/{domain_name}.git")
+    run_command(f"cd {repo_path} && git push -u origin master")
+    
+    socketio.emit('message', f'Dépôt GitHub {domain_name} créé et initialisé avec un fichier CNAME.')
+
+def deploy_static(domain_name):
+    wp_path = f"/var/www/{domain_name}"
+    static_path = f"{wp_path}/wp-content/uploads/simply-static/temp-files/"
+    
+    if os.path.exists(static_path):
+        run_command(f"rm -rf {static_path}")
+    
+    # Run Simply Static export
+    run_command(f"wp simply-static run --path={wp_path} --allow-root")
+    
+    # Move the first zip file in static path to the destination and unzip it
+    zip_files = [f for f in os.listdir(static_path) if f.endswith('.zip')]
+    if zip_files:
+        first_zip = zip_files[0]
+        destination_path = f"/opt/websites/{domain_name}"
+        run_command(f"unzip {os.path.join(static_path, first_zip)} -d {destination_path}")
+        
+        # Add, commit, and push changes to the git repository
+        run_command(f"cd {destination_path} && git add . && git commit -m 'Deploy static site' && git push")
+        
+        # Clear the static path
+        run_command(f"rm -rf {static_path}")
+
+def run_command(command):
+    try:
+        result = subprocess.run(command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return result.stdout.decode('utf-8')
+    except subprocess.CalledProcessError as e:
+        socketio.emit('error', f'Erreur: {e.stderr.decode("utf-8")}')
+        return None
