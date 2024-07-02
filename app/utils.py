@@ -71,7 +71,7 @@ def configure_dns(domain_name):
     
     for record in dns_records:
         try:
-            dns.remove_record(record['name'], record['type'], record['value'])
+            dns.remove_record(record['name'], record['type'])
         except Exception:
             pass
         try:
