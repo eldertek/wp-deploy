@@ -5,7 +5,7 @@
 {% block content %}
 <div class="card shadow-lg p-4 mb-4 w-100">
     <h1 class="card-title">Rédiger un article</h1>
-    <form method="post">
+    <form method="post" id="articleForm">
         <div class="form-group">
             <label for="site">Site</label>
             <select class="form-control" id="site" name="site" required>
@@ -59,6 +59,12 @@
             message.className = 'alert alert-danger mt-4';
             message.innerText = msg;
             messages.insertBefore(message, messages.firstChild);
+        });
+
+        document.getElementById('articleForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            tinymce.triggerSave(); // Synchronize TinyMCE content with the textarea
+            this.submit();
         });
     </script>
 {% endblock %}
