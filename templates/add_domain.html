@@ -14,6 +14,27 @@
     </form>
 </div>
 <div id="messages"></div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmationModalLabel">Confirmation</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="confirmationMessage">
+                <!-- Message will be inserted here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" id="confirmButton">Continuer</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -35,6 +56,24 @@
         message.className = 'alert alert-danger mt-4';
         message.innerText = msg;
         messages.insertBefore(message, messages.firstChild);
+    });
+
+    socket.on('confirm', function(msg) {
+        $('#confirmationModal').modal('show');
+        $('#confirmationMessage').text(msg);
+    });
+
+    $('#confirmButton').on('click', function() {
+        var action = $('#domainForm').data('action');
+        var domain = $('#domain').val();
+        $.ajax({
+            type: 'POST',
+            url: '{{ url_for("confirm_action") }}',
+            data: {action: action, domain: domain},
+            success: function() {
+                $('#confirmationModal').modal('hide');
+            }
+        });
     });
 
     document.getElementById('domainForm').addEventListener('submit', function(event) {

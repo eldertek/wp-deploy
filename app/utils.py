@@ -84,6 +84,11 @@ def run_command(command):
 
 def create_nginx_config(domain_name):
     try:
+        config_path = f"/etc/nginx/sites-available/{domain_name}"
+        if os.path.exists(config_path):
+            socketio.emit('confirm', f'Configuration Nginx pour {domain_name} existe déjà. Voulez-vous continuer ?')
+            return False
+        
         config = f"""
         server {{
             listen 80;
@@ -106,7 +111,6 @@ def create_nginx_config(domain_name):
             }}
         }}
         """
-        config_path = f"/etc/nginx/sites-available/{domain_name}"
         with open(config_path, 'w') as f:
             f.write(config)
         
@@ -135,13 +139,15 @@ def setup_ssl(domain_name):
 
 def install_wordpress(domain_name):
     try:
+        wp_path = f"/var/www/{domain_name}"
+        if os.path.exists(wp_path):
+            socketio.emit('confirm', f'WordPress est déjà installé pour {domain_name}. Voulez-vous continuer ?')
+            return False
+        
         # Generate random names for the database and user
         unique_db_name = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
         unique_db_user = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
         unique_db_password = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
-        
-        # Define the path where WordPress will be installed
-        wp_path = f"/var/www/{domain_name}"
         
         # Download WordPress
         run_command(f"wp core download --allow-root --path={wp_path}")

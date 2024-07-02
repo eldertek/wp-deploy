@@ -143,6 +143,21 @@ def settings():
         return redirect(url_for('settings'))
     return render_template('settings.html', contacts=settings)
 
+@app.route('/confirm_action', methods=['POST'])
+@login_required
+def confirm_action():
+    action = request.form['action']
+    domain_name = request.form['domain']
+    
+    if action == 'create_nginx_config':
+        if create_nginx_config(domain_name):
+            socketio.emit('message', f'Configuration Nginx pour {domain_name} créée.')
+    elif action == 'install_wordpress':
+        if install_wordpress(domain_name):
+            socketio.emit('message', f'WordPress installé pour {domain_name}.')
+    
+    return '', 204
+
 def publish_article(site, title, content):
     pass
 
