@@ -96,9 +96,7 @@ def configure_dns_route():
 def create_nginx_config_route():
     domain_name = request.form['domain']
     if create_nginx_config(domain_name):
-        if setup_ssl(domain_name):
-            return jsonify({'status': 'created'})
-        return jsonify({'status': 'ssl_error'})
+        return jsonify({'status': 'created'})
     return jsonify({'status': 'error'})
 
 @app.route('/setup_ssl', methods=['POST'])
@@ -179,6 +177,8 @@ def confirm_action():
         if create_nginx_config(domain_name, force=True):
             if not setup_ssl(domain_name):
                 socketio.emit('error', f'Erreur lors de la configuration SSL pour {domain_name}.')
+            else:
+                install_wordpress(domain_name)
     elif action == 'install_wordpress':
         if install_wordpress(domain_name):
             socketio.emit('message', f'WordPress installé pour {domain_name}.')
