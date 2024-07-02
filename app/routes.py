@@ -70,8 +70,6 @@ def add_domain():
                 socketio.emit('message', 'Achat du nom de domaine...OK')
             else:
                 return render_template('add_domain.html')
-        else:
-            return render_template('add_domain.html')
         
         # Step 4: Configure DNS
         if not configure_dns(domain_name, 'A', '51.210.255.66'):

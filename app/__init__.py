@@ -19,4 +19,4 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 from app import routes
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    socketio.run(app, debug=False)
