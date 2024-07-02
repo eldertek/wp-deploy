@@ -183,7 +183,7 @@ def install_wordpress(domain_name, force=False):
         run_command(f"wp core install --allow-root --path={wp_path} --url=https://bo.{domain_name} --title='{domain_name}' --admin_user=admin --admin_password={unique_db_password} --admin_email={registrant_email} --locale=fr_FR")
 
         # Install Companion plugin 
-        run_command(f"wp login install --activate --path={wp_path} --url=https://bo.{domain_name}")
+        run_command(f"wp login install --allow-root --activate --path={wp_path} --url=https://bo.{domain_name}")
         
         socketio.emit('message', f'WordPress installé pour {domain_name}.')
         return True
