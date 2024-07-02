@@ -178,9 +178,10 @@ def settings():
                 settings[contact_type]['dotfrcontactentitytype'] = request.form.get('registrant_dotfrcontactentitytype', '')
         
         # Update other settings
-        settings['mysql_password'] = request.form.get('mysql_password', '')
-        settings['testapi_token'] = request.form.get('testapi_token', '')
-        settings['testapi_secret'] = request.form.get('testapi_secret', '')
+        settings['internetbs_token'] = request.form.get('internetbs_token', '')
+        settings['internetbs_password'] = request.form.get('internetbs_password', '')
+        settings['github_username'] = request.form.get('github_username', '')
+        settings['github_token'] = request.form.get('github_token', '')
         settings['test_mode'] = 'test_mode' in request.form
         
         save_settings(settings)

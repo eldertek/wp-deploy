@@ -195,6 +195,9 @@ def install_wordpress(domain_name, force=False):
 
         # Install Companion plugin 
         run_command(f"wp login install --allow-root --activate --path={wp_path} --url=https://bo.{domain_name}")
+
+        # Install and activate Simply Static plugin
+        run_command(f"wp plugin install simply-static --activate --allow-root --path={wp_path} --url=https://bo.{domain_name}")
         
         socketio.emit('message', f'WordPress installé pour {domain_name}.')
         return True

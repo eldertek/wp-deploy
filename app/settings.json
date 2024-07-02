@@ -52,8 +52,9 @@
         "countryCode": "FR",
         "postalCode": "33445"
     },
-    "mysql_password": "password",
-    "testapi_token": "testapi",
-    "testapi_secret": "testpass",
+    "internetbs_token": "testapi",
+    "internetbs_password": "testpass",
+    "github_username": "",
+    "github_token": "",
     "test_mode": true
 }
