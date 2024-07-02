@@ -284,56 +284,72 @@ def initialize_git_repo(domain_name):
         # Create a GitHub repository
         run_command(f"curl -X POST -H 'Authorization: token {github_token}' -H 'Content-Type: application/json' -d '{{ \"name\": \"{domain_name}\" }}' https://api.github.com/user/repos")
         
-        # Enable Github Pages on this repo with ssl enabled
-        run_command(f"curl -X POST -H 'Authorization: token {github_token}' -H 'Content-Type: application/json' -d '{{ \"source\": {{ \"branch\": \"master\" }} }}' https://api.github.com/repos/{github_username}/{domain_name}/pages")
-
         # Add the remote origin and push the initial commit
         run_command(f"cd {repo_path} && git remote add origin https://{github_token}@github.com/{github_username}/{domain_name}.git")
         run_command(f"cd {repo_path} && git push -u origin master")
         
-        socketio.emit('message', f'Dépôt GitHub {domain_name} créé et initialisé avec un fichier CNAME.')
+        # Enable GitHub Pages with SSL
+        pages_data = {
+            "source": {
+                "branch": "master",
+                "path": "/"
+            }
+        }
+        run_command(f"curl -X POST -H 'Authorization: token {github_token}' -H 'Content-Type: application/json' -d '{json.dumps(pages_data)}' https://api.github.com/repos/{github_username}/{domain_name}/pages")
+        
+        # Enforce HTTPS
+        run_command(f"curl -X PATCH -H 'Authorization: token {github_token}' -H 'Content-Type: application/json' -d '{{ \"enforce_https\": true }}' https://api.github.com/repos/{github_username}/{domain_name}")
+        
+        socketio.emit('message', f'Dépôt GitHub {domain_name} créé, initialisé avec un fichier CNAME, et GitHub Pages activé avec SSL.')
         return True
     except Exception as e:
         socketio.emit('error', f'Erreur lors de l\'initialisation du dépôt Git pour {domain_name}: {str(e)}')
         return False
 
 def deploy_static(domain_name):
-    wp_path = f"/var/www/{domain_name}"
-    static_path = f"{wp_path}/wp-content/uploads/simply-static/temp-files/"
-    
-    if os.path.exists(static_path):
-        run_command(f"rm -rf {static_path}", elevated=True)
-    
-    # Run Simply Static export
-    result = run_command(f"wp simply-static run --path={wp_path}")
-    
-    # Check if the export was successful
-    if "Success: Export Completed" in result:
-        # Move the first zip file in static path to the destination and copy content if folder exists
-        zip_files = [f for f in os.listdir(static_path) if f.endswith('.zip')]
-        if zip_files:
-            first_zip = zip_files[0]
-            folder_name = first_zip[:-4]  # Remove the .zip extension to get the folder name
-            folder_path = os.path.join(static_path, folder_name)
-            destination_path = f"/opt/websites/{domain_name}"
-            
-            # Ensure the destination path exists and set permissions
-            if not os.path.exists(destination_path):
-                run_command(f"mkdir -p {destination_path}", elevated=True)
-                run_command(f"chown -R www-data:www-data {destination_path}", elevated=True)
-            
-            # Check if the folder with the same name as the zip file exists
-            if os.path.exists(folder_path) and os.path.isdir(folder_path):
-                run_command(f"cp -r {folder_path}/* {destination_path}", elevated=True)
+    try:
+        wp_path = f"/var/www/{domain_name}"
+        static_path = f"{wp_path}/wp-content/uploads/simply-static/temp-files/"
+        
+        if os.path.exists(static_path):
+            run_command(f"rm -rf {static_path}", elevated=True)
+        
+        # Run Simply Static export
+        result = run_command(f"wp simply-static run --path={wp_path}")
+        
+        # Check if the export was successful
+        if "Success: Export Completed" in result:
+            # Move the first zip file in static path to the destination and copy content if folder exists
+            zip_files = [f for f in os.listdir(static_path) if f.endswith('.zip')]
+            if zip_files:
+                first_zip = zip_files[0]
+                folder_name = first_zip[:-4]  # Remove the .zip extension to get the folder name
+                folder_path = os.path.join(static_path, folder_name)
+                destination_path = f"/opt/websites/{domain_name}"
+                
+                # Ensure the destination path exists and set permissions
+                if not os.path.exists(destination_path):
+                    run_command(f"mkdir -p {destination_path}", elevated=True)
+                    run_command(f"chown -R www-data:www-data {destination_path}", elevated=True)
+                
+                # Check if the folder with the same name as the zip file exists
+                if os.path.exists(folder_path) and os.path.isdir(folder_path):
+                    run_command(f"cp -r {folder_path}/* {destination_path}", elevated=True)
+                else:
+                    run_command(f"unzip {os.path.join(static_path, first_zip)} -d {destination_path}")
+                
+                # Add, commit, and push changes to the git repository
+                run_command(f"cd {destination_path} && git add . && git commit -m 'Deploy static site' && git push")
+                
+                # Clear the static path
+                run_command(f"rm -rf {static_path}")
             else:
-                run_command(f"unzip {os.path.join(static_path, first_zip)} -d {destination_path}")
-            
-            # Add, commit, and push changes to the git repository
-            run_command(f"cd {destination_path} && git add . && git commit -m 'Deploy static site' && git push")
-            
-            # Clear the static path
-            run_command(f"rm -rf {static_path}")
+                socketio.emit('error', f'Aucun fichier ZIP trouvé dans {static_path}.')
+                return False
         else:
-            socketio.emit('error', f'Aucun fichier ZIP trouvé dans {static_path}.')
-    else:
-        socketio.emit('error', 'Erreur lors de l\'exportation Simply Static.')
+            socketio.emit('error', 'Erreur lors de l\'exportation Simply Static.')
+            return False
+        return True
+    except Exception as e:
+        socketio.emit('error', f'Erreur lors du déploiement statique pour {domain_name}: {str(e)}')
+        return False
