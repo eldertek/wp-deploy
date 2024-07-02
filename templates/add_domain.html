@@ -86,6 +86,7 @@
             contentType: 'application/json',
             success: function() {
                 console.log('Confirmation action successful');
+                $('#confirmButton').prop('disabled', false);
                 $('#confirmationModal').modal('hide');
                 currentStepIndex = step + 1;
                 executeNextStep(domain);
