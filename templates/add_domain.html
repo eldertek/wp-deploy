@@ -82,9 +82,35 @@
             success: function() {
                 console.log('Confirmation action successful');
                 $('#confirmationModal').modal('hide');
+                if (action === 'create_nginx_config') {
+                    installWordPress(domain);
+                }
             }
         });
     });
+
+    function installWordPress(domain) {
+        console.log('Installing WordPress for:', domain);
+        $.post('{{ url_for("install_wordpress_route") }}', {domain: domain}, function(data) {
+            console.log('WordPress installation result:', data);
+            if (data.status === 'installed') {
+                var messages = document.getElementById('messages');
+                var message = document.createElement('div');
+                message.className = 'alert alert-success mt-4';
+                message.innerText = 'Le domaine ' + domain + ' a été ajouté avec succès.';
+                messages.insertBefore(message, messages.firstChild);
+                submitButton.disabled = false;
+                document.getElementById('domain').value = '';
+            } else if (data.status === 'error') {
+                var messages = document.getElementById('messages');
+                var message = document.createElement('div');
+                message.className = 'alert alert-danger mt-4';
+                message.innerText = 'Erreur lors de l\'installation de WordPress.';
+                messages.insertBefore(message, messages.firstChild);
+                submitButton.disabled = false;
+            }
+        });
+    }
 
     document.getElementById('domainForm').addEventListener('submit', function(event) {
         event.preventDefault();
@@ -193,29 +219,6 @@
                 var message = document.createElement('div');
                 message.className = 'alert alert-danger mt-4';
                 message.innerText = 'Erreur lors de la configuration du SSL.';
-                messages.insertBefore(message, messages.firstChild);
-                submitButton.disabled = false;
-            }
-        });
-    }
-
-    function installWordPress(domain) {
-        console.log('Installing WordPress for:', domain);
-        $.post('{{ url_for("install_wordpress_route") }}', {domain: domain}, function(data) {
-            console.log('WordPress installation result:', data);
-            if (data.status === 'installed') {
-                var messages = document.getElementById('messages');
-                var message = document.createElement('div');
-                message.className = 'alert alert-success mt-4';
-                message.innerText = 'Le domaine ' + domain + ' a été ajouté avec succès.';
-                messages.insertBefore(message, messages.firstChild);
-                submitButton.disabled = false;
-                document.getElementById('domain').value = '';
-            } else if (data.status === 'error') {
-                var messages = document.getElementById('messages');
-                var message = document.createElement('div');
-                message.className = 'alert alert-danger mt-4';
-                message.innerText = 'Erreur lors de l\'installation de WordPress.';
                 messages.insertBefore(message, messages.firstChild);
                 submitButton.disabled = false;
             }
