@@ -211,14 +211,12 @@ def install_wordpress(domain_name, force=False):
 
         # Install Companion plugin 
         run_command(f"wp login install --activate --path={wp_path} --url=https://bo.{domain_name}")
-        # log where is the current working dir so i know which path for ssp.zip
-        socketio.emit('message', f'Current working directory: {os.getcwd()}')
 
         # Install and activate Simply Static
         run_command(f"wp plugin install simply-static --activate --path={wp_path} --url=https://bo.{domain_name}")
 
         # Install and activate Simply Static Pro
-        run_command(f"wp plugin install ../vendor/ssp.zip --activate --path={wp_path} --url=https://bo.{domain_name}")
+        run_command(f"wp plugin install ./vendor/ssp.zip --activate --path={wp_path} --url=https://bo.{domain_name}")
 
         socketio.emit('message', f'WordPress installé pour {domain_name}.')
         return True
