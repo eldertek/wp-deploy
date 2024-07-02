@@ -90,13 +90,8 @@
     function checkDomainOwnership(domain) {
         $.post('{{ url_for("check_domain_ownership") }}', {domain: domain}, function(data) {
             if (data.status === 'owned') {
-                // Domain is already owned, show error message
-                var messages = document.getElementById('messages');
-                var message = document.createElement('div');
-                message.className = 'alert alert-danger mt-4';
-                message.innerText = 'Le domaine est déjà enregistré.';
-                messages.insertBefore(message, messages.firstChild);
-                submitButton.disabled = false;
+                // Domain is already owned, configure dns
+                configureDNS(domain);
             } else if (data.status === 'not_owned') {
                 // Domain is not owned, check availability
                 checkDomainAvailability(domain);
