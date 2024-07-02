@@ -122,7 +122,7 @@
     }
 
     function purchaseDomain(domain) {
-        $.post('{{ url_for("purchase_domain") }}', {domain: domain}, function(data) {
+        $.post('{{ url_for("purchase_domain_route") }}', {domain: domain}, function(data) {
             if (data.status === 'purchased') {
                 // Domain purchased, configure DNS
                 configureDNS(domain);
