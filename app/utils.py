@@ -113,7 +113,7 @@ def create_nginx_config(domain_name):
         
         os.symlink(config_path, f"/etc/nginx/sites-enabled/{domain_name}")
         socketio.emit('message', f'Configuration Nginx pour {domain_name} créée.')
-        run_command('sudo systemctl reload nginx')
+        run_command('systemctl reload nginx')
         return True
     except Exception as e:
         socketio.emit('error', f'Erreur lors de la création de la configuration Nginx pour {domain_name}: {str(e)}')
@@ -124,7 +124,7 @@ def setup_ssl(domain_name):
         settings = load_settings()
         registrant_email = settings['registrant']['email']
         # Install Certbot and obtain SSL certificate
-        run_command(f"sudo certbot --nginx -d {domain_name} --non-interactive --agree-tos -m {registrant_email}")
+        run_command(f"certbot --nginx -d {domain_name} --non-interactive --agree-tos -m {registrant_email}")
         socketio.emit('message', f'SSL configuré pour {domain_name}.')
         return True
     except Exception as e:
@@ -140,14 +140,14 @@ def install_wordpress(domain_name):
         wp_path = f"/var/www/{domain_name}"
         
         # Download WordPress
-        run_command(f"sudo wp core download --path={wp_path}")
+        run_command(f"wp core download --path={wp_path}")
         
         # Create wp-config.php
         unique_db_name = f"wordpress_{domain_name.replace('.', '_')}"
-        run_command(f"sudo wp config create --path={wp_path} --dbname={unique_db_name} --dbuser=root --dbpass={mysql_password} --dbhost=localhost --skip-check")
+        run_command(f"wp config create --path={wp_path} --dbname={unique_db_name} --dbuser=root --dbpass={mysql_password} --dbhost=localhost --skip-check")
         
         # Install WordPress
-        run_command(f"sudo wp core install --path={wp_path} --url=https://{domain_name} --title='My WordPress Site' --admin_user=admin --admin_password=admin_password --admin_email=admin@example.com")
+        run_command(f"wp core install --path={wp_path} --url=https://{domain_name} --title='My WordPress Site' --admin_user=admin --admin_password=admin_password --admin_email=admin@example.com")
         
         socketio.emit('message', f'WordPress installé pour {domain_name}.')
         return True
