@@ -2,8 +2,6 @@ from flask_login import UserMixin
 
 # In-memory storage for simplicity
 users = {'admin': {'password': 'password'}}
-domains = []
-articles = []
 
 class User(UserMixin):
     def __init__(self, id):

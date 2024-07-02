@@ -10,7 +10,7 @@
             <label for="site">Site</label>
             <select class="form-control" id="site" name="site" required>
                 {% for domain in domains %}
-                    <option value="{{ domain }}">{{ domain }}</option>
+                    <option value="{{ domain }}" {% if domain == selected_site %}selected{% endif %}>{{ domain }}</option>
                 {% endfor %}
             </select>
         </div>

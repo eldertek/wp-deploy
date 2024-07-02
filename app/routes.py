@@ -1,7 +1,7 @@
 from flask import render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_user, login_required, logout_user
 from app import app, login_manager
-from app.models import User, users, domains
+from app.models import User, users
 from app.utils import is_domain_owned, is_domain_available, purchase_domain, configure_dns, create_nginx_config, setup_ssl, install_wordpress, generate_wp_login_link, get_published_articles, get_indexed_articles
 from app import socketio
 import json, os
@@ -134,13 +134,25 @@ def install_wordpress_route():
 @app.route('/editor', methods=['GET', 'POST'])
 @login_required
 def editor():
+    domains = [domain for domain in os.listdir('/var/www/') if os.path.isdir(os.path.join('/var/www/', domain))]
+    
     if request.method == 'POST':
         site = request.form['site']
         title = request.form['title']
         content = request.form['content']
-        publish_article(site, title, content)
+        if site in domains:
+            publish_article(site, title, content)
+            return redirect(url_for('index'))
+        else:
+            flash('Site invalide', 'danger')
+            return redirect(url_for('editor'))
+    
+    selected_site = request.args.get('site')
+    if selected_site and selected_site not in domains:
+        flash('Site invalide', 'danger')
         return redirect(url_for('index'))
-    return render_template('editor.html', domains=domains)
+    
+    return render_template('editor.html', domains=domains, selected_site=selected_site)
 
 @app.route('/dashboard')
 @login_required
