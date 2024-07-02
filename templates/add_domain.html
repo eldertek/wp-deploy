@@ -132,9 +132,11 @@
             console.log('Domain ownership check result:', data);
             if (data.status === 'owned') {
                 currentStepIndex = steps.findIndex(step => step.name === 'configureDNS');
+                executeNextStep(domain);
+            } else {
+                currentStepIndex++;
+                executeNextStep(domain);
             }
-            currentStepIndex++;
-            executeNextStep(domain);
         });
     }
 
