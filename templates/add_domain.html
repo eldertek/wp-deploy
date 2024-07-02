@@ -88,7 +88,7 @@
     });
 
     function checkDomainOwnership(domain) {
-        $.post('{{ url_for("check_domain_ownership") }}', {domain: domain}, function(data) {
+        $.post('{{ url_for("check_domain_ownership_route") }}', {domain: domain}, function(data) {
             if (data.status === 'owned') {
                 // Domain is already owned, show error message
                 var messages = document.getElementById('messages');
@@ -105,7 +105,7 @@
     }
 
     function checkDomainAvailability(domain) {
-        $.post('{{ url_for("check_domain_availability") }}', {domain: domain}, function(data) {
+        $.post('{{ url_for("check_domain_availability_route") }}', {domain: domain}, function(data) {
             if (data.status === 'available') {
                 // Domain is available, purchase it
                 purchaseDomain(domain);
@@ -139,7 +139,7 @@
     }
 
     function configureDNS(domain) {
-        $.post('{{ url_for("configure_dns") }}', {domain: domain}, function(data) {
+        $.post('{{ url_for("configure_dns_route") }}', {domain: domain}, function(data) {
             if (data.status === 'configured') {
                 // DNS configured, create Nginx config
                 createNginxConfig(domain);
@@ -156,7 +156,7 @@
     }
 
     function createNginxConfig(domain) {
-        $.post('{{ url_for("create_nginx_config") }}', {domain: domain}, function(data) {
+        $.post('{{ url_for("create_nginx_config_route") }}', {domain: domain}, function(data) {
             if (data.status === 'created') {
                 // Nginx config created, set up SSL
                 setupSSL(domain);
@@ -173,7 +173,7 @@
     }
 
     function setupSSL(domain) {
-        $.post('{{ url_for("setup_ssl") }}', {domain: domain}, function(data) {
+        $.post('{{ url_for("setup_ssl_route") }}', {domain: domain}, function(data) {
             if (data.status === 'setup') {
                 // SSL set up, install WordPress
                 installWordPress(domain);
@@ -190,7 +190,7 @@
     }
 
     function installWordPress(domain) {
-        $.post('{{ url_for("install_wordpress") }}', {domain: domain}, function(data) {
+        $.post('{{ url_for("install_wordpress_route") }}', {domain: domain}, function(data) {
             if (data.status === 'installed') {
                 // WordPress installed, show success message
                 var messages = document.getElementById('messages');
