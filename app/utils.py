@@ -164,7 +164,7 @@ def install_wordpress(domain_name, force=False):
         registrant_email = settings['registrant']['email']
         
         # Download WordPress
-        run_command(f"wp core download --allow-root --path={wp_path}")
+        run_command(f"wp core download --allow-root --path={wp_path} --locale=fr_FR")
 
         # Create the database
         run_command(f"mysql -u root -e 'CREATE DATABASE {unique_db_name};'")
@@ -180,7 +180,7 @@ def install_wordpress(domain_name, force=False):
         run_command(f"wp config create --allow-root --path={wp_path} --dbname={unique_db_name} --dbuser=wp_{unique_db_user} --dbpass={unique_db_password} --dbhost=localhost --skip-check")
         
         # Install WordPress
-        run_command(f"wp core install --allow-root --path={wp_path} --url=https://bo.{domain_name} --title='{domain_name}' --admin_user=admin --admin_password={unique_db_password} --admin_email={registrant_email}")
+        run_command(f"wp core install --allow-root --path={wp_path} --url=https://bo.{domain_name} --title='{domain_name}' --admin_user=admin --admin_password={unique_db_password} --admin_email={registrant_email} --locale=fr_FR")
         
         socketio.emit('message', f'WordPress installé pour {domain_name}.')
         return True
