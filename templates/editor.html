@@ -34,6 +34,7 @@
         tinymce.init({
             selector: '#content',
             language: 'fr_FR',
+            licence_key: 'gpl',
             language_url: "{{ url_for('static', filename='tinymce/langs/fr_FR.js') }}"
         });
     </script>
@@ -63,7 +64,7 @@
 
         document.getElementById('articleForm').addEventListener('submit', function(event) {
             event.preventDefault();
-            tinymce.triggerSave(); // Synchronize TinyMCE content with the textarea
+            tinymce.triggerSave();
             this.submit();
         });
     </script>
