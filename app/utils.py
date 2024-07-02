@@ -4,6 +4,7 @@ import json, os
 import subprocess
 import random
 import string
+import requests
 
 def load_settings():
     config_path = 'app/config.json'
@@ -203,3 +204,18 @@ def generate_wp_login_link(domain_name):
     except Exception as e:
         socketio.emit('error', f'Erreur lors de la génération du lien de connexion automatique pour {domain_name}: {str(e)}')
     return None
+
+def get_published_articles(domain_name):
+    wp_path = f"/var/www/{domain_name}"
+    command = f"wp post list --post_type=post --format=count --allow-root --path={wp_path}"
+    result = run_command(command)
+    return int(result.strip()) if result else 0
+
+def get_indexed_articles(domain_name):
+    api_key = '33cef647-1f76-4604-927d-e7f0d5b93205'
+    url = f"https://api.spaceserp.com/google/search?apiKey={api_key}&q=site%3A{domain_name}&location=Lyon%2CAuvergne-Rhone-Alpes%2CFrance&domain=google.fr&gl=fr&hl=fr&resultFormat=json&resultBlocks=total_results_count"
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        return data.get('total_results_count', 0)
+    return 0

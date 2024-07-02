@@ -2,7 +2,7 @@ from flask import render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_user, login_required, logout_user
 from app import app, login_manager
 from app.models import User, users, domains
-from app.utils import is_domain_owned, is_domain_available, purchase_domain, configure_dns, create_nginx_config, setup_ssl, install_wordpress, generate_wp_login_link
+from app.utils import is_domain_owned, is_domain_available, purchase_domain, configure_dns, create_nginx_config, setup_ssl, install_wordpress, generate_wp_login_link, get_published_articles, get_indexed_articles
 from app import socketio
 import json, os
 
@@ -55,10 +55,16 @@ def index():
     sites = []
     for domain in os.listdir('/var/www/'):
         if os.path.isdir(os.path.join('/var/www/', domain)):
+            published_articles = get_published_articles(domain)
+            indexed_articles = get_indexed_articles(domain)
+            indexed_percentage = (indexed_articles / published_articles * 100) if published_articles > 0 else 0
             site_info = {
                 'domain': domain,
                 'status': 'online',
                 'last_deployment': 'N/A',
+                'published_articles': published_articles,
+                'indexed_articles': indexed_articles,
+                'indexed_percentage': indexed_percentage
             }
             sites.append(site_info)
     
