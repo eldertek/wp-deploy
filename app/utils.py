@@ -141,9 +141,12 @@ def setup_ssl(domain_name):
 def install_wordpress(domain_name, force=False):
     try:
         wp_path = f"/var/www/{domain_name}"
-        if os.path.exists(wp_path) and not force:
-            socketio.emit('confirm', {'message': f'WordPress est déjà installé pour {domain_name}. Voulez-vous continuer ?', 'action': 'install_wordpress'})
-            return False
+        if os.path.exists(wp_path):
+            if not force:
+                socketio.emit('confirm', {'message': f'WordPress est déjà installé pour {domain_name}. Voulez-vous continuer ?', 'action': 'install_wordpress'})
+                return False
+            else:
+                run_command(f"rm -rf {wp_path}")
         
         # Generate random names for the database and user
         unique_db_name = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
@@ -157,14 +160,14 @@ def install_wordpress(domain_name, force=False):
         run_command(f"mysql -u root -e 'CREATE DATABASE {unique_db_name};'")
 
         # Create a unique user for WordPress
-        run_command(f"mysql -u root -e 'CREATE USER {unique_db_user}@localhost IDENTIFIED BY \"{unique_db_password}\";'")
-        run_command(f"mysql -u root -e 'GRANT ALL PRIVILEGES ON {unique_db_name}.* TO {unique_db_user}@localhost;'")
+        run_command(f"mysql -u root -e 'CREATE USER wp_{unique_db_user}@localhost IDENTIFIED BY \"{unique_db_password}\";'")
+        run_command(f"mysql -u root -e 'GRANT ALL PRIVILEGES ON {unique_db_name}.* TO wp_{unique_db_user}@localhost;'")
         run_command(f"mysql -u root -e 'FLUSH PRIVILEGES;'")
 
-        socketio.emit('message', f'Base de données WordPress {unique_db_name} créée avec le mot de passe {unique_db_password} pour {unique_db_user}.')
+        socketio.emit('message', f'Base de données WordPress {unique_db_name} créée avec le mot de passe {unique_db_password} pour wp_{unique_db_user}.')
         
         # Create wp-config.php
-        run_command(f"wp config create --allow-root --path={wp_path} --dbname={unique_db_name} --dbuser={unique_db_user} --dbpass={unique_db_password} --dbhost=localhost --skip-check")
+        run_command(f"wp config create --allow-root --path={wp_path} --dbname={unique_db_name} --dbuser=wp_{unique_db_user} --dbpass={unique_db_password} --dbhost=localhost --skip-check")
         
         # Install WordPress
         run_command(f"wp core install --allow-root --path={wp_path} --url=https://{domain_name} --title='My WordPress Site' --admin_user=admin --admin_password=admin --admin_email=admin@example.com")
