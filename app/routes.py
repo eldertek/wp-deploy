@@ -65,21 +65,31 @@ def add_domain():
             # Step 2: Check domain availability
             if is_domain_available(domain_name):
                 # Step 3: Purchase domain
-                purchase_domain(domain_name, load_settings())
+                if not purchase_domain(domain_name, load_settings()):
+                    return render_template('add_domain.html')
                 socketio.emit('message', 'Achat du nom de domaine...OK')
-            
+            else:
+                return render_template('add_domain.html')
+        else:
+            return render_template('add_domain.html')
+        
         # Step 4: Configure DNS
-        configure_dns(domain_name, 'A', '51.210.255.66')
-        configure_dns(domain_name, 'AAAA', '2001:41d0:304:200::5ec6')
+        if not configure_dns(domain_name, 'A', '51.210.255.66'):
+            return render_template('add_domain.html')
+        if not configure_dns(domain_name, 'AAAA', '2001:41d0:304:200::5ec6'):
+            return render_template('add_domain.html')
             
         # Step 5: Create Nginx configuration
-        create_nginx_config(domain_name)
+        if not create_nginx_config(domain_name):
+            return render_template('add_domain.html')
             
         # Step 6: Setup SSL
-        setup_ssl(domain_name)
+        if not setup_ssl(domain_name):
+            return render_template('add_domain.html')
             
         # Step 7: Install WordPress
-        install_wordpress(domain_name)
+        if not install_wordpress(domain_name):
+            return render_template('add_domain.html')
             
         socketio.emit('message', "L'installation est terminée")
     return render_template('add_domain.html')
@@ -140,5 +150,3 @@ def publish_article(site, title, content):
 
 def check_sites_status():
     return [{'domain': domain, 'status': 'online', 'last_deployment': '2023-10-01'} for domain in domains]
-
-

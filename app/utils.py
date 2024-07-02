@@ -81,61 +81,76 @@ def run_command(command):
         return None
 
 def create_nginx_config(domain_name):
-    config = f"""
-    server {{
-        listen 80;
-        server_name {domain_name};
+    try:
+        config = f"""
+        server {{
+            listen 80;
+            server_name {domain_name};
 
-        root /var/www/{domain_name};
-        index index.php index.html index.htm;
+            root /var/www/{domain_name};
+            index index.php index.html index.htm;
 
-        location / {{
-            try_files $uri $uri/ /index.php?$args;
+            location / {{
+                try_files $uri $uri/ /index.php?$args;
+            }}
+
+            location ~ \.php$ {{
+                include snippets/fastcgi-php.conf;
+                fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+            }}
+
+            location ~ /\.ht {{
+                deny all;
+            }}
         }}
-
-        location ~ \.php$ {{
-            include snippets/fastcgi-php.conf;
-            fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
-        }}
-
-        location ~ /\.ht {{
-            deny all;
-        }}
-    }}
-    """
-    config_path = f"/etc/nginx/sites-available/{domain_name}"
-    with open(config_path, 'w') as f:
-        f.write(config)
-    
-    if os.path.exists(f"/etc/nginx/sites-enabled/{domain_name}"):
-        os.remove(f"/etc/nginx/sites-enabled/{domain_name}")
-    
-    os.symlink(config_path, f"/etc/nginx/sites-enabled/{domain_name}")
-    socketio.emit('message', f'Configuration Nginx pour {domain_name} créée.')
-    run_command('sudo systemctl reload nginx')
+        """
+        config_path = f"/etc/nginx/sites-available/{domain_name}"
+        with open(config_path, 'w') as f:
+            f.write(config)
+        
+        if os.path.exists(f"/etc/nginx/sites-enabled/{domain_name}"):
+            os.remove(f"/etc/nginx/sites-enabled/{domain_name}")
+        
+        os.symlink(config_path, f"/etc/nginx/sites-enabled/{domain_name}")
+        socketio.emit('message', f'Configuration Nginx pour {domain_name} créée.')
+        run_command('sudo systemctl reload nginx')
+        return True
+    except Exception as e:
+        socketio.emit('error', f'Erreur lors de la création de la configuration Nginx pour {domain_name}: {str(e)}')
+        return False
 
 def setup_ssl(domain_name):
-    settings = load_settings()
-    registrant_email = settings['registrant']['email']
-    # Install Certbot and obtain SSL certificate
-    run_command(f"sudo certbot --nginx -d {domain_name} --non-interactive --agree-tos -m {registrant_email}")
-    socketio.emit('message', f'SSL configuré pour {domain_name}.')
+    try:
+        settings = load_settings()
+        registrant_email = settings['registrant']['email']
+        # Install Certbot and obtain SSL certificate
+        run_command(f"sudo certbot --nginx -d {domain_name} --non-interactive --agree-tos -m {registrant_email}")
+        socketio.emit('message', f'SSL configuré pour {domain_name}.')
+        return True
+    except Exception as e:
+        socketio.emit('error', f'Erreur lors de la configuration SSL pour {domain_name}: {str(e)}')
+        return False
 
 def install_wordpress(domain_name):
-    settings = load_settings()
-    mysql_password = settings['mysql_password']
-    
-    # Define the path where WordPress will be installed
-    wp_path = f"/var/www/{domain_name}"
-    
-    # Download WordPress
-    run_command(f"sudo wp core download --path={wp_path}")
-    
-    # Create wp-config.php
-    unique_db_name = f"wordpress_{domain_name.replace('.', '_')}"
-    run_command(f"sudo wp config create --path={wp_path} --dbname={unique_db_name} --dbuser=root --dbpass={mysql_password} --dbhost=localhost --skip-check")
-    
-    # Install WordPress
-    run_command(f"sudo wp core install --path={wp_path} --url=https://{domain_name} --title='My WordPress Site' --admin_user=admin --admin_password=admin_password --admin_email=admin@example.com")
-    
-    socketio.emit('message', f'WordPress installé pour {domain_name}.')
+    try:
+        settings = load_settings()
+        mysql_password = settings['mysql_password']
+        
+        # Define the path where WordPress will be installed
+        wp_path = f"/var/www/{domain_name}"
+        
+        # Download WordPress
+        run_command(f"sudo wp core download --path={wp_path}")
+        
+        # Create wp-config.php
+        unique_db_name = f"wordpress_{domain_name.replace('.', '_')}"
+        run_command(f"sudo wp config create --path={wp_path} --dbname={unique_db_name} --dbuser=root --dbpass={mysql_password} --dbhost=localhost --skip-check")
+        
+        # Install WordPress
+        run_command(f"sudo wp core install --path={wp_path} --url=https://{domain_name} --title='My WordPress Site' --admin_user=admin --admin_password=admin_password --admin_email=admin@example.com")
+        
+        socketio.emit('message', f'WordPress installé pour {domain_name}.')
+        return True
+    except Exception as e:
+        socketio.emit('error', f'Erreur lors de l\'installation de WordPress pour {domain_name}: {str(e)}')
+        return False
