@@ -138,7 +138,7 @@ def create_nginx_config(domain_name, force=False):
             os.remove(f"/etc/nginx/sites-enabled/bo.{domain_name}")
         
         os.symlink(config_path, f"/etc/nginx/sites-enabled/bo.{domain_name}")
-        run_command('systemctl reload nginx')
+        run_command('sudo systemctl reload nginx')
         socketio.emit('message', f'Configuration Nginx pour bo.{domain_name} créée.')
         
         return True
@@ -151,7 +151,7 @@ def setup_ssl(domain_name):
         settings = load_settings()
         registrant_email = settings['registrant']['email']
         # Install Certbot and obtain SSL certificate
-        run_command(f"certbot --nginx  -d bo.{domain_name} --non-interactive --agree-tos -m {registrant_email}")
+        run_command(f"sudo certbot --nginx  -d bo.{domain_name} --non-interactive --agree-tos -m {registrant_email}")
         socketio.emit('message', f'SSL configuré pour bo.{domain_name}.')
         return True
     except Exception as e:
@@ -167,7 +167,7 @@ def install_wordpress(domain_name, force=False):
                 socketio.emit('confirm', {'message': f'WordPress est déjà installé pour {domain_name}. Voulez-vous continuer ?', 'action': 'install_wordpress'})
                 return False
             else:
-                run_command(f"rm -rf {wp_path}")
+                run_command(f"sudo rm -rf {wp_path}")
         
         # Generate random names for the database and user
         unique_db_name = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
@@ -176,32 +176,32 @@ def install_wordpress(domain_name, force=False):
         registrant_email = settings['registrant']['email']
         
         # Download WordPress
-        run_command(f"wp core download --allow-root --path={wp_path} --locale=fr_FR")
+        run_command(f"wp core download --path={wp_path} --locale=fr_FR")
 
         # Create the database
-        run_command(f"mysql -u root -e 'CREATE DATABASE {unique_db_name};'")
+        run_command(f"sudo mysql -u root -e 'CREATE DATABASE {unique_db_name};'")
 
         # Create a unique user for WordPress
-        run_command(f"mysql -u root -e 'CREATE USER wp_{unique_db_user}@localhost IDENTIFIED BY \"{unique_db_password}\";'")
-        run_command(f"mysql -u root -e 'GRANT ALL PRIVILEGES ON {unique_db_name}.* TO wp_{unique_db_user}@localhost;'")
-        run_command(f"mysql -u root -e 'FLUSH PRIVILEGES;'")
+        run_command(f"sudo mysql -u root -e 'CREATE USER wp_{unique_db_user}@localhost IDENTIFIED BY \"{unique_db_password}\";'")
+        run_command(f"sudo mysql -u root -e 'GRANT ALL PRIVILEGES ON {unique_db_name}.* TO wp_{unique_db_user}@localhost;'")
+        run_command(f"sudo mysql -u root -e 'FLUSH PRIVILEGES;'")
 
         socketio.emit('message', f'Base de données WordPress {unique_db_name} créée avec le mot de passe {unique_db_password} pour wp_{unique_db_user}.')
         
         # Create wp-config.php
-        run_command(f"wp config create --allow-root --path={wp_path} --dbname={unique_db_name} --dbuser=wp_{unique_db_user} --dbpass={unique_db_password} --dbhost=localhost --skip-check")
+        run_command(f"wp config create --path={wp_path} --dbname={unique_db_name} --dbuser=wp_{unique_db_user} --dbpass={unique_db_password} --dbhost=localhost --skip-check")
         
         # Install WordPress
-        run_command(f"wp core install --allow-root --path={wp_path} --url=https://bo.{domain_name} --title='{domain_name}' --admin_user=admin --admin_password={unique_db_password} --admin_email={registrant_email} --locale=fr_FR")
+        run_command(f"wp core install --path={wp_path} --url=https://bo.{domain_name} --title='{domain_name}' --admin_user=admin --admin_password={unique_db_password} --admin_email={registrant_email} --locale=fr_FR")
 
         # Install Companion plugin 
-        run_command(f"wp login install --allow-root --activate --path={wp_path} --url=https://bo.{domain_name}")
+        run_command(f"wp login install --activate --path={wp_path} --url=https://bo.{domain_name}")
 
         # Install and activate Simply Static
-        run_command(f"wp plugin install simply-static --activate --allow-root --path={wp_path} --url=https://bo.{domain_name}")
+        run_command(f"wp plugin install simply-static --activate --path={wp_path} --url=https://bo.{domain_name}")
 
         # Install and activate Simply Static Pro
-        run_command(f"wp plugin install vendor/ssp.zip --activate --allow-root --path={wp_path} --url=https://bo.{domain_name}")
+        run_command(f"wp plugin install vendor/ssp.zip --activate --path={wp_path} --url=https://bo.{domain_name}")
 
         socketio.emit('message', f'WordPress installé pour {domain_name}.')
         return True
@@ -212,7 +212,7 @@ def install_wordpress(domain_name, force=False):
 def generate_wp_login_link(domain_name):
     wp_path = f"/var/www/{domain_name}"
     try:
-        command = f"wp login create admin --allow-root --path={wp_path} --url=https://bo.{domain_name}"
+        command = f"wp login create admin --path={wp_path} --url=https://bo.{domain_name}"
         result = run_command(command)
         if result:
             lines = result.strip().split('\n')
@@ -224,7 +224,7 @@ def generate_wp_login_link(domain_name):
 
 def get_published_articles(domain_name):
     wp_path = f"/var/www/{domain_name}"
-    command = f"wp post list --post_type=post --format=count --allow-root --path={wp_path}"
+    command = f"wp post list --post_type=post --format=count --path={wp_path}"
     result = run_command(command)
     return int(result.strip()) if result else 0
 
@@ -270,10 +270,10 @@ def deploy_static(domain_name):
     static_path = f"{wp_path}/wp-content/uploads/simply-static/temp-files/"
     
     if os.path.exists(static_path):
-        run_command(f"rm -rf {static_path}")
+        run_command(f"sudo rm -rf {static_path}")
     
     # Run Simply Static export
-    run_command(f"wp simply-static run --path={wp_path} --allow-root")
+    run_command(f"wp simply-static run --path={wp_path}")
     
     # Move the first zip file in static path to the destination and unzip it
     zip_files = [f for f in os.listdir(static_path) if f.endswith('.zip')]

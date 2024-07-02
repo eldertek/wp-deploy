@@ -75,6 +75,10 @@
         var domain = $('#domain').val();
         var step = $(this).data('step');
         console.log('Confirm button clicked with action:', action, 'domain:', domain, 'and step:', step);
+        
+        // Disable the confirm button to prevent multiple clicks
+        $(this).prop('disabled', true);
+
         $.ajax({
             type: 'POST',
             url: '{{ url_for("confirm_action") }}',
