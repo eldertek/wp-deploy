@@ -29,8 +29,8 @@ def save_settings(settings):
 
 # Load settings
 settings = load_settings()
-api_key = settings['testapi_token']
-password = settings['testapi_secret']
+api_key = settings['internetbs_token']
+password = settings['internetbs_password']
 test_mode = settings['test_mode']
 
 domain = Domain(api_key, password, test_mode)
