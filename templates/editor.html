@@ -5,7 +5,7 @@
 {% block content %}
 <div class="card shadow-lg p-4 mb-4 w-100">
     <h1 class="card-title">Rédiger un article</h1>
-    <form method="post" id="articleForm">
+    <form id="articleForm">
         <div class="form-group">
             <label for="site">Site</label>
             <select class="form-control" id="site" name="site" required>
@@ -22,7 +22,7 @@
             <label for="content">Contenu</label>
             <textarea class="form-control" id="content" name="content" rows="5" required></textarea>
         </div>
-        <button type="submit" class="btn btn-primary">Publier</button>
+        <button type="submit" class="btn btn-primary" id="submitButton">Publier</button>
     </form>
 </div>
 <div id="messages"></div>
@@ -74,7 +74,28 @@
                 alert('Le contenu ne peut pas être vide');
                 return false;
             }
-            this.submit();
+            var submitButton = document.getElementById('submitButton');
+            submitButton.disabled = true;
+
+            var formData = {
+                site: document.getElementById('site').value,
+                title: document.getElementById('title').value,
+                content: document.getElementById('content').value
+            };
+
+            $.ajax({
+                type: 'POST',
+                url: '{{ url_for("editor") }}',
+                data: formData,
+                success: function(response) {
+                    console.log('Article publié avec succès');
+                    submitButton.disabled = false;
+                },
+                error: function(error) {
+                    console.log('Erreur lors de la publication de l\'article');
+                    submitButton.disabled = false;
+                }
+            });
         });
     </script>
 {% endblock %}
