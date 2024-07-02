@@ -97,7 +97,7 @@ def purchase_domain_route():
 @login_required
 def configure_dns_route():
     domain_name = request.form['domain']
-    if configure_dns(domain_name, 'A', '51.210.255.66') and configure_dns(domain_name, 'AAAA', '2001:41d0:304:200::5ec6'):
+    if configure_dns(domain_name):
         return jsonify({'status': 'configured'})
     return jsonify({'status': 'error'})
 

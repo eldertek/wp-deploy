@@ -61,19 +61,26 @@ def purchase_domain(domain_name, contacts):
         socketio.emit('error', f'Erreur lors de l\'achat du domaine {domain_name}: {str(e)}')
         return None
 
-def configure_dns(domain_name, type, value):
-    bo_domain_name = f"bo.{domain_name}"
-    try:
-        dns.remove_record(bo_domain_name, type, value)
-    except Exception:
-        pass
-    try:
-        result = dns.add_record(bo_domain_name, type, value)
-        socketio.emit('message', f'Enregistrement DNS {type} pour {bo_domain_name} configuré à {value}.')
-        return result
-    except Exception as e:
-        socketio.emit('error', f'Erreur lors de la configuration DNS {type} pour {bo_domain_name}: {str(e)}')
-        return None
+def configure_dns(domain_name):
+    dns_records = [
+        {'name': f'bo.{domain_name}', 'type': 'A', 'value': '51.210.255.66'},
+        {'name': f'bo.{domain_name}', 'type': 'AAAA', 'value': '2001:41d0:304:200::5ec6'},
+        {'name': f'{domain_name}', 'type': 'A', 'value': '185.199.108.153'},
+        {'name': f'{domain_name}', 'type': 'AAAA', 'value': '2606:50c0:8000::153'}
+    ]
+    
+    for record in dns_records:
+        try:
+            dns.remove_record(record['name'], record['type'], record['value'])
+        except Exception:
+            pass
+        try:
+            result = dns.add_record(record['name'], record['type'], record['value'])
+            socketio.emit('message', f'Enregistrement DNS {record["type"]} pour {record["name"]} configuré à {record["value"]}.')
+        except Exception as e:
+            socketio.emit('error', f'Erreur lors de la configuration DNS {record["type"]} pour {record["name"]}: {str(e)}')
+            return None
+    return True
 
 def run_command(command):
     try:
