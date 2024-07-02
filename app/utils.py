@@ -287,7 +287,7 @@ def initialize_git_repo(domain_name):
     run_command(f"curl -X POST -H 'Authorization: token {github_token}' -H 'Content-Type: application/json' -d '{{ \"source\": {{ \"branch\": \"master\" }} }}' https://api.github.com/repos/{github_username}/{domain_name}/pages")
 
     # Add the remote origin and push the initial commit
-    run_command(f"cd {repo_path} && git remote add origin https://github.com/{github_username}/{domain_name}.git")
+    run_command(f"cd {repo_path} && git remote add origin https://{github_token}@github.com/{github_username}/{domain_name}.git")
     run_command(f"cd {repo_path} && git push -u origin master")
     
     socketio.emit('message', f'Dépôt GitHub {domain_name} créé et initialisé avec un fichier CNAME.')
