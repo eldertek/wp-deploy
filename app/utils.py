@@ -94,7 +94,9 @@ def configure_dns(domain_name):
             return None
     return True
 
-def run_command(command):
+def run_command(command, elevated=False):
+    if elevated:
+        command = f"sudo -s {command}"
     try:
         result = subprocess.run(command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return result.stdout.decode('utf-8')
@@ -131,14 +133,13 @@ def create_nginx_config(domain_name, force=False):
             }}
         }}
         """
-        with open(config_path, 'w') as f:
-            f.write(config)
+        run_command(f"echo '{config}' > {config_path}", elevated=True)
         
         if os.path.exists(f"/etc/nginx/sites-enabled/bo.{domain_name}"):
-            os.remove(f"/etc/nginx/sites-enabled/bo.{domain_name}")
+            run_command(f'rm /etc/nginx/sites-enabled/bo.{domain_name}', elevated=True)
         
-        os.symlink(config_path, f"/etc/nginx/sites-enabled/bo.{domain_name}")
-        run_command('sudo systemctl reload nginx')
+        run_command(f'ln -s {config_path} /etc/nginx/sites-enabled/bo.{domain_name}', elevated=True)
+        run_command('systemctl reload nginx', elevated=True)
         socketio.emit('message', f'Configuration Nginx pour bo.{domain_name} créée.')
         
         return True
@@ -151,7 +152,7 @@ def setup_ssl(domain_name):
         settings = load_settings()
         registrant_email = settings['registrant']['email']
         # Install Certbot and obtain SSL certificate
-        run_command(f"sudo certbot --nginx  -d bo.{domain_name} --non-interactive --agree-tos -m {registrant_email}")
+        run_command(f"certbot --nginx  -d bo.{domain_name} --non-interactive --agree-tos -m {registrant_email}", elevated=True)
         socketio.emit('message', f'SSL configuré pour bo.{domain_name}.')
         return True
     except Exception as e:
@@ -167,7 +168,7 @@ def install_wordpress(domain_name, force=False):
                 socketio.emit('confirm', {'message': f'WordPress est déjà installé pour {domain_name}. Voulez-vous continuer ?', 'action': 'install_wordpress'})
                 return False
             else:
-                run_command(f"sudo rm -rf {wp_path}")
+                run_command(f"rm -rf {wp_path}", elevated=True)
         
         # Generate random names for the database and user
         unique_db_name = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
@@ -179,12 +180,12 @@ def install_wordpress(domain_name, force=False):
         run_command(f"wp core download --path={wp_path} --locale=fr_FR")
 
         # Create the database
-        run_command(f"sudo mysql -u root -e 'CREATE DATABASE {unique_db_name};'")
+        run_command(f"mysql -u root -e 'CREATE DATABASE {unique_db_name};'", elevated=True)
 
         # Create a unique user for WordPress
-        run_command(f"sudo mysql -u root -e 'CREATE USER wp_{unique_db_user}@localhost IDENTIFIED BY \"{unique_db_password}\";'")
-        run_command(f"sudo mysql -u root -e 'GRANT ALL PRIVILEGES ON {unique_db_name}.* TO wp_{unique_db_user}@localhost;'")
-        run_command(f"sudo mysql -u root -e 'FLUSH PRIVILEGES;'")
+        run_command(f"mysql -u root -e 'CREATE USER wp_{unique_db_user}@localhost IDENTIFIED BY \"{unique_db_password}\";'", elevated=True)
+        run_command(f"mysql -u root -e 'GRANT ALL PRIVILEGES ON {unique_db_name}.* TO wp_{unique_db_user}@localhost;'", elevated=True)
+        run_command(f"mysql -u root -e 'FLUSH PRIVILEGES;'", elevated=True)
 
         socketio.emit('message', f'Base de données WordPress {unique_db_name} créée avec le mot de passe {unique_db_password} pour wp_{unique_db_user}.')
         
@@ -270,7 +271,7 @@ def deploy_static(domain_name):
     static_path = f"{wp_path}/wp-content/uploads/simply-static/temp-files/"
     
     if os.path.exists(static_path):
-        run_command(f"sudo rm -rf {static_path}")
+        run_command(f"rm -rf {static_path}", elevated=True)
     
     # Run Simply Static export
     run_command(f"wp simply-static run --path={wp_path}")
@@ -287,11 +288,3 @@ def deploy_static(domain_name):
         
         # Clear the static path
         run_command(f"rm -rf {static_path}")
-
-def run_command(command):
-    try:
-        result = subprocess.run(command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        return result.stdout.decode('utf-8')
-    except subprocess.CalledProcessError as e:
-        socketio.emit('error', f'Erreur: {e.stderr.decode("utf-8")}')
-        return None
