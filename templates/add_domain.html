@@ -61,10 +61,11 @@
     socket.on('confirm', function(msg) {
         $('#confirmationModal').modal('show');
         $('#confirmationMessage').text(msg);
+        $('#confirmButton').data('action', msg.action);
     });
 
     $('#confirmButton').on('click', function() {
-        var action = $('#domainForm').data('action');
+        var action = $(this).data('action');
         var domain = $('#domain').val();
         $.ajax({
             type: 'POST',
