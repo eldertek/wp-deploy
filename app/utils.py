@@ -297,6 +297,12 @@ def deploy_static(domain_name):
         if zip_files:
             first_zip = zip_files[0]
             destination_path = f"/opt/websites/{domain_name}"
+            
+            # Ensure the destination path exists and set permissions
+            if not os.path.exists(destination_path):
+                run_command(f"mkdir -p {destination_path}", elevated=True)
+                run_command(f"chown -R www-data:www-data {destination_path}", elevated=True)
+            
             run_command(f"unzip {os.path.join(static_path, first_zip)} -d {destination_path}")
             
             # Add, commit, and push changes to the git repository
