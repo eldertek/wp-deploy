@@ -33,7 +33,7 @@
         tinymce.init({
             selector: '#content',
             language: 'fr_FR',
-            language_url: '{{ url_for('static', filename='tinymce/langs/fr_FR.js') }}'
+            language_url: "{{ url_for('static', filename='tinymce/langs/fr_FR.js') }}"
         });
     </script>
 {% endblock %}
