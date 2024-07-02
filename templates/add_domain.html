@@ -14,7 +14,6 @@
     </form>
 </div>
 <div id="messages"></div>
-
 <!-- Confirmation Modal -->
 <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -68,20 +67,24 @@
         $('#confirmationModal').modal('show');
         $('#confirmationMessage').text(data.message);
         $('#confirmButton').data('action', data.action);
+        $('#confirmButton').data('step', currentStepIndex);
     });
 
     $('#confirmButton').on('click', function() {
         var action = $(this).data('action');
         var domain = $('#domain').val();
-        console.log('Confirm button clicked with action:', action, 'and domain:', domain);
+        var step = $(this).data('step');
+        console.log('Confirm button clicked with action:', action, 'domain:', domain, 'and step:', step);
         $.ajax({
             type: 'POST',
             url: '{{ url_for("confirm_action") }}',
-            data: JSON.stringify({action: action, domain: domain}),
+            data: JSON.stringify({action: action, domain: domain, step: step}),
             contentType: 'application/json',
             success: function() {
                 console.log('Confirmation action successful');
                 $('#confirmationModal').modal('hide');
+                currentStepIndex = step + 1;
+                executeNextStep(domain);
             }
         });
     });
@@ -214,6 +217,7 @@
         message.innerText = errorMessage;
         messages.insertBefore(message, messages.firstChild);
         document.getElementById('submitButton').disabled = false;
+        currentStepIndex = 0;
     }
 
     document.getElementById('submitButton').addEventListener('click', function() {
