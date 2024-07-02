@@ -177,9 +177,7 @@ def confirm_action():
     
     if action == 'create_nginx_config':
         if create_nginx_config(domain_name, force=True):
-            if setup_ssl(domain_name):
-                socketio.emit('message', f'Configuration Nginx et SSL pour {domain_name} créées.')
-            else:
+            if not setup_ssl(domain_name):
                 socketio.emit('error', f'Erreur lors de la configuration SSL pour {domain_name}.')
     elif action == 'install_wordpress':
         if install_wordpress(domain_name):
