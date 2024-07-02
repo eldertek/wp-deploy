@@ -143,7 +143,7 @@ def install_wordpress(domain_name):
         wp_path = f"/var/www/{domain_name}"
         
         # Download WordPress
-        run_command(f"wp core download  --path={wp_path}")
+        run_command(f"wp core download --allow-root --path={wp_path}")
 
         # Create the database
         run_command(f"mysql -u root -e 'CREATE DATABASE {unique_db_name};'")
@@ -156,10 +156,10 @@ def install_wordpress(domain_name):
         socketio.emit('message', f'Base de données WordPress {unique_db_name} créée avec le mot de passe {unique_db_password} pour {unique_db_user}.')
         
         # Create wp-config.php
-        run_command(f"wp config create --path={wp_path} --dbname={unique_db_name} --dbuser={unique_db_user} --dbpass={unique_db_password} --dbhost=localhost --skip-check")
+        run_command(f"wp config create --allow-root --path={wp_path} --dbname={unique_db_name} --dbuser={unique_db_user} --dbpass={unique_db_password} --dbhost=localhost --skip-check")
         
         # Install WordPress
-        run_command(f"wp core install --path={wp_path} --url=https://{domain_name} --title='My WordPress Site' --admin_user=admin --admin_password=admin --admin_email=admin@example.com")
+        run_command(f"wp core install --allow-root --path={wp_path} --url=https://{domain_name} --title='My WordPress Site' --admin_user=admin --admin_password=admin --admin_email=admin@example.com")
         
         socketio.emit('message', f'WordPress installé pour {domain_name}.')
         return True
