@@ -254,8 +254,9 @@ def get_indexed_articles(domain_name):
 
 def initialize_git_repo(domain_name):
     repo_path = f"/opt/websites/{domain_name}"
-    if not os.path.exists(repo_path):
-        os.makedirs(repo_path)
+    if os.path.exists(repo_path):
+        run_command(f"rm -rf {repo_path}", elevated=True)
+    os.makedirs(repo_path)
     
     # Initialize a local git repository
     run_command(f"git init {repo_path}")
@@ -270,6 +271,15 @@ def initialize_git_repo(domain_name):
     
     github_token = settings['github_token']
     github_username = settings['github_username']
+    
+    # Check if the repository already exists and delete it if it does
+    response = requests.get(f"https://api.github.com/repos/{github_username}/{domain_name}", headers={
+        'Authorization': f'token {github_token}',
+        'Content-Type': 'application/json'
+    })
+    if response.status_code == 200:
+        run_command(f"curl -X DELETE -H 'Authorization: token {github_token}' https://api.github.com/repos/{github_username}/{domain_name}")
+    
     # Create a GitHub repository
     run_command(f"curl -X POST -H 'Authorization: token {github_token}' -H 'Content-Type: application/json' -d '{{ \"name\": \"{domain_name}\" }}' https://api.github.com/user/repos")
     
