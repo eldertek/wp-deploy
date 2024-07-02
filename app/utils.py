@@ -304,10 +304,12 @@ def deploy_static(domain_name):
     
     # Check if the export was successful
     if "Success: Export Completed" in result:
-        # Move the first zip file in static path to the destination and unzip it
+        # Move the first zip file in static path to the destination and copy content if folder exists
         zip_files = [f for f in os.listdir(static_path) if f.endswith('.zip')]
         if zip_files:
             first_zip = zip_files[0]
+            folder_name = first_zip[:-4]  # Remove the .zip extension to get the folder name
+            folder_path = os.path.join(static_path, folder_name)
             destination_path = f"/opt/websites/{domain_name}"
             
             # Ensure the destination path exists and set permissions
@@ -315,7 +317,11 @@ def deploy_static(domain_name):
                 run_command(f"mkdir -p {destination_path}", elevated=True)
                 run_command(f"chown -R www-data:www-data {destination_path}", elevated=True)
             
-            run_command(f"unzip {os.path.join(static_path, first_zip)} -d {destination_path}")
+            # Check if the folder with the same name as the zip file exists
+            if os.path.exists(folder_path) and os.path.isdir(folder_path):
+                run_command(f"cp -r {folder_path}/* {destination_path}", elevated=True)
+            else:
+                run_command(f"unzip {os.path.join(static_path, first_zip)} -d {destination_path}")
             
             # Add, commit, and push changes to the git repository
             run_command(f"cd {destination_path} && git add . && git commit -m 'Deploy static site' && git push")
