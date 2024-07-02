@@ -5,6 +5,7 @@ import subprocess
 import random
 import string
 import requests
+import xml.etree.ElementTree as ET
 
 def load_settings():
     config_path = 'app/config.json'
@@ -181,12 +182,17 @@ def install_wordpress(domain_name, force=False):
 
 def count_wordpress_urls(domain_name):
     try:
-        response = requests.get(f"https://{domain_name}/wp-json/wp/v2/posts")
+        sitemap_url = f"https://{domain_name}/sitemap.xml"
+        response = requests.get(sitemap_url)
+        
         if response.status_code == 200:
-            posts = response.json()
-            return len(posts)
+            root = ET.fromstring(response.content)
+            url_count = 0
+            for url in root.findall(".//{http://www.sitemaps.org/schemas/sitemap/0.9}url"):
+                url_count += 1
+            return url_count
         else:
             return 0
     except Exception as e:
-        socketio.emit('error', f'Erreur lors de la récupération des URLs pour {domain_name}: {str(e)}')
+        print(f'Erreur lors de la récupération du sitemap pour {domain_name}: {str(e)}')
         return 0
