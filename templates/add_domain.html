@@ -88,7 +88,7 @@
     });
 
     function checkDomainOwnership(domain) {
-        $.post('{{ url_for("check_domain_ownership_route") }}', {domain: domain}, function(data) {
+        $.post('{{ url_for("check_domain_ownership") }}', {domain: domain}, function(data) {
             if (data.status === 'owned') {
                 // Domain is already owned, show error message
                 var messages = document.getElementById('messages');
@@ -105,7 +105,7 @@
     }
 
     function checkDomainAvailability(domain) {
-        $.post('{{ url_for("check_domain_availability_route") }}', {domain: domain}, function(data) {
+        $.post('{{ url_for("check_domain_availability") }}', {domain: domain}, function(data) {
             if (data.status === 'available') {
                 // Domain is available, purchase it
                 purchaseDomain(domain);
