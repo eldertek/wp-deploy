@@ -185,7 +185,7 @@ def install_wordpress(domain_name, force=False):
         # Create the database
         run_command(f"mysql -u root -e 'CREATE DATABASE {unique_db_name};'", elevated=True)
 
-        # Create a unique user for WordPress
+      # Create a unique user for WordPress
         run_command(f"mysql -u root -e 'CREATE USER wp_{unique_db_user}@localhost IDENTIFIED BY \"{unique_db_password}\";'", elevated=True)
         run_command(f"mysql -u root -e 'GRANT ALL PRIVILEGES ON {unique_db_name}.* TO wp_{unique_db_user}@localhost;'", elevated=True)
         run_command(f"mysql -u root -e 'FLUSH PRIVILEGES;'", elevated=True)
@@ -211,7 +211,7 @@ def install_wordpress(domain_name, force=False):
         return True
     except Exception as e:
         socketio.emit('error', f'Erreur lors de l\'installation de WordPress pour {domain_name}: {str(e)}')
-        return False
+        return False  
 
 def generate_wp_login_link(domain_name):
     wp_path = f"/var/www/{domain_name}"
