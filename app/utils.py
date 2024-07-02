@@ -169,6 +169,8 @@ def install_wordpress(domain_name, force=False):
                 return False
             else:
                 run_command(f"rm -rf {wp_path}", elevated=True)
+        else:
+            run_command(f"mkdir -p {wp_path} && chown www-data:www-data {wp_path}", elevated=True)
         
         # Generate random names for the database and user
         unique_db_name = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
