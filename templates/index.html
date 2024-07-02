@@ -15,7 +15,6 @@
                         <span class="status-dot {{ 'bg-success' if site.status == 'online' else 'bg-danger' }}"></span>
                     </div>
                     <p class="card-text text-muted">Dernier déploiement: {{ site.last_deployment or 'N/A' }}</p>
-                    <p class="card-text text-muted">Nombre d'URLs: {{ site.url_count }}</p>
                     <div class="mt-auto">
                         <a href="#" class="btn btn-outline-primary btn-sm me-2">Backoffice</a>
                         <a href="{{ url_for('editor', site=site.domain) }}" class="btn btn-outline-secondary btn-sm">Rédiger</a>
