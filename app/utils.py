@@ -135,8 +135,9 @@ def setup_ssl(domain_name):
 
 def install_wordpress(domain_name):
     try:
-        unique_db_name = f"wordpress_{domain_name.replace('.', '_')}"
-        unique_db_user = f"wordpress_{domain_name.replace('.', '_')}"
+        # Generate random names for the database and user
+        unique_db_name = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
+        unique_db_user = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
         unique_db_password = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
         
         # Define the path where WordPress will be installed
@@ -149,7 +150,7 @@ def install_wordpress(domain_name):
         run_command(f"mysql -u root -e 'CREATE DATABASE {unique_db_name};'")
 
         # Create a unique user for WordPress
-        run_command(f"mysql -u root -e 'CREATE USER {unique_db_user}@localhost IDENTIFIED BY {unique_db_password};'")
+        run_command(f"mysql -u root -e 'CREATE USER {unique_db_user}@localhost IDENTIFIED BY \"{unique_db_password}\";'")
         run_command(f"mysql -u root -e 'GRANT ALL PRIVILEGES ON {unique_db_name}.* TO {unique_db_user}@localhost;'")
         run_command(f"mysql -u root -e 'FLUSH PRIVILEGES;'")
 
