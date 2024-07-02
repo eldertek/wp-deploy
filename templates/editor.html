@@ -31,7 +31,9 @@
     <script src="{{ url_for('static', filename='tinymce/tinymce.min.js') }}"></script>
     <script>
         tinymce.init({
-            selector: '#content'
+            selector: '#content',
+            language: 'fr_FR',
+            language_url: '{{ url_for('static', filename='tinymce/langs/fr_FR.js') }}'
         });
     </script>
 {% endblock %}
