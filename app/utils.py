@@ -133,7 +133,6 @@ def setup_ssl(domain_name):
         # Install Certbot and obtain SSL certificate
         run_command(f"certbot --nginx -d {domain_name} --non-interactive --agree-tos -m {registrant_email}")
         socketio.emit('message', f'SSL configuré pour {domain_name}.')
-        install_wordpress(domain_name)
         return True
     except Exception as e:
         socketio.emit('error', f'Erreur lors de la configuration SSL pour {domain_name}: {str(e)}')
