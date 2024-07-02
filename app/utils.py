@@ -35,6 +35,16 @@ test_mode = settings['test_mode']
 domain = Domain(api_key, password, test_mode)
 dns = DNS(api_key, password, test_mode)
 
+def publish_article(site, title, content):
+    wp_path = f"/var/www/{site}"
+    command = f"wp post create --post_type=post --post_title='{title}' --post_content='{content}' --post_status=publish --allow-root --path={wp_path}"
+    result = run_command(command)
+    if result:
+        socketio.emit('message', f'Article "{title}" publié sur {site}.')
+    else:
+        socketio.emit('error', f'Erreur lors de la publication de l\'article "{title}" sur {site}.')
+
+
 def load_settings():
     with open('app/settings.json', 'r') as f:
         return json.load(f)

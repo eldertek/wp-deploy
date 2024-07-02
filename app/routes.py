@@ -2,7 +2,7 @@ from flask import render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_user, login_required, logout_user
 from app import app, login_manager
 from app.models import User, users
-from app.utils import is_domain_owned, is_domain_available, purchase_domain, configure_dns, create_nginx_config, setup_ssl, install_wordpress, generate_wp_login_link, get_published_articles, get_indexed_articles
+from app.utils import is_domain_owned, is_domain_available, purchase_domain, configure_dns, create_nginx_config, setup_ssl, install_wordpress, generate_wp_login_link, get_published_articles, get_indexed_articles, publish_article
 from app import socketio
 import json, os
 
@@ -154,12 +154,6 @@ def editor():
     
     return render_template('editor.html', domains=domains, selected_site=selected_site)
 
-@app.route('/dashboard')
-@login_required
-def dashboard():
-    site_status = check_sites_status()
-    return render_template('dashboard.html', site_status=site_status)
-
 @app.route('/settings', methods=['GET', 'POST'])
 @login_required
 def settings():
@@ -219,9 +213,3 @@ def backoffice(domain):
     else:
         flash('Erreur lors de la génération du lien de connexion automatique', 'danger')
         return redirect(url_for('index'))
-
-def publish_article(site, title, content):
-    pass
-
-def check_sites_status():
-    return [{'domain': domain, 'status': 'online', 'last_deployment': '2023-10-01'} for domain in domains]
