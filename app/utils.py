@@ -62,16 +62,17 @@ def purchase_domain(domain_name, contacts):
         return None
 
 def configure_dns(domain_name, type, value):
+    bo_domain_name = f"bo.{domain_name}"
     try:
-        dns.remove_record(domain_name, type, value)
+        dns.remove_record(bo_domain_name, type, value)
     except Exception:
         pass
     try:
-        result = dns.add_record(domain_name, type, value)
-        socketio.emit('message', f'Enregistrement DNS {type} pour {domain_name} configuré à {value}.')
+        result = dns.add_record(bo_domain_name, type, value)
+        socketio.emit('message', f'Enregistrement DNS {type} pour {bo_domain_name} configuré à {value}.')
         return result
     except Exception as e:
-        socketio.emit('error', f'Erreur lors de la configuration DNS {type} pour {domain_name}: {str(e)}')
+        socketio.emit('error', f'Erreur lors de la configuration DNS {type} pour {bo_domain_name}: {str(e)}')
         return None
 
 def run_command(command):
