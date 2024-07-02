@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, flash
+from flask import render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_user, login_required, logout_user
 from app import app, login_manager
 from app.models import User, users, domains
@@ -57,40 +57,63 @@ def index():
 @app.route('/add_domain', methods=['GET', 'POST'])
 @login_required
 def add_domain():
-    if request.method == 'POST':
-        domain_name = request.form['domain']
-        
-        # Step 1: Check domain ownership
-        if not is_domain_owned(domain_name):
-            # Step 2: Check domain availability
-            if is_domain_available(domain_name):
-                # Step 3: Purchase domain
-                if not purchase_domain(domain_name, load_settings()):
-                    return render_template('add_domain.html')
-                socketio.emit('message', 'Achat du nom de domaine...OK')
-            else:
-                return render_template('add_domain.html')
-        
-        # Step 4: Configure DNS
-        if not configure_dns(domain_name, 'A', '51.210.255.66'):
-            return render_template('add_domain.html')
-        if not configure_dns(domain_name, 'AAAA', '2001:41d0:304:200::5ec6'):
-            return render_template('add_domain.html')
-            
-        # Step 5: Create Nginx configuration
-        if not create_nginx_config(domain_name):
-            return render_template('add_domain.html')
-            
-        # Step 6: Setup SSL
-        if not setup_ssl(domain_name):
-            return render_template('add_domain.html')
-            
-        # Step 7: Install WordPress
-        if not install_wordpress(domain_name):
-            return render_template('add_domain.html')
-            
-        socketio.emit('message', "L'installation est terminée")
     return render_template('add_domain.html')
+
+@app.route('/check_domain_ownership', methods=['POST'])
+@login_required
+def check_domain_ownership():
+    domain_name = request.form['domain']
+    if is_domain_owned(domain_name):
+        return jsonify({'status': 'owned'})
+    return jsonify({'status': 'not_owned'})
+
+@app.route('/check_domain_availability', methods=['POST'])
+@login_required
+def check_domain_availability():
+    domain_name = request.form['domain']
+    if is_domain_available(domain_name):
+        return jsonify({'status': 'available'})
+    return jsonify({'status': 'not_available'})
+
+@app.route('/purchase_domain', methods=['POST'])
+@login_required
+def purchase_domain_route():
+    domain_name = request.form['domain']
+    if purchase_domain(domain_name, load_settings()):
+        return jsonify({'status': 'purchased'})
+    return jsonify({'status': 'error'})
+
+@app.route('/configure_dns', methods=['POST'])
+@login_required
+def configure_dns_route():
+    domain_name = request.form['domain']
+    if configure_dns(domain_name, 'A', '51.210.255.66') and configure_dns(domain_name, 'AAAA', '2001:41d0:304:200::5ec6'):
+        return jsonify({'status': 'configured'})
+    return jsonify({'status': 'error'})
+
+@app.route('/create_nginx_config', methods=['POST'])
+@login_required
+def create_nginx_config_route():
+    domain_name = request.form['domain']
+    if create_nginx_config(domain_name):
+        return jsonify({'status': 'created'})
+    return jsonify({'status': 'error'})
+
+@app.route('/setup_ssl', methods=['POST'])
+@login_required
+def setup_ssl_route():
+    domain_name = request.form['domain']
+    if setup_ssl(domain_name):
+        return jsonify({'status': 'setup'})
+    return jsonify({'status': 'error'})
+
+@app.route('/install_wordpress', methods=['POST'])
+@login_required
+def install_wordpress_route():
+    domain_name = request.form['domain']
+    if install_wordpress(domain_name):
+        return jsonify({'status': 'installed'})
+    return jsonify({'status': 'error'})
 
 @app.route('/editor', methods=['GET', 'POST'])
 @login_required
@@ -146,8 +169,9 @@ def settings():
 @app.route('/confirm_action', methods=['POST'])
 @login_required
 def confirm_action():
-    action = request.form['action']
-    domain_name = request.form['domain']
+    data = request.get_json()
+    action = data.get('action')
+    domain_name = data.get('domain')
     
     if action == 'create_nginx_config':
         if create_nginx_config(domain_name):
