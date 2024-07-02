@@ -1,6 +1,7 @@
 from internetbs import Domain, DNS
 from app import socketio
 import json, os
+import subprocess
 
 def load_settings():
     config_path = 'app/config.json'
@@ -63,6 +64,14 @@ def configure_dns(domain_name, type, value):
     socketio.emit('message', f'Enregistrement DNS {type} pour {domain_name} configuré à {value}.')
     return result
 
+def run_command(command):
+    try:
+        result = subprocess.run(command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return result.stdout.decode('utf-8')
+    except subprocess.CalledProcessError as e:
+        socketio.emit('message', f'Erreur: {e.stderr.decode("utf-8")}')
+        return None
+
 def create_nginx_config(domain_name):
     config = f"""
     server {{
@@ -95,13 +104,13 @@ def create_nginx_config(domain_name):
     
     os.symlink(config_path, f"/etc/nginx/sites-enabled/{domain_name}")
     socketio.emit('message', f'Configuration Nginx pour {domain_name} créée.')
-    os.system('sudo systemctl reload nginx')
+    run_command('sudo systemctl reload nginx')
 
 def setup_ssl(domain_name):
     settings = load_settings()
     registrant_email = settings['registrant']['email']
     # Install Certbot and obtain SSL certificate
-    os.system(f"sudo certbot --nginx -d {domain_name} --non-interactive --agree-tos -m {registrant_email}")
+    run_command(f"sudo certbot --nginx -d {domain_name} --non-interactive --agree-tos -m {registrant_email}")
     socketio.emit('message', f'SSL configuré pour {domain_name}.')
 
 def install_wordpress(domain_name):
@@ -112,13 +121,13 @@ def install_wordpress(domain_name):
     wp_path = f"/var/www/{domain_name}"
     
     # Download WordPress
-    os.system(f"sudo wp core download --path={wp_path}")
+    run_command(f"sudo wp core download --path={wp_path}")
     
     # Create wp-config.php
     unique_db_name = f"wordpress_{domain_name.replace('.', '_')}"
-    os.system(f"sudo wp config create --path={wp_path} --dbname={unique_db_name} --dbuser=root --dbpass={mysql_password} --dbhost=localhost --skip-check")
+    run_command(f"sudo wp config create --path={wp_path} --dbname={unique_db_name} --dbuser=root --dbpass={mysql_password} --dbhost=localhost --skip-check")
     
     # Install WordPress
-    os.system(f"sudo wp core install --path={wp_path} --url=https://{domain_name} --title='My WordPress Site' --admin_user=admin --admin_password=admin_password --admin_email=admin@example.com")
+    run_command(f"sudo wp core install --path={wp_path} --url=https://{domain_name} --title='My WordPress Site' --admin_user=admin --admin_password=admin_password --admin_email=admin@example.com")
     
     socketio.emit('message', f'WordPress installé pour {domain_name}.')
