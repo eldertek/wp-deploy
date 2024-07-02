@@ -106,7 +106,7 @@ def configure_dns_route():
 @login_required
 def create_nginx_config_route():
     domain_name = request.form['domain']
-    if create_nginx_config(domain_name):
+    if create_nginx_config(f"bo.{domain_name}"):
         return jsonify({'status': 'created'})
     return jsonify({'status': 'error'})
 
@@ -114,7 +114,7 @@ def create_nginx_config_route():
 @login_required
 def setup_ssl_route():
     domain_name = request.form['domain']
-    if setup_ssl(domain_name):
+    if setup_ssl(f"bo.{domain_name}"):
         return jsonify({'status': 'setup'})
     return jsonify({'status': 'error'})
 
@@ -198,4 +198,3 @@ def publish_article(site, title, content):
 
 def check_sites_status():
     return [{'domain': domain, 'status': 'online', 'last_deployment': '2023-10-01'} for domain in domains]
-

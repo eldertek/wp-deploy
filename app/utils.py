@@ -84,15 +84,15 @@ def run_command(command):
 
 def create_nginx_config(domain_name, force=False):
     try:
-        config_path = f"/etc/nginx/sites-available/{domain_name}"
+        config_path = f"/etc/nginx/sites-available/bo.{domain_name}"
         if os.path.exists(config_path) and not force:
-            socketio.emit('confirm', {'message': f'Configuration Nginx pour {domain_name} existe déjà. Voulez-vous continuer ?', 'action': 'create_nginx_config'})
+            socketio.emit('confirm', {'message': f'Configuration Nginx pour bo.{domain_name} existe déjà. Voulez-vous continuer ?', 'action': 'create_nginx_config'})
             return False
         
         config = f"""
         server {{
             listen 80;
-            server_name {domain_name};
+            server_name bo.{domain_name};
 
             root /var/www/{domain_name};
             index index.php index.html index.htm;
@@ -114,16 +114,16 @@ def create_nginx_config(domain_name, force=False):
         with open(config_path, 'w') as f:
             f.write(config)
         
-        if os.path.exists(f"/etc/nginx/sites-enabled/{domain_name}"):
-            os.remove(f"/etc/nginx/sites-enabled/{domain_name}")
+        if os.path.exists(f"/etc/nginx/sites-enabled/bo.{domain_name}"):
+            os.remove(f"/etc/nginx/sites-enabled/bo.{domain_name}")
         
-        os.symlink(config_path, f"/etc/nginx/sites-enabled/{domain_name}")
+        os.symlink(config_path, f"/etc/nginx/sites-enabled/bo.{domain_name}")
         run_command('systemctl reload nginx')
-        socketio.emit('message', f'Configuration Nginx pour {domain_name} créée.')
+        socketio.emit('message', f'Configuration Nginx pour bo.{domain_name} créée.')
         
         return True
     except Exception as e:
-        socketio.emit('error', f'Erreur lors de la création de la configuration Nginx pour {domain_name}: {str(e)}')
+        socketio.emit('error', f'Erreur lors de la création de la configuration Nginx pour bo.{domain_name}: {str(e)}')
         return False
 
 def setup_ssl(domain_name):
@@ -131,11 +131,11 @@ def setup_ssl(domain_name):
         settings = load_settings()
         registrant_email = settings['registrant']['email']
         # Install Certbot and obtain SSL certificate
-        run_command(f"certbot --nginx -d {domain_name} --non-interactive --agree-tos -m {registrant_email}")
-        socketio.emit('message', f'SSL configuré pour {domain_name}.')
+        run_command(f"certbot --nginx -d bo.{domain_name} --non-interactive --agree-tos -m {registrant_email}")
+        socketio.emit('message', f'SSL configuré pour bo.{domain_name}.')
         return True
     except Exception as e:
-        socketio.emit('error', f'Erreur lors de la configuration SSL pour {domain_name}: {str(e)}')
+        socketio.emit('error', f'Erreur lors de la configuration SSL pour bo.{domain_name}: {str(e)}')
         return False
 
 def install_wordpress(domain_name, force=False):
