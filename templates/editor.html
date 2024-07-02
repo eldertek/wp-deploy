@@ -90,9 +90,17 @@
                 success: function(response) {
                     console.log('Article publié avec succès');
                     submitButton.disabled = false;
+                    // Clear the form fields
+                    document.getElementById('title').value = '';
+                    tinymce.get('content').setContent('');
                 },
                 error: function(error) {
                     console.log('Erreur lors de la publication de l\'article');
+                    var messages = document.getElementById('messages');
+                    var message = document.createElement('div');
+                    message.className = 'alert alert-danger mt-4';
+                    message.innerText = 'Erreur lors de la publication de l\'article';
+                    messages.insertBefore(message, messages.firstChild);
                     submitButton.disabled = false;
                 }
             });
