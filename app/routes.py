@@ -54,7 +54,7 @@ def logout():
 def index():
     sites = []
     for domain in os.listdir('/var/www/'):
-        if os.path.isdir(os.path.join('/var/www/', domain)):
+        if os.path.isdir(os.path.join('/var/www/', domain)) and not domain.startswith('.'):
             published_articles = get_published_articles(domain)
             indexed_articles = get_indexed_articles(domain)
             indexed_percentage = (indexed_articles / published_articles * 100) if published_articles > 0 else 0
@@ -134,7 +134,7 @@ def install_wordpress_route():
 @app.route('/editor', methods=['GET', 'POST'])
 @login_required
 def editor():
-    domains = [domain for domain in os.listdir('/var/www/') if os.path.isdir(os.path.join('/var/www/', domain))]
+    domains = [domain for domain in os.listdir('/var/www/') if os.path.isdir(os.path.join('/var/www/', domain)) and not domain.startswith('.')]
     
     if request.method == 'POST':
         site = request.form['site']
