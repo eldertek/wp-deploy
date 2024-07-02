@@ -51,25 +51,33 @@ def is_domain_available(domain_name):
     return available
 
 def purchase_domain(domain_name, contacts):
-    result = domain.create_domain(domain_name, contacts)
-    socketio.emit('message', f'Domaine {domain_name} a été acheté.')
-    return result
+    try:
+        result = domain.create_domain(domain_name, contacts)
+        socketio.emit('message', f'Domaine {domain_name} a été acheté.')
+        return result
+    except Exception as e:
+        socketio.emit('error', f'Erreur lors de l\'achat du domaine {domain_name}: {str(e)}')
+        return None
 
 def configure_dns(domain_name, type, value):
     try:
         dns.remove_record(domain_name, type, value)
     except Exception:
         pass
-    result = dns.add_record(domain_name, type, value)
-    socketio.emit('message', f'Enregistrement DNS {type} pour {domain_name} configuré à {value}.')
-    return result
+    try:
+        result = dns.add_record(domain_name, type, value)
+        socketio.emit('message', f'Enregistrement DNS {type} pour {domain_name} configuré à {value}.')
+        return result
+    except Exception as e:
+        socketio.emit('error', f'Erreur lors de la configuration DNS {type} pour {domain_name}: {str(e)}')
+        return None
 
 def run_command(command):
     try:
         result = subprocess.run(command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return result.stdout.decode('utf-8')
     except subprocess.CalledProcessError as e:
-        socketio.emit('message', f'Erreur: {e.stderr.decode("utf-8")}')
+        socketio.emit('error', f'Erreur: {e.stderr.decode("utf-8")}')
         return None
 
 def create_nginx_config(domain_name):

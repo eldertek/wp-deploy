@@ -29,6 +29,14 @@
         messages.insertBefore(message, messages.firstChild);
     });
 
+    socket.on('error', function(msg) {
+        var messages = document.getElementById('messages');
+        var message = document.createElement('div');
+        message.className = 'alert alert-danger mt-4';
+        message.innerText = msg;
+        messages.insertBefore(message, messages.firstChild);
+    });
+
     document.getElementById('domainForm').addEventListener('submit', function(event) {
         event.preventDefault();
         var formData = new FormData(this);
