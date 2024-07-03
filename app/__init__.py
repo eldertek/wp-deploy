@@ -6,9 +6,18 @@ import json
 from apscheduler.schedulers.background import BackgroundScheduler
 import datetime
 import atexit
+import logging
+from werkzeug.middleware.proxy_fix import ProxyFix
+
+# Configuration du logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__, template_folder='../templates', static_folder='../static')
 app.config.from_object('app.config.Config')
+
+# Ajout du middleware ProxyFix pour gérer les en-têtes de proxy
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -17,30 +26,43 @@ login_manager.login_view = 'login'
 login_manager.login_message = "Veuillez vous connecter pour accéder à cette page."
 login_manager.login_message_category = "info"
 
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='gevent')
 
 def deploy_all_websites():
     from app.utils import deploy_static, log_deployment
     start_time = datetime.datetime.now()
-    domains = [domain for domain in os.listdir('/var/www/') if os.path.isdir(os.path.join('/var/www/', domain)) and not domain.startswith('.')]
-    for domain in domains:
-        success = deploy_static(domain)
-        duration = (datetime.datetime.now() - start_time).total_seconds()
-        log_deployment(domain, success, duration)
+    try:
+        domains = [domain for domain in os.listdir('/var/www/') if os.path.isdir(os.path.join('/var/www/', domain)) and not domain.startswith('.')]
+        for domain in domains:
+            try:
+                success = deploy_static(domain)
+                duration = (datetime.datetime.now() - start_time).total_seconds()
+                log_deployment(domain, success, duration)
+            except Exception as e:
+                logger.error(f"Erreur lors du déploiement de {domain}: {str(e)}")
+    except Exception as e:
+        logger.error(f"Erreur lors du déploiement de tous les sites: {str(e)}")
 
 def update_site_data():
     from app.utils import save_site_data
-    save_site_data()
+    try:
+        save_site_data()
+    except Exception as e:
+        logger.error(f"Erreur lors de la mise à jour des données du site: {str(e)}")
 
-scheduler = BackgroundScheduler()
-scheduler.add_job(deploy_all_websites, 'cron', hour=0, minute=0)
-scheduler.add_job(update_site_data, 'interval', minutes=10)
-scheduler.start()
+scheduler = BackgroundScheduler(daemon=True)
+scheduler.add_job(deploy_all_websites, 'cron', hour=0, minute=0, misfire_grace_time=3600)
+scheduler.add_job(update_site_data, 'interval', minutes=10, misfire_grace_time=300)
+
+try:
+    scheduler.start()
+except Exception as e:
+    logger.error(f"Erreur lors du démarrage du planificateur: {str(e)}")
 
 # Ensure the scheduler is shut down when exiting the app
-atexit.register(lambda: scheduler.shutdown())
+atexit.register(lambda: scheduler.shutdown(wait=False))
 
 from app import routes
 
 if __name__ == '__main__':
-    socketio.run(app, debug=False)
+    socketio.run(app, debug=False, use_reloader=False)

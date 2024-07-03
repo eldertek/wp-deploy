@@ -6,16 +6,22 @@ import random
 import string
 import requests
 import datetime
+from functools import lru_cache
 
 def run_command(command, elevated=False):
     if elevated:
         command = f"sudo -s {command}"
     try:
-        result = subprocess.run(command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        return result.stdout.decode('utf-8')
+        # Use subprocess.run with timeout and capture_output for better control
+        result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True, timeout=300)
+        return result.stdout
     except subprocess.CalledProcessError as e:
-        socketio.emit('error', f'Erreur: {e.stderr.decode("utf-8")}')
-        return None
+        socketio.emit('error', f'Erreur: {e.stderr}')
+    except subprocess.TimeoutExpired:
+        socketio.emit('error', f'Timeout: La commande a pris trop de temps à s\'exécuter')
+    except Exception as e:
+        socketio.emit('error', f'Erreur inattendue: {str(e)}')
+    return None
 
 def format_deployment_log(deployment):
     deployment['time'] = datetime.datetime.fromisoformat(deployment['time']).strftime("%d/%m/%Y %H:%M:%S")
@@ -41,27 +47,36 @@ def log_deployment(domain_name, success, duration):
         json.dump(logs, log_file, indent=4)
     run_command("chown www-data:www-data data/deployments.json", elevated=True)  # Ensure ownership
 
+@lru_cache(maxsize=32)
 def load_settings():
     config_path = 'data/config.json'
     model_path = 'data/settings.json'
     
     if not os.path.exists(config_path):
-        with open(model_path, 'r') as model_file:
-            settings = json.load(model_file)
-        save_settings(settings)
+        try:
+            with open(model_path, 'r') as model_file:
+                settings = json.load(model_file)
+            save_settings(settings)
+        except (FileNotFoundError, json.JSONDecodeError) as e:
+            socketio.emit('error', f'Erreur lors du chargement des paramètres: {str(e)}')
+            return {}
         
-    if os.path.exists(config_path):
+    try:
         with open(config_path, 'r') as config_file:
             return json.load(config_file)
-    else:
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        socketio.emit('error', f'Erreur lors du chargement de la configuration: {str(e)}')
         return {}
 
 def save_settings(settings):
     run_command("chown www-data:www-data data", elevated=True)
     config_path = 'data/config.json'
-    with open(config_path, 'w') as config_file:
-        json.dump(settings, config_file, indent=4)
-    run_command("chown www-data:www-data data/config.json", elevated=True)
+    try:
+        with open(config_path, 'w') as config_file:
+            json.dump(settings, config_file, indent=4)
+        run_command("chown www-data:www-data data/config.json", elevated=True)
+    except Exception as e:
+        socketio.emit('error', f'Erreur lors de la sauvegarde des paramètres: {str(e)}')
 
 # Load settings
 settings = load_settings()
@@ -74,6 +89,9 @@ dns = DNS(api_key, password, test_mode)
 
 def publish_article(site, title, content):
     wp_path = f"/var/www/{site}"
+    # Escape single quotes in title and content
+    title = title.replace("'", "\\'")
+    content = content.replace("'", "\\'")
     command = f"wp post create --post_type=post --post_title='{title}' --post_content='{content}' --post_status=publish --allow-root --path={wp_path}"
     result = run_command(command)
     if result:
