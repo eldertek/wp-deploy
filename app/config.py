@@ -5,7 +5,7 @@ from werkzeug.security import generate_password_hash
 
 class Config:
     SECRET_KEY_FILE = "data/secret_key.json"
-    SETTINGS_FILE = "data/settings.json"
+    SETTINGS_FILE = "data/config.json"
 
     if not os.path.exists(SECRET_KEY_FILE):
         secret_key = os.urandom(24).hex()
