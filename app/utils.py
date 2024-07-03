@@ -22,7 +22,7 @@ def log_deployment(domain_name, success, duration):
         'domain': domain_name,
         'success': success,
         'time': datetime.datetime.now().isoformat(),
-        'duration': duration
+        'duration': round(duration, 2)
     }
     log_path = 'data/deployments.json'
     run_command("chown www-data:www-data data", elevated=True)
