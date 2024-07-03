@@ -56,6 +56,5 @@
     "internetbs_password": "testpass",
     "github_username": "",
     "github_token": "",
-    "test_mode": true,
-    "admin_username": "admin"
+    "test_mode": true
 }
