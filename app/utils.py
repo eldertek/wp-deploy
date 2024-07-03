@@ -61,7 +61,7 @@ def log_deployment(domain_name, success, duration):
 
 @lru_cache(maxsize=32)
 def load_settings():
-    from app import socketio  # Importer socketio ici pour éviter l'importation circulaire
+    from app import socketio
     config_path = "data/config.json"
     model_path = "data/settings.json"
 

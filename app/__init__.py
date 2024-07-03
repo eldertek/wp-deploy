@@ -30,7 +30,7 @@ login_manager.login_view = "login"
 login_manager.login_message = "Veuillez vous connecter pour accéder à cette page."
 login_manager.login_message_category = "info"
 
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode="gevent")
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 def create_admin_user():
     admin_username = "admin"
