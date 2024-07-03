@@ -3,15 +3,32 @@ from flask_login import login_user, login_required, logout_user, current_user
 from werkzeug.security import check_password_hash
 from app import app, login_manager, socketio
 from app.models import User, users, update_admin_password
-from app.utils import (is_domain_owned, is_domain_available, purchase_domain, configure_dns, 
-                       create_nginx_config, setup_ssl, install_wordpress, generate_wp_login_link, 
-                       get_published_articles, get_indexed_articles, publish_article, initialize_git_repo, 
-                       deploy_static, log_deployment, save_site_data, format_deployment_log, load_settings, save_settings)
+from app.utils import (
+    is_domain_owned,
+    is_domain_available,
+    purchase_domain,
+    configure_dns,
+    create_nginx_config,
+    setup_ssl,
+    install_wordpress,
+    generate_wp_login_link,
+    get_published_articles,
+    get_indexed_articles,
+    publish_article,
+    initialize_git_repo,
+    deploy_static,
+    log_deployment,
+    save_site_data,
+    format_deployment_log,
+    load_settings,
+    save_settings,
+)
 import json, os, datetime
 from functools import wraps
 import logging
 
 logger = logging.getLogger(__name__)
+
 
 def admin_required(f):
     @wraps(f)
@@ -19,145 +36,165 @@ def admin_required(f):
         if not current_user.is_authenticated or not current_user.is_admin:
             abort(403)
         return f(*args, **kwargs)
+
     return decorated_function
+
 
 @login_manager.user_loader
 def load_user(user_id):
     return User(user_id)
 
-@app.route('/login', methods=['GET', 'POST'])
+
+@app.route("/login", methods=["GET", "POST"])
 def login():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        if username in users and check_password_hash(users[username]['password'], password):
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+        if username in users and check_password_hash(
+            users[username]["password"], password
+        ):
             user = User(username)
             login_user(user)
-            return redirect(url_for('index'))
+            return redirect(url_for("index"))
         else:
-            flash('Identifiants invalides', 'danger')
-    return render_template('login.html')
+            flash("Identifiants invalides", "danger")
+    return render_template("login.html")
 
-@app.route('/logout')
+
+@app.route("/logout")
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('login'))
+    return redirect(url_for("login"))
 
-@app.route('/')
+
+@app.route("/")
 @login_required
 def index():
     try:
-        data_path = 'data/data.json'
+        data_path = "data/data.json"
         if not os.path.exists(data_path):
             save_site_data()
-        
-        with open(data_path, 'r') as f:
+
+        with open(data_path, "r") as f:
             data = json.load(f)
-        
-        sites = data['sites']
-        last_update = data['last_update']
-        
-        return render_template('index.html', sites=sites, last_update=last_update)
+
+        sites = data["sites"]
+        last_update = data["last_update"]
+
+        return render_template("index.html", sites=sites, last_update=last_update)
     except Exception as e:
         logger.error(f"Error in index route: {str(e)}")
-        flash('Une erreur est survenue lors du chargement des données.', 'danger')
-        return redirect(url_for('login'))
+        flash("Une erreur est survenue lors du chargement des données.", "danger")
+        return redirect(url_for("login"))
 
-@app.route('/add_domain', methods=['GET', 'POST'])
+
+@app.route("/add_domain", methods=["GET", "POST"])
 @login_required
 def add_domain():
-    return render_template('add_domain.html')
+    return render_template("add_domain.html")
 
-@app.route('/check_domain_ownership', methods=['POST'])
+
+@app.route("/check_domain_ownership", methods=["POST"])
 @login_required
 def check_domain_ownership():
-    domain_name = request.form.get('domain')
+    domain_name = request.form.get("domain")
     if not domain_name:
-        return jsonify({'status': 'error', 'message': 'Nom de domaine manquant'}), 400
+        return jsonify({"status": "error", "message": "Nom de domaine manquant"}), 400
     try:
         if is_domain_owned(domain_name):
-            return jsonify({'status': 'owned'})
-        return jsonify({'status': 'not_owned'})
+            return jsonify({"status": "owned"})
+        return jsonify({"status": "not_owned"})
     except Exception as e:
         logger.error(f"Error checking domain ownership: {str(e)}")
-        return jsonify({'status': 'error', 'message': 'Une erreur est survenue'}), 500
+        return jsonify({"status": "error", "message": "Une erreur est survenue"}), 500
 
-@app.route('/check_domain_availability', methods=['POST'])
+
+@app.route("/check_domain_availability", methods=["POST"])
 @login_required
 def check_domain_availability():
-    domain_name = request.form.get('domain')
+    domain_name = request.form.get("domain")
     if not domain_name:
-        return jsonify({'status': 'error', 'message': 'Nom de domaine manquant'}), 400
+        return jsonify({"status": "error", "message": "Nom de domaine manquant"}), 400
     try:
         if is_domain_available(domain_name):
-            return jsonify({'status': 'available'})
-        return jsonify({'status': 'not_available'})
+            return jsonify({"status": "available"})
+        return jsonify({"status": "not_available"})
     except Exception as e:
         logger.error(f"Error checking domain availability: {str(e)}")
-        return jsonify({'status': 'error', 'message': 'Une erreur est survenue'}), 500
+        return jsonify({"status": "error", "message": "Une erreur est survenue"}), 500
 
-@app.route('/purchase_domain', methods=['POST'])
+
+@app.route("/purchase_domain", methods=["POST"])
 @login_required
 def purchase_domain_route():
-    domain_name = request.form.get('domain')
+    domain_name = request.form.get("domain")
     if not domain_name:
-        return jsonify({'status': 'error', 'message': 'Nom de domaine manquant'}), 400
+        return jsonify({"status": "error", "message": "Nom de domaine manquant"}), 400
     try:
         if purchase_domain(domain_name, load_settings()):
-            return jsonify({'status': 'purchased'})
-        return jsonify({'status': 'error'})
+            return jsonify({"status": "purchased"})
+        return jsonify({"status": "error"})
     except Exception as e:
         logger.error(f"Error purchasing domain: {str(e)}")
-        return jsonify({'status': 'error', 'message': 'Une erreur est survenue'}), 500
+        return jsonify({"status": "error", "message": "Une erreur est survenue"}), 500
 
-@app.route('/configure_dns', methods=['POST'])
+
+@app.route("/configure_dns", methods=["POST"])
 @login_required
 def configure_dns_route():
-    domain_name = request.form.get('domain')
+    domain_name = request.form.get("domain")
     if not domain_name:
-        return jsonify({'status': 'error', 'message': 'Nom de domaine manquant'}), 400
+        return jsonify({"status": "error", "message": "Nom de domaine manquant"}), 400
     try:
         if configure_dns(domain_name):
-            return jsonify({'status': 'configured'})
-        return jsonify({'status': 'error'})
+            return jsonify({"status": "configured"})
+        return jsonify({"status": "error"})
     except Exception as e:
         logger.error(f"Error configuring DNS: {str(e)}")
-        return jsonify({'status': 'error', 'message': 'Une erreur est survenue'}), 500
+        return jsonify({"status": "error", "message": "Une erreur est survenue"}), 500
 
-@app.route('/create_nginx_config', methods=['POST'])
+
+@app.route("/create_nginx_config", methods=["POST"])
 @login_required
 def create_nginx_config_route():
-    domain_name = request.form.get('domain')
+    domain_name = request.form.get("domain")
     if not domain_name:
-        return jsonify({'status': 'error', 'message': 'Nom de domaine manquant'}), 400
+        return jsonify({"status": "error", "message": "Nom de domaine manquant"}), 400
     try:
         if create_nginx_config(domain_name):
-            return jsonify({'status': 'created'})
-        return jsonify({'status': 'error'})
+            return jsonify({"status": "created"})
+        return jsonify({"status": "error"})
     except Exception as e:
         logger.error(f"Error creating nginx config: {str(e)}")
-        return jsonify({'status': 'error', 'message': 'Une erreur est survenue'}), 500
+        return jsonify({"status": "error", "message": "Une erreur est survenue"}), 500
 
-@app.route('/setup_ssl', methods=['POST'])
+
+@app.route("/setup_ssl", methods=["POST"])
 @login_required
 def setup_ssl_route():
-    domain_name = request.form.get('domain')
+    domain_name = request.form.get("domain")
     if not domain_name:
-        return jsonify({'status': 'error', 'message': 'Nom de domaine manquant'}), 400
+        return jsonify({"status": "error", "message": "Nom de domaine manquant"}), 400
     try:
         if setup_ssl(domain_name):
-            return jsonify({'status': 'setup'})
-        return jsonify({'status': 'error'})
+            return jsonify({"status": "setup"})
+        return jsonify({"status": "error"})
     except Exception as e:
         logger.error(f"Error setting up SSL: {str(e)}")
-        return jsonify({'status': 'error', 'message': 'Une erreur est survenue'}), 500
+        return jsonify({"status": "error", "message": "Une erreur est survenue"}), 500
 
-@app.route('/deploy_all', methods=['POST'])
+
+@app.route("/deploy_all", methods=["POST"])
 @login_required
 def deploy_all():
     start_time = datetime.datetime.now()
-    domains = [domain for domain in os.listdir('/var/www/') if os.path.isdir(os.path.join('/var/www/', domain)) and not domain.startswith('.')]
+    domains = [
+        domain
+        for domain in os.listdir("/var/www/")
+        if os.path.isdir(os.path.join("/var/www/", domain))
+        and not domain.startswith(".")
+    ]
     for domain in domains:
         try:
             success = deploy_static(domain)
@@ -165,147 +202,196 @@ def deploy_all():
             log_deployment(domain, success, duration)
         except Exception as e:
             logger.error(f"Error deploying {domain}: {str(e)}")
-    return jsonify({'status': 'deployed'})
+    return jsonify({"status": "deployed"})
 
-@app.route('/install_wordpress', methods=['POST'])
+
+@app.route("/install_wordpress", methods=["POST"])
 @login_required
 def install_wordpress_route():
-    domain_name = request.form.get('domain')
+    domain_name = request.form.get("domain")
     if not domain_name:
-        return jsonify({'status': 'error', 'message': 'Nom de domaine manquant'}), 400
+        return jsonify({"status": "error", "message": "Nom de domaine manquant"}), 400
     try:
         if install_wordpress(domain_name):
-            return jsonify({'status': 'installed'})
-        return jsonify({'status': 'error'})
+            return jsonify({"status": "installed"})
+        return jsonify({"status": "error"})
     except Exception as e:
         logger.error(f"Error installing WordPress: {str(e)}")
-        return jsonify({'status': 'error', 'message': 'Une erreur est survenue'}), 500
+        return jsonify({"status": "error", "message": "Une erreur est survenue"}), 500
 
-@app.route('/initialize_git_repo', methods=['POST'])
+
+@app.route("/initialize_git_repo", methods=["POST"])
 @login_required
 def initialize_git_repo_route():
-    domain_name = request.form.get('domain')
+    domain_name = request.form.get("domain")
     if not domain_name:
-        return jsonify({'status': 'error', 'message': 'Nom de domaine manquant'}), 400
+        return jsonify({"status": "error", "message": "Nom de domaine manquant"}), 400
     try:
         if initialize_git_repo(domain_name):
-            return jsonify({'status': 'initialized'})
-        return jsonify({'status': 'error'})
+            return jsonify({"status": "initialized"})
+        return jsonify({"status": "error"})
     except Exception as e:
         logger.error(f"Error initializing Git repo: {str(e)}")
-        return jsonify({'status': 'error', 'message': 'Une erreur est survenue'}), 500
+        return jsonify({"status": "error", "message": "Une erreur est survenue"}), 500
 
-@app.route('/deploy_static', methods=['POST'])
+
+@app.route("/deploy_static", methods=["POST"])
 @login_required
 def deploy_static_route():
-    domain_name = request.form.get('domain')
+    domain_name = request.form.get("domain")
     if not domain_name:
-        return jsonify({'status': 'error', 'message': 'Nom de domaine manquant'}), 400
+        return jsonify({"status": "error", "message": "Nom de domaine manquant"}), 400
     start_time = datetime.datetime.now()
     try:
         success = deploy_static(domain_name)
         duration = (datetime.datetime.now() - start_time).total_seconds()
         log_deployment(domain_name, success, duration)
         if success:
-            return jsonify({'status': 'deployed'})
-        return jsonify({'status': 'error'})
+            return jsonify({"status": "deployed"})
+        return jsonify({"status": "error"})
     except Exception as e:
         logger.error(f"Error deploying {domain_name}: {str(e)}")
-        return jsonify({'status': 'error', 'message': 'Une erreur est survenue'}), 500
+        return jsonify({"status": "error", "message": "Une erreur est survenue"}), 500
 
-@app.route('/editor', methods=['GET', 'POST'])
+
+@app.route("/editor", methods=["GET", "POST"])
 @login_required
 def editor():
-    domains = [domain for domain in os.listdir('/var/www/') if os.path.isdir(os.path.join('/var/www/', domain)) and not domain.startswith('.')]
-    
-    if request.method == 'POST':
-        site = request.form.get('site')
-        title = request.form.get('title')
-        content = request.form.get('content')
+    domains = [
+        domain
+        for domain in os.listdir("/var/www/")
+        if os.path.isdir(os.path.join("/var/www/", domain))
+        and not domain.startswith(".")
+    ]
+
+    if request.method == "POST":
+        site = request.form.get("site")
+        title = request.form.get("title")
+        content = request.form.get("content")
         if site in domains:
             try:
                 publish_article(site, title, content)
-                return redirect(url_for('index'))
+                return redirect(url_for("index"))
             except Exception as e:
                 logger.error(f"Error publishing article: {str(e)}")
-                flash('Une erreur est survenue lors de la publication de l\'article', 'danger')
-                return redirect(url_for('editor'))
+                flash(
+                    "Une erreur est survenue lors de la publication de l'article",
+                    "danger",
+                )
+                return redirect(url_for("editor"))
         else:
-            flash('Site invalide', 'danger')
-            return redirect(url_for('editor'))
-    
-    selected_site = request.args.get('site')
-    if selected_site and selected_site not in domains:
-        flash('Site invalide', 'danger')
-        return redirect(url_for('index'))
-    
-    return render_template('editor.html', domains=domains, selected_site=selected_site)
+            flash("Site invalide", "danger")
+            return redirect(url_for("editor"))
 
-@app.route('/settings', methods=['GET', 'POST'])
+    selected_site = request.args.get("site")
+    if selected_site and selected_site not in domains:
+        flash("Site invalide", "danger")
+        return redirect(url_for("index"))
+
+    return render_template("editor.html", domains=domains, selected_site=selected_site)
+
+
+@app.route("/settings", methods=["GET", "POST"])
 @login_required
 @admin_required
 def settings():
     settings = load_settings()
-    if request.method == 'POST':
+    if request.method == "POST":
         try:
-            contact_types = ['registrant', 'admin', 'technical', 'billing']
+            contact_types = ["registrant", "admin", "technical", "billing"]
             for contact_type in contact_types:
-                settings[contact_type] = {key: request.form.get(f'{contact_type}_{key}', '').strip() for key in ['firstName', 'lastName', 'organization', 'email', 'phoneNumber', 'street', 'street2', 'street3', 'city', 'countryCode', 'postalCode']}
-                if contact_type == 'registrant':
-                    settings[contact_type]['dotfrcontactentitytype'] = request.form.get('registrant_dotfrcontactentitytype', '').strip()
-            
-            settings['internetbs_token'] = request.form.get('internetbs_token', '').strip()
-            settings['internetbs_password'] = request.form.get('internetbs_password', '').strip()
-            settings['github_username'] = request.form.get('github_username', '').strip()
-            settings['github_token'] = request.form.get('github_token', '').strip()
-            settings['test_mode'] = 'test_mode' in request.form
-            new_admin_password = request.form.get('admin_password', '').strip()
+                settings[contact_type] = {
+                    key: request.form.get(f"{contact_type}_{key}", "").strip()
+                    for key in [
+                        "firstName",
+                        "lastName",
+                        "organization",
+                        "email",
+                        "phoneNumber",
+                        "street",
+                        "street2",
+                        "street3",
+                        "city",
+                        "countryCode",
+                        "postalCode",
+                    ]
+                }
+                if contact_type == "registrant":
+                    settings[contact_type]["dotfrcontactentitytype"] = request.form.get(
+                        "registrant_dotfrcontactentitytype", ""
+                    ).strip()
+
+            settings["internetbs_token"] = request.form.get(
+                "internetbs_token", ""
+            ).strip()
+            settings["internetbs_password"] = request.form.get(
+                "internetbs_password", ""
+            ).strip()
+            settings["github_username"] = request.form.get(
+                "github_username", ""
+            ).strip()
+            settings["github_token"] = request.form.get("github_token", "").strip()
+            settings["test_mode"] = "test_mode" in request.form
+            new_admin_password = request.form.get("admin_password", "").strip()
             if new_admin_password:
                 update_admin_password(new_admin_password)
-            
+
             save_settings(settings)
-            flash('Paramètres mis à jour avec succès', 'success')
+            flash("Paramètres mis à jour avec succès", "success")
         except Exception as e:
             logger.error(f"Error updating settings: {str(e)}")
-            flash('Une erreur est survenue lors de la mise à jour des paramètres.', 'danger')
-        return redirect(url_for('settings'))
-    return render_template('settings.html', contacts=settings)
+            flash(
+                "Une erreur est survenue lors de la mise à jour des paramètres.",
+                "danger",
+            )
+        return redirect(url_for("settings"))
+    return render_template("settings.html", contacts=settings)
 
-@app.route('/confirm_action', methods=['POST'])
+
+@app.route("/confirm_action", methods=["POST"])
 @login_required
 @admin_required
 def confirm_action():
     data = request.get_json()
-    action = data.get('action')
-    domain_name = data.get('domain')
-    
-    if action == 'create_nginx_config':
-        if not create_nginx_config(domain_name, force=True):
-            socketio.emit('error', f'Erreur lors de la configuration SSL pour {domain_name}.')
-    elif action == 'install_wordpress':
-        if not install_wordpress(domain_name, force=True):
-            socketio.emit('error', f'Erreur lors de l\'installation de WordPress pour {domain_name}.')
-    
-    return '', 204
+    action = data.get("action")
+    domain_name = data.get("domain")
 
-@app.route('/backoffice/<domain>')
+    if action == "create_nginx_config":
+        if not create_nginx_config(domain_name, force=True):
+            socketio.emit(
+                "error", f"Erreur lors de la configuration SSL pour {domain_name}."
+            )
+    elif action == "install_wordpress":
+        if not install_wordpress(domain_name, force=True):
+            socketio.emit(
+                "error",
+                f"Erreur lors de l'installation de WordPress pour {domain_name}.",
+            )
+
+    return "", 204
+
+
+@app.route("/backoffice/<domain>")
 @login_required
 def backoffice(domain):
     login_link = generate_wp_login_link(domain)
     if login_link:
         return redirect(login_link)
     else:
-        flash('Erreur lors de la génération du lien de connexion automatique', 'danger')
-        return redirect(url_for('index'))
+        flash("Erreur lors de la génération du lien de connexion automatique", "danger")
+        return redirect(url_for("index"))
 
-@app.route('/deployments')
+
+@app.route("/deployments")
 @login_required
 def deployments():
-    log_path = 'data/deployments.json'
+    log_path = "data/deployments.json"
     if os.path.exists(log_path):
-        with open(log_path, 'r') as log_file:
+        with open(log_path, "r") as log_file:
             deployments = json.load(log_file)
-            deployments = [format_deployment_log(deployment) for deployment in deployments]
+            deployments = [
+                format_deployment_log(deployment) for deployment in deployments
+            ]
     else:
         deployments = []
-    return render_template('deployments.html', deployments=deployments)
+    return render_template("deployments.html", deployments=deployments)
