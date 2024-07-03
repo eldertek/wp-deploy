@@ -20,8 +20,8 @@
                 <tr>
                     <td>{{ deployment.domain }}</td>
                     <td>{{ 'Oui' if deployment.success else 'Non' }}</td>
-                    <td>{{ deployment.time | date("d/m/Y H:i:s") }}</td>
-                    <td>{{ "%.2f"|format(deployment.duration) }}</td>
+                    <td>{{ deployment.time }}</td>
+                    <td>{{ deployment.duration }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
