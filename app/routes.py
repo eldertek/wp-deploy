@@ -329,7 +329,10 @@ def settings():
             # Update admin password if provided
             new_admin_password = request.form.get("admin_password", "").strip()
             if new_admin_password:
-                update_admin_password("admin", new_admin_password)
+                if update_admin_password("admin", new_admin_password):
+                    flash("Le mot de passe de l'administrateur a été mis à jour avec succès", "success")
+                else:
+                    flash("Erreur lors de la mise à jour du mot de passe de l'administrateur", "danger")
 
             save_settings(settings)
             flash("Paramètres mis à jour avec succès", "success")

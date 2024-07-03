@@ -596,5 +596,10 @@ def update_admin_password(username, new_password):
         with open(users_file, "r") as f:
             users = json.load(f)
     users[username] = generate_password_hash(new_password)
-    with open(users_file, "w") as f:
-        json.dump(users, f, indent=4)
+    try:
+        with open(users_file, "w") as f:
+            json.dump(users, f, indent=4)
+        return True
+    except Exception as e:
+        socketio.emit("error", f"Erreur lors de la mise à jour du mot de passe: {str(e)}")
+        return False
