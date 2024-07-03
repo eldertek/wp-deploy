@@ -6,10 +6,9 @@ import string
 import requests
 import datetime
 from functools import lru_cache
-
+from app import socketio
 
 def run_command(command, elevated=False):
-    from app import socketio
     if elevated:
         command = f"sudo -s {command}"
     try:
