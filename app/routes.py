@@ -64,18 +64,6 @@ def index():
     
     return render_template('index.html', sites=sites, last_update=last_update)
 
-@app.route('/deploy_static', methods=['POST'])
-@login_required
-def deploy_static_route():
-    domain_name = request.form['domain']
-    start_time = datetime.datetime.now()
-    success = deploy_static(domain_name)
-    duration = (datetime.datetime.now() - start_time).total_seconds()
-    log_deployment(domain_name, success, duration)
-    if success:
-        return jsonify({'status': 'deployed'})
-    return jsonify({'status': 'error'})
-
 @app.route('/add_domain', methods=['GET', 'POST'])
 @login_required
 def add_domain():
