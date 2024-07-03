@@ -324,7 +324,6 @@ def settings():
             ).strip()
             settings["github_token"] = request.form.get("github_token", "").strip()
             settings["test_mode"] = "test_mode" in request.form
-            settings["admin_password"] = request.form.get("admin_password", "").strip()
 
             save_settings(settings)
             flash("Paramètres mis à jour avec succès", "success")

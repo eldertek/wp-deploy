@@ -57,6 +57,5 @@
     "github_username": "",
     "github_token": "",
     "test_mode": true,
-    "admin_password": "scrypt:32768:8:1$hp9AmX3Lk5EwXMxW$6512a9f47cd93af56b1fb0194342adcdca49937aba044cae8ca01b55cdb6013238f507cb3a959df17517e8b0586b9ef13f18aca6284139cb5d563f5cdc2a1cf7",
     "admin_username": "admin"
 }
