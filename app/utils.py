@@ -1,5 +1,4 @@
 from internetbs import Domain, DNS
-from app import socketio
 import json, os
 import subprocess
 import random
@@ -10,6 +9,7 @@ from functools import lru_cache
 
 
 def run_command(command, elevated=False):
+    from app import socketio
     if elevated:
         command = f"sudo -s {command}"
     try:
@@ -61,6 +61,7 @@ def log_deployment(domain_name, success, duration):
 
 @lru_cache(maxsize=32)
 def load_settings():
+    from app import socketio  # Importer socketio ici pour éviter l'importation circulaire
     config_path = "data/config.json"
     model_path = "data/settings.json"
 
@@ -86,6 +87,7 @@ def load_settings():
 
 
 def save_settings(settings):
+    from app import socketio  # Importer socketio ici pour éviter l'importation circulaire
     run_command("chown www-data:www-data data", elevated=True)
     config_path = "data/config.json"
     try:
