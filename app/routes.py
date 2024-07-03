@@ -7,8 +7,8 @@ from app import socketio
 import json, os, datetime
 
 def load_settings():
-    config_path = 'app/config.json'
-    model_path = 'app/settings.json'
+    config_path = 'data/config.json'
+    model_path = 'data/settings.json'
     
     if not os.path.exists(config_path):
         with open(model_path, 'r') as model_file:
@@ -22,7 +22,7 @@ def load_settings():
         return {}
 
 def save_settings(settings):
-    config_path = 'app/config.json'
+    config_path = 'data/config.json'
     with open(config_path, 'w') as config_file:
         json.dump(settings, config_file, indent=4)
 
@@ -52,7 +52,7 @@ def logout():
 @app.route('/')
 @login_required
 def index():
-    data_path = 'app/data.json'
+    data_path = 'data/data.json'
     if not os.path.exists(data_path):
         save_site_data()
     
@@ -208,6 +208,7 @@ def settings():
         settings['github_username'] = request.form.get('github_username', '')
         settings['github_token'] = request.form.get('github_token', '')
         settings['test_mode'] = 'test_mode' in request.form
+        settings['admin_password'] = request.form.get('admin_password', '')
         
         save_settings(settings)
         flash('Paramètres mise à jour avec succès', 'success')
@@ -243,7 +244,7 @@ def backoffice(domain):
 @app.route('/deployments')
 @login_required
 def deployments():
-    log_path = 'app/deployments.json'
+    log_path = 'data/deployments.json'
     if os.path.exists(log_path):
         with open(log_path, 'r') as log_file:
             deployments = json.load(log_file)

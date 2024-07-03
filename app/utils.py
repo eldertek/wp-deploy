@@ -14,7 +14,7 @@ def log_deployment(domain_name, success, duration):
         'time': datetime.datetime.now().isoformat(),
         'duration': duration
     }
-    log_path = 'app/deployments.json'
+    log_path = 'data/deployments.json'
     if os.path.exists(log_path):
         with open(log_path, 'r') as log_file:
             logs = json.load(log_file)
@@ -25,8 +25,8 @@ def log_deployment(domain_name, success, duration):
         json.dump(logs, log_file, indent=4)
 
 def load_settings():
-    config_path = 'app/config.json'
-    model_path = 'app/settings.json'
+    config_path = 'data/config.json'
+    model_path = 'data/settings.json'
     
     if not os.path.exists(config_path):
         with open(model_path, 'r') as model_file:
@@ -40,7 +40,7 @@ def load_settings():
         return {}
 
 def save_settings(settings):
-    config_path = 'app/config.json'
+    config_path = 'data/config.json'
     with open(config_path, 'w') as config_file:
         json.dump(settings, config_file, indent=4)
 
@@ -64,7 +64,7 @@ def publish_article(site, title, content):
 
 
 def load_settings():
-    with open('app/settings.json', 'r') as f:
+    with open('data/settings.json', 'r') as f:
         return json.load(f)
 
 def is_domain_owned(domain_name):
@@ -393,7 +393,7 @@ def save_site_data():
         'sites': fetch_site_data(),
         'last_update': datetime.datetime.now().strftime('%d/%m/%Y - %Hh%M')
     }
-    with open('app/data.json', 'w') as f:
+    with open('data/data.json', 'w') as f:
         json.dump(data, f, indent=4)
 
 
