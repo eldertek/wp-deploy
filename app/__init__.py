@@ -50,7 +50,15 @@ def create_admin_user():
         update_admin_password(admin_password)
         logger.info("Admin user already exists and password updated.")
 
-create_admin_user()
+def init_app():
+    create_admin_user()
+    # Démarrer le planificateur
+    try:
+        scheduler.start()
+    except Exception as e:
+        logger.error(f"Erreur lors du démarrage du planificateur: {str(e)}")
+
+init_app()
 
 def deploy_all_websites():
     from app.utils import deploy_static, log_deployment
@@ -88,11 +96,6 @@ scheduler.add_job(
     deploy_all_websites, "cron", hour=0, minute=0, misfire_grace_time=3600
 )
 scheduler.add_job(update_site_data, "interval", minutes=10, misfire_grace_time=300)
-
-try:
-    scheduler.start()
-except Exception as e:
-    logger.error(f"Erreur lors du démarrage du planificateur: {str(e)}")
 
 # Ensure the scheduler is shut down when exiting the app
 atexit.register(lambda: scheduler.shutdown(wait=False))
