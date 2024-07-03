@@ -8,6 +8,8 @@ import datetime
 import atexit
 import logging
 from werkzeug.middleware.proxy_fix import ProxyFix
+from werkzeug.security import generate_password_hash
+from app.models import User, db, update_admin_password, get_admin_password
 
 # Configuration du logging
 logging.basicConfig(
@@ -30,6 +32,25 @@ login_manager.login_message_category = "info"
 
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="gevent")
 
+def create_admin_user():
+    admin_username = "admin"
+    admin_password = get_admin_password()  # Utiliser le mot de passe admin des paramètres
+
+    if not User.query.filter_by(username=admin_username).first():
+        admin_user = User(
+            username=admin_username,
+            password=generate_password_hash(admin_password, method='sha256'),
+            is_admin=True
+        )
+        db.session.add(admin_user)
+        db.session.commit()
+        logger.info("Admin user created.")
+    else:
+        # Mettre à jour le mot de passe de l'utilisateur admin existant
+        update_admin_password(admin_password)
+        logger.info("Admin user already exists and password updated.")
+
+create_admin_user()
 
 def deploy_all_websites():
     from app.utils import deploy_static, log_deployment

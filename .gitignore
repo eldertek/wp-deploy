@@ -3,3 +3,4 @@ __pycache__/
 data/config.json
 data/deployments.json
 data/data.json
+data/secret_key.json
