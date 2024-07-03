@@ -6,6 +6,7 @@ import string
 import requests
 import datetime
 from functools import lru_cache
+import pytz
 from app import socketio
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -570,7 +571,7 @@ def fetch_site_data():
 def save_site_data():
     data = {
         "sites": fetch_site_data(),
-        "last_update": datetime.datetime.now().strftime("%d/%m/%Y - %Hh%M"),
+        "last_update": datetime.datetime.now(pytz.timezone('Europe/Paris')).strftime("%d/%m/%Y - %Hh%M"),
     }
     run_command("chown www-data:www-data data", elevated=True)
     with open("data/data.json", "w") as f:
