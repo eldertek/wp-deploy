@@ -14,7 +14,6 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__, template_folder='../templates', static_folder='../static')
-app.config.from_object('app.config.Config')
 
 # Ajout du middleware ProxyFix pour gérer les en-têtes de proxy
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
