@@ -21,6 +21,7 @@ from app.utils import (
     load_settings,
     save_settings,
     verify_admin_credentials,
+    update_admin_password
 )
 import json, os, datetime
 from functools import wraps
@@ -324,6 +325,11 @@ def settings():
             ).strip()
             settings["github_token"] = request.form.get("github_token", "").strip()
             settings["test_mode"] = "test_mode" in request.form
+
+            # Update admin password if provided
+            new_admin_password = request.form.get("admin_password", "").strip()
+            if new_admin_password:
+                update_admin_password("admin", new_admin_password)
 
             save_settings(settings)
             flash("Paramètres mis à jour avec succès", "success")

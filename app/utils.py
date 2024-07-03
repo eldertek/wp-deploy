@@ -7,7 +7,7 @@ import requests
 import datetime
 from functools import lru_cache
 from app import socketio
-from werkzeug.security import check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 
 
 def run_command(command, elevated=False):
@@ -587,3 +587,14 @@ def verify_admin_credentials(username, password):
     if username in users and check_password_hash(users[username], password):
         return True
     return False
+
+def update_admin_password(username, new_password):
+    users_file = "data/users.json"
+    if not os.path.exists(users_file):
+        users = {}
+    else:
+        with open(users_file, "r") as f:
+            users = json.load(f)
+    users[username] = generate_password_hash(new_password)
+    with open(users_file, "w") as f:
+        json.dump(users, f, indent=4)

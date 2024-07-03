@@ -223,34 +223,16 @@
                     <label>Code postal:</label>
                     <input type="text" class="form-control" name="billing_postalCode" value="{{ contacts.billing.postalCode }}">
                 </div>
-            </div>
-            <div class="tab-pane fade" id="other" role="tabpanel" aria-labelledby="other-tab">
-                <div class="row mt-3">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label>Token Internet.bs:</label>
-                            <input type="text" class="form-control" name="internetbs_token" value="{{ contacts.internetbs_token }}">
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label>Mot de passe Internet.bs:</label>
-                            <input type="text" class="form-control" name="internetbs_password" value="{{ contacts.internetbs_password }}">
-                        </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Nom d'utilisateur GitHub:</label>
+                        <input type="text" class="form-control" name="github_username" value="{{ contacts.github_username }}">
                     </div>
                 </div>
-                <div class="row mt-3">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label>Nom d'utilisateur GitHub:</label>
-                            <input type="text" class="form-control" name="github_username" value="{{ contacts.github_username }}">
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label>Token GitHub:</label>
-                            <input type="password" class="form-control" name="github_token" value="{{ contacts.github_token }}">
-                        </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Token GitHub:</label>
+                        <input type="password" class="form-control" name="github_token" value="{{ contacts.github_token }}">
                     </div>
                 </div>
                 <div class="form-group">
@@ -258,6 +240,10 @@
                     <input type="checkbox" class="form-control" name="test_mode" {% if contacts.test_mode %}checked{% endif %}>
                 </div>
             </div>
+        </div>
+        <div class="form-group">
+            <label for="admin_password">Nouveau mot de passe admin:</label>
+            <input type="password" class="form-control" id="admin_password" name="admin_password">
         </div>
         <button type="submit" class="btn btn-primary mt-3">Enregistrer</button>
     </form>
