@@ -6,6 +6,7 @@ import json
 from apscheduler.schedulers.background import BackgroundScheduler
 import datetime
 import atexit
+import pytz
 
 app = Flask(__name__, template_folder='../templates', static_folder='../static')
 app.config.from_object('app.config.Config')
@@ -34,7 +35,7 @@ def update_site_data():
     from app.utils import save_site_data
     save_site_data()
 
-scheduler = BackgroundScheduler()
+scheduler = BackgroundScheduler(timezone=pytz.timezone('Europe/Paris'))
 scheduler.add_job(deploy_all_websites, 'cron', hour=0, minute=0)
 scheduler.add_job(update_site_data, 'interval', minutes=10)
 scheduler.start()
