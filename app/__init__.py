@@ -4,7 +4,6 @@ from flask_socketio import SocketIO
 import os
 import json
 from apscheduler.schedulers.background import BackgroundScheduler
-from app.utils import deploy_static, log_deployment, save_site_data
 import datetime
 import atexit
 
@@ -21,6 +20,7 @@ login_manager.login_message_category = "info"
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 def deploy_all_websites():
+    from app.utils import deploy_static, log_deployment
     start_time = datetime.datetime.now()
     domains = [domain for domain in os.listdir('/var/www/') if os.path.isdir(os.path.join('/var/www/', domain)) and not domain.startswith('.')]
     for domain in domains:
@@ -29,6 +29,7 @@ def deploy_all_websites():
         log_deployment(domain, success, duration)
 
 def update_site_data():
+    from app.utils import save_site_data
     save_site_data()
 
 scheduler = BackgroundScheduler()
