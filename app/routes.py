@@ -2,7 +2,7 @@ from flask import render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_user, login_required, logout_user
 from app import app, login_manager
 from app.models import User, users, update_admin_password
-from app.utils import is_domain_owned, is_domain_available, purchase_domain, configure_dns, create_nginx_config, setup_ssl, install_wordpress, generate_wp_login_link, get_published_articles, get_indexed_articles, publish_article, initialize_git_repo, deploy_static, log_deployment, save_site_data
+from app.utils import is_domain_owned, is_domain_available, purchase_domain, configure_dns, create_nginx_config, setup_ssl, install_wordpress, generate_wp_login_link, get_published_articles, get_indexed_articles, publish_article, initialize_git_repo, deploy_static, log_deployment, save_site_data, format_deployment_log
 from app import socketio
 import json, os, datetime
 
@@ -251,6 +251,7 @@ def deployments():
     if os.path.exists(log_path):
         with open(log_path, 'r') as log_file:
             deployments = json.load(log_file)
+            deployments = [format_deployment_log(deployment) for deployment in deployments]
     else:
         deployments = []
     return render_template('deployments.html', deployments=deployments)

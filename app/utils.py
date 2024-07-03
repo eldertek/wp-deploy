@@ -17,6 +17,11 @@ def run_command(command, elevated=False):
         socketio.emit('error', f'Erreur: {e.stderr.decode("utf-8")}')
         return None
 
+def format_deployment_log(deployment):
+    deployment['time'] = datetime.datetime.fromisoformat(deployment['time']).strftime("%d/%m/%Y %H:%M:%S")
+    deployment['duration'] = f"{deployment['duration']:.2f}"
+    return deployment
+
 def log_deployment(domain_name, success, duration):
     log_entry = {
         'domain': domain_name,
