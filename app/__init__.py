@@ -19,6 +19,9 @@ login_manager.login_message_category = "info"
 
 socketio = SocketIO(app, cors_allowed_origins="*")
 
+# Import the models to ensure the user_loader is registered
+from app.models import User
+
 def deploy_all_websites():
     from app.utils import deploy_static, log_deployment
     start_time = datetime.datetime.now()
