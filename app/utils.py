@@ -7,6 +7,8 @@ import requests
 import datetime
 from functools import lru_cache
 from app import socketio
+from werkzeug.security import check_password_hash
+
 
 def run_command(command, elevated=False):
     if elevated:
@@ -579,3 +581,10 @@ def save_site_data():
     with open("data/data.json", "w") as f:
         json.dump(data, f, indent=4)
     run_command("chown www-data:www-data data/data.json", elevated=True)
+
+
+def verify_admin_credentials(username, password):
+    settings = load_settings()
+    admin_username = settings.get("admin_username", "admin")
+    hashed_password = settings.get("admin_password", "")
+    return username == admin_username and check_password_hash(hashed_password, password)

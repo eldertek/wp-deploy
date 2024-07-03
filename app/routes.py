@@ -1,8 +1,8 @@
 from flask import render_template, request, redirect, url_for, flash, jsonify, abort
 from flask_login import login_user, login_required, logout_user, current_user
-from werkzeug.security import check_password_hash
-from app import app, login_manager, socketio
-from app.models import User, users, update_admin_password
+
+from app import app, socketio
+from app.models import User
 from app.utils import (
     is_domain_owned,
     is_domain_available,
@@ -12,8 +12,6 @@ from app.utils import (
     setup_ssl,
     install_wordpress,
     generate_wp_login_link,
-    get_published_articles,
-    get_indexed_articles,
     publish_article,
     initialize_git_repo,
     deploy_static,
@@ -22,6 +20,7 @@ from app.utils import (
     format_deployment_log,
     load_settings,
     save_settings,
+    verify_admin_credentials,
 )
 import json, os, datetime
 from functools import wraps
@@ -40,19 +39,12 @@ def admin_required(f):
     return decorated_function
 
 
-@login_manager.user_loader
-def load_user(user_id):
-    return User(user_id)
-
-
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
-        if username in users and check_password_hash(
-            users[username]["password"], password
-        ):
+        if verify_admin_credentials(username, password):
             user = User(username)
             login_user(user)
             return redirect(url_for("index"))
@@ -332,9 +324,7 @@ def settings():
             ).strip()
             settings["github_token"] = request.form.get("github_token", "").strip()
             settings["test_mode"] = "test_mode" in request.form
-            new_admin_password = request.form.get("admin_password", "").strip()
-            if new_admin_password:
-                update_admin_password(new_admin_password)
+            settings["admin_password"] = request.form.get("admin_password", "").strip()
 
             save_settings(settings)
             flash("Paramètres mis à jour avec succès", "success")
