@@ -1,6 +1,5 @@
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash
-from app import db
 import json
 
 # Load settings to get the admin password
@@ -22,6 +21,7 @@ def get_admin_password():
     return admin_password
 
 def update_admin_password(new_password):
+    from app import db
     admin_user = User.query.filter_by(username="admin").first()
     if admin_user:
         admin_user.password = generate_password_hash(new_password, method='sha256')
