@@ -1,7 +1,7 @@
 from flask import render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_user, login_required, logout_user
 from app import app, login_manager
-from app.models import User, users
+from app.models import User, users, update_admin_password
 from app.utils import is_domain_owned, is_domain_available, purchase_domain, configure_dns, create_nginx_config, setup_ssl, install_wordpress, generate_wp_login_link, get_published_articles, get_indexed_articles, publish_article, initialize_git_repo, deploy_static, log_deployment, save_site_data
 from app import socketio
 import json, os, datetime
@@ -208,7 +208,10 @@ def settings():
         settings['github_username'] = request.form.get('github_username', '')
         settings['github_token'] = request.form.get('github_token', '')
         settings['test_mode'] = 'test_mode' in request.form
-        settings['admin_password'] = request.form.get('admin_password', '')
+        new_admin_password = request.form.get('admin_password', '')
+        if new_admin_password:
+            settings['admin_password'] = new_admin_password
+            update_admin_password(new_admin_password)
         
         save_settings(settings)
         flash('Paramètres mise à jour avec succès', 'success')

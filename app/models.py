@@ -14,3 +14,6 @@ class User(UserMixin):
 
 def load_user(user_id):
     return User(user_id)
+
+def update_admin_password(new_password):
+    users['admin']['password'] = new_password
