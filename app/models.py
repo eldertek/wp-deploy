@@ -17,3 +17,6 @@ def load_user(user_id):
 
 def update_admin_password(new_password):
     users['admin']['password'] = new_password
+
+def create_admin_user():
+    users['admin'] = {'password': admin_password}

@@ -19,6 +19,10 @@ login_manager.login_message_category = "info"
 
 socketio = SocketIO(app, cors_allowed_origins="*")
 
+# Ensure admin user exists
+from app.models import create_admin_user
+create_admin_user()
+
 def deploy_all_websites():
     from app.utils import deploy_static, log_deployment
     start_time = datetime.datetime.now()
