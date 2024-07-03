@@ -25,6 +25,7 @@ def log_deployment(domain_name, success, duration):
         'duration': duration
     }
     log_path = 'data/deployments.json'
+    run_command("chown www-data:www-data data", elevated=True)
     if os.path.exists(log_path):
         with open(log_path, 'r') as log_file:
             logs = json.load(log_file)
@@ -33,6 +34,7 @@ def log_deployment(domain_name, success, duration):
     logs.append(log_entry)
     with open(log_path, 'w') as log_file:
         json.dump(logs, log_file, indent=4)
+    run_command("chown www-data:www-data data/deployments.json", elevated=True)  # Ensure ownership
 
 def load_settings():
     config_path = 'data/config.json'
@@ -395,7 +397,9 @@ def save_site_data():
         'sites': fetch_site_data(),
         'last_update': datetime.datetime.now().strftime('%d/%m/%Y - %Hh%M')
     }
+    run_command("chown www-data:www-data data", elevated=True)
     with open('data/data.json', 'w') as f:
         json.dump(data, f, indent=4)
+    run_command("chown www-data:www-data data/data.json", elevated=True)
 
 
