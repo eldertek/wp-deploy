@@ -7,6 +7,16 @@ import string
 import requests
 import datetime
 
+def run_command(command, elevated=False):
+    if elevated:
+        command = f"sudo -s {command}"
+    try:
+        result = subprocess.run(command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return result.stdout.decode('utf-8')
+    except subprocess.CalledProcessError as e:
+        socketio.emit('error', f'Erreur: {e.stderr.decode("utf-8")}')
+        return None
+
 def log_deployment(domain_name, success, duration):
     log_entry = {
         'domain': domain_name,
@@ -112,16 +122,6 @@ def configure_dns(domain_name):
             socketio.emit('error', f'Erreur lors de la configuration DNS {record["type"]} pour {record["name"]}: {str(e)}')
             return None
     return True
-
-def run_command(command, elevated=False):
-    if elevated:
-        command = f"sudo -s {command}"
-    try:
-        result = subprocess.run(command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        return result.stdout.decode('utf-8')
-    except subprocess.CalledProcessError as e:
-        socketio.emit('error', f'Erreur: {e.stderr.decode("utf-8")}')
-        return None
 
 def create_nginx_config(domain_name, force=False):
     try:
