@@ -40,9 +40,11 @@ def load_settings():
         return {}
 
 def save_settings(settings):
+    run_command("chown www-data:www-data data", elevated=True)
     config_path = 'data/config.json'
     with open(config_path, 'w') as config_file:
         json.dump(settings, config_file, indent=4)
+    run_command("chown www-data:www-data data/config.json", elevated=True)
 
 # Load settings
 settings = load_settings()
