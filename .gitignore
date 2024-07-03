@@ -1,3 +1,5 @@
 .venv/
 __pycache__/
-data/
+data/config.json
+data/deployments.json
+data/data.json
