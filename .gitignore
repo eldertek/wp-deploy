@@ -2,3 +2,4 @@
 __pycache__/
 app/config.json
 app/deployments.json
+app/data.json
