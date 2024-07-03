@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Déploiements{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Historique des déploiements</h2>
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Domaine</th>
+                    <th>Succès</th>
+                    <th>Heure</th>
+                    <th>Durée (secondes)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for deployment in deployments %}
+                <tr>
+                    <td>{{ deployment.domain }}</td>
+                    <td>{{ 'Oui' if deployment.success else 'Non' }}</td>
+                    <td>{{ deployment.time }}</td>
+                    <td>{{ deployment.duration }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -5,7 +5,24 @@ import subprocess
 import random
 import string
 import requests
-from github import Github
+import datetime
+
+def log_deployment(domain_name, success, duration):
+    log_entry = {
+        'domain': domain_name,
+        'success': success,
+        'time': datetime.datetime.now().isoformat(),
+        'duration': duration
+    }
+    log_path = 'app/deployments.json'
+    if os.path.exists(log_path):
+        with open(log_path, 'r') as log_file:
+            logs = json.load(log_file)
+    else:
+        logs = []
+    logs.append(log_entry)
+    with open(log_path, 'w') as log_file:
+        json.dump(logs, log_file, indent=4)
 
 def load_settings():
     config_path = 'app/config.json'
@@ -353,3 +370,30 @@ def deploy_static(domain_name):
     except Exception as e:
         socketio.emit('error', f'Erreur lors du déploiement statique pour {domain_name}: {str(e)}')
         return False
+
+def fetch_site_data():
+    sites = []
+    for domain in os.listdir('/var/www/'):
+        if os.path.isdir(os.path.join('/var/www/', domain)) and not domain.startswith('.'):
+            published_articles = get_published_articles(domain)
+            indexed_articles = get_indexed_articles(domain)
+            indexed_percentage = (indexed_articles / published_articles * 100) if published_articles > 0 else 0
+            site_info = {
+                'domain': domain,
+                'status': 'online',
+                'published_articles': published_articles,
+                'indexed_articles': indexed_articles,
+                'indexed_percentage': indexed_percentage
+            }
+            sites.append(site_info)
+    return sites
+
+def save_site_data():
+    data = {
+        'sites': fetch_site_data(),
+        'last_update': datetime.datetime.now().strftime('%d/%m/%Y - %Hh%M')
+    }
+    with open('app/data.json', 'w') as f:
+        json.dump(data, f, indent=4)
+
+

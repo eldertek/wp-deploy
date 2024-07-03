@@ -1,3 +1,4 @@
 .venv/
 __pycache__/
 app/config.json
+app/deployments.json

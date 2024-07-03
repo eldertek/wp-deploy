@@ -2,9 +2,9 @@ from flask import render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_user, login_required, logout_user
 from app import app, login_manager
 from app.models import User, users
-from app.utils import is_domain_owned, is_domain_available, purchase_domain, configure_dns, create_nginx_config, setup_ssl, install_wordpress, generate_wp_login_link, get_published_articles, get_indexed_articles, publish_article, initialize_git_repo, deploy_static
+from app.utils import is_domain_owned, is_domain_available, purchase_domain, configure_dns, create_nginx_config, setup_ssl, install_wordpress, generate_wp_login_link, get_published_articles, get_indexed_articles, publish_article, initialize_git_repo, deploy_static, log_deployment, save_site_data
 from app import socketio
-import json, os
+import json, os, datetime
 
 def load_settings():
     config_path = 'app/config.json'
@@ -52,22 +52,29 @@ def logout():
 @app.route('/')
 @login_required
 def index():
-    sites = []
-    for domain in os.listdir('/var/www/'):
-        if os.path.isdir(os.path.join('/var/www/', domain)) and not domain.startswith('.'):
-            published_articles = get_published_articles(domain)
-            indexed_articles = get_indexed_articles(domain)
-            indexed_percentage = (indexed_articles / published_articles * 100) if published_articles > 0 else 0
-            site_info = {
-                'domain': domain,
-                'status': 'online',
-                'published_articles': published_articles,
-                'indexed_articles': indexed_articles,
-                'indexed_percentage': indexed_percentage
-            }
-            sites.append(site_info)
+    data_path = 'app/data.json'
+    if not os.path.exists(data_path):
+        save_site_data()
     
-    return render_template('index.html', sites=sites)
+    with open(data_path, 'r') as f:
+        data = json.load(f)
+    
+    sites = data['sites']
+    last_update = data['last_update']
+    
+    return render_template('index.html', sites=sites, last_update=last_update)
+
+@app.route('/deploy_static', methods=['POST'])
+@login_required
+def deploy_static_route():
+    domain_name = request.form['domain']
+    start_time = datetime.datetime.now()
+    success = deploy_static(domain_name)
+    duration = (datetime.datetime.now() - start_time).total_seconds()
+    log_deployment(domain_name, success, duration)
+    if success:
+        return jsonify({'status': 'deployed'})
+    return jsonify({'status': 'error'})
 
 @app.route('/add_domain', methods=['GET', 'POST'])
 @login_required
@@ -122,6 +129,17 @@ def setup_ssl_route():
         return jsonify({'status': 'setup'})
     return jsonify({'status': 'error'})
 
+@app.route('/deploy_all', methods=['POST'])
+@login_required
+def deploy_all():
+    start_time = datetime.datetime.now()
+    domains = [domain for domain in os.listdir('/var/www/') if os.path.isdir(os.path.join('/var/www/', domain)) and not domain.startswith('.')]
+    for domain in domains:
+        success = deploy_static(domain)
+        duration = (datetime.datetime.now() - start_time).total_seconds()
+        log_deployment(domain, success, duration)
+    return jsonify({'status': 'deployed'})
+
 @app.route('/install_wordpress', methods=['POST'])
 @login_required
 def install_wordpress_route():
@@ -142,7 +160,11 @@ def initialize_git_repo_route():
 @login_required
 def deploy_static_route():
     domain_name = request.form['domain']
-    if deploy_static(domain_name):
+    start_time = datetime.datetime.now()
+    success = deploy_static(domain_name)
+    duration = (datetime.datetime.now() - start_time).total_seconds()
+    log_deployment(domain_name, success, duration)
+    if success:
         return jsonify({'status': 'deployed'})
     return jsonify({'status': 'error'})
 
@@ -229,3 +251,14 @@ def backoffice(domain):
     else:
         flash('Erreur lors de la génération du lien de connexion automatique', 'danger')
         return redirect(url_for('index'))
+
+@app.route('/deployments')
+@login_required
+def deployments():
+    log_path = 'app/deployments.json'
+    if os.path.exists(log_path):
+        with open(log_path, 'r') as log_file:
+            deployments = json.load(log_file)
+    else:
+        deployments = []
+    return render_template('deployments.html', deployments=deployments)
