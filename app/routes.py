@@ -1,7 +1,7 @@
 from flask import render_template, request, redirect, url_for, flash, jsonify, abort
 from flask_login import login_user, login_required, logout_user, current_user
 
-from app import app, socketio
+from app import app, socketio, scheduler
 from app.models import User
 from app.utils import (
     is_domain_owned,
@@ -59,6 +59,18 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for("login"))
+
+
+@app.route("/jobs")
+@login_required
+def jobs():
+    jobs = []
+    for job in scheduler.get_jobs():
+        jobs.append({
+            "name": job.name,
+            "start_time": job.next_run_time.strftime("%Y-%m-%d %H:%M:%S") if job.next_run_time else "N/A",
+        })
+    return render_template("jobs.html", jobs=jobs)
 
 
 @app.route("/")

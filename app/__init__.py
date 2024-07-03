@@ -42,6 +42,9 @@ scheduler.start()
 
 atexit.register(lambda: scheduler.shutdown())
 
+# Expose the scheduler to be used in routes
+app.scheduler = scheduler
+
 from app import routes
 
 if __name__ == '__main__':
