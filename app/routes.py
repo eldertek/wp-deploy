@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated or not current_user.is_admin:
+        if not current_user.is_authenticated or current_user.id != "admin":
             abort(403)
         return f(*args, **kwargs)
 
@@ -44,7 +44,7 @@ def login():
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
-        if verify_admin_credentials(username, password):
+        if username == "admin" and verify_admin_credentials(username, password):
             user = User(username)
             login_user(user)
             return redirect(url_for("index"))

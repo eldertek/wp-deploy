@@ -1,7 +1,6 @@
 import os
 import json
-from werkzeug.security import generate_password_hash
-
+from werkzeug.security import generate_password_hash, check_password_hash
 
 class Config:
     SECRET_KEY_FILE = "data/secret_key.json"
@@ -20,17 +19,14 @@ class Config:
     # Ensure default admin credentials are set in users.json
     if not os.path.exists(USERS_FILE):
         users = {
-            "admin_username": "admin",
-            "admin_password": generate_password_hash("admin")
+            "admin": generate_password_hash("adminpass")
         }
         with open(USERS_FILE, "w") as f:
             json.dump(users, f, indent=4)
     else:
         with open(USERS_FILE, "r") as f:
             users = json.load(f)
-            if "admin_username" not in users:
-                users["admin_username"] = "admin"
-            if "admin_password" not in users or not users["admin_password"].startswith("pbkdf2:sha256:"):
-                users["admin_password"] = generate_password_hash("admin")
+            if "admin" not in users or not check_password_hash(users["admin"], "adminpass"):
+                users["admin"] = generate_password_hash("adminpass")
             with open(USERS_FILE, "w") as f:
                 json.dump(users, f, indent=4)

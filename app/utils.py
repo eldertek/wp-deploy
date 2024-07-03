@@ -125,11 +125,6 @@ def publish_article(site, title, content):
         )
 
 
-def load_settings():
-    with open("data/settings.json", "r") as f:
-        return json.load(f)
-
-
 def is_domain_owned(domain_name):
     socketio.emit(
         "message", f"Vérification de la possession du domaine {domain_name}..."
@@ -584,7 +579,11 @@ def save_site_data():
 
 
 def verify_admin_credentials(username, password):
-    settings = load_settings()
-    admin_username = settings.get("admin_username", "admin")
-    hashed_password = settings.get("admin_password", "")
-    return username == admin_username and check_password_hash(hashed_password, password)
+    users_file = "data/users.json"
+    if not os.path.exists(users_file):
+        return False
+    with open(users_file, "r") as f:
+        users = json.load(f)
+    if username in users and check_password_hash(users[username], password):
+        return True
+    return False

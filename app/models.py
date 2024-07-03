@@ -1,11 +1,19 @@
-from flask_login import UserMixin, login_manager
+from flask_login import UserMixin
+from app import login_manager
+import json
 
 class User(UserMixin):
     def __init__(self, id):
         self.id = id
 
-# Add this function to load a user from the user ID stored in the session
+    @staticmethod
+    def get(user_id):
+        with open("data/users.json", "r") as f:
+            users = json.load(f)
+        if user_id in users:
+            return User(user_id)
+        return None
+
 @login_manager.user_loader
 def load_user(user_id):
-    # Replace this with your actual user loading logic
-    return User(user_id)
+    return User.get(user_id)

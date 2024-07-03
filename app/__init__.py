@@ -19,7 +19,6 @@ login_manager.login_message_category = "info"
 
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-# Import the models to ensure the user_loader is registered
 from app.models import User
 
 def deploy_all_websites():
@@ -40,7 +39,6 @@ scheduler.add_job(deploy_all_websites, 'cron', hour=0, minute=0)
 scheduler.add_job(update_site_data, 'interval', minutes=10)
 scheduler.start()
 
-# Ensure the scheduler is shut down when exiting the app
 atexit.register(lambda: scheduler.shutdown())
 
 from app import routes
