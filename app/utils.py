@@ -430,6 +430,7 @@ def get_published_articles(domain_name):
 
 def get_indexed_articles(domain_name):
     api_key = "33cef647-1f76-4604-927d-e7f0d5b93205"
+    return 0
     url = f"https://api.spaceserp.com/google/search?apiKey={api_key}&q=site%3A{domain_name}&location=Lyon%2CAuvergne-Rhone-Alpes%2CFrance&domain=google.fr&gl=fr&hl=fr&resultFormat=json&resultBlocks=total_results_count"
     response = requests.get(url)
     if response.status_code == 200:
@@ -570,10 +571,6 @@ def deploy_static(domain_name):
         return False
 
 
-def fetch_site_data():
-    return load_sites_data()
-
-
 def update_indexed_articles_data():
     sites_data = load_sites_data()
     for site in sites_data['sites']:
@@ -595,7 +592,10 @@ def load_sites_data():
     if os.path.exists(data_path):
         with open(data_path, "r") as f:
             return json.load(f)
-    return {"sites": [], "last_update": ""}
+    else:
+        update_sites_basic_data()
+        update_indexed_articles_data()
+        return load_sites_data()
 
 
 def save_sites_data(data):

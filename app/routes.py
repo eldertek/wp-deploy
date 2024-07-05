@@ -16,7 +16,7 @@ from app.utils import (
     initialize_git_repo,
     deploy_static,
     log_deployment,
-    fetch_site_data,
+    load_sites_data,
     format_deployment_log,
     load_settings,
     save_settings,
@@ -81,7 +81,7 @@ def jobs():
 @login_required
 def index():
     try:
-        sites_data = fetch_site_data()
+        sites_data = load_sites_data()
         return render_template("index.html", sites=sites_data['sites'], last_update=sites_data['last_update'])
     except Exception as e:
         flash(f"Erreur lors du chargement des données des sites : {str(e)}", "danger")
