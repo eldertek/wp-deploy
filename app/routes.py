@@ -82,11 +82,9 @@ def jobs():
 def index():
     try:
         sites = fetch_site_data()
-
-        return render_template("index.html", sites=[])
+        return render_template("index.html", sites=sites)
     except Exception as e:
-        flash("Une erreur est survenue lors du chargement des données.", "danger")
-        return redirect(url_for("login"))
+        return render_template("index.html", sites=[])
 
 
 @app.route("/add_domain", methods=["GET", "POST"])
