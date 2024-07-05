@@ -572,67 +572,37 @@ def deploy_static(domain_name):
 
 def fetch_site_data():
     sites = []
-    data_path = "data/site_data.json"
-    if not os.path.exists(data_path):
-        with open(data_path, "w") as f:
-            update_published_articles_data()
-            update_indexed_articles_data()
-    else:
-        with open(data_path, "r") as f:
-            sites = json.load(f)
+    for domain in os.listdir("/var/www/"):
+        if os.path.isdir(os.path.join("/var/www/", domain)) and not domain.startswith(
+            "."
+        ):
+            published_articles = get_published_articles(domain)
+            indexed_articles = get_indexed_articles(domain)
+            indexed_percentage = (
+                (indexed_articles / published_articles * 100)
+                if published_articles > 0
+                else 0
+            )
+            site_info = {
+                "domain": domain,
+                "status": "online",
+                "published_articles": published_articles,
+                "indexed_articles": indexed_articles,
+                "indexed_percentage": indexed_percentage,
+            }
+            sites.append(site_info)
     return sites
 
 
-def update_published_articles_data():
-    data_path = "data/site_data.json"
-    if os.path.exists(data_path):
-        with open(data_path, "r") as f:
-            sites = json.load(f)
-    else:
-        sites = []
-
-    for site in sites:
-        domain = site['domain']
-        site['published_articles'] = get_published_articles(domain)
-        site['indexed_percentage'] = (
-            (site['indexed_articles'] / site['published_articles'] * 100)
-            if site['published_articles'] > 0
-            else 0
-        )
-
-    with open(data_path, "w") as f:
-        json.dump(sites, f, indent=4)
-
-    update_last_update_time()
-
-
-def update_indexed_articles_data():
-    data_path = "data/site_data.json"
-    if os.path.exists(data_path):
-        with open(data_path, "r") as f:
-            sites = json.load(f)
-    else:
-        sites = []
-
-    for site in sites:
-        domain = site['domain']
-        site['indexed_articles'] = get_indexed_articles(domain)
-        site['indexed_percentage'] = (
-            (site['indexed_articles'] / site['published_articles'] * 100)
-            if site['published_articles'] > 0
-            else 0
-        )
-
-    with open(data_path, "w") as f:
-        json.dump(sites, f, indent=4)
-
-    update_last_update_time()
-
-
-def update_last_update_time():
-    last_update = datetime.datetime.now().strftime("%d/%m/%Y - %Hh%M")
-    with open("data/last_update.json", "w") as f:
-        json.dump({"last_update": last_update}, f)
+def save_site_data():
+    data = {
+        "sites": fetch_site_data(),
+        "last_update": datetime.datetime.now().strftime("%d/%m/%Y - %Hh%M"),
+    }
+    run_command("chown www-data:www-data data", elevated=True)
+    with open("data/data.json", "w") as f:
+        json.dump(data, f, indent=4)
+    run_command("chown www-data:www-data data/data.json", elevated=True)
 
 
 def verify_admin_credentials(username, password):
@@ -644,7 +614,6 @@ def verify_admin_credentials(username, password):
     if username in users and check_password_hash(users[username], password):
         return True
     return False
-
 
 def update_admin_password(username, new_password):
     users_file = "data/users.json"
