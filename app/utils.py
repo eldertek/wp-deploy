@@ -571,20 +571,47 @@ def deploy_static(domain_name):
         return False
 
 
-def update_indexed_articles_data():
-    sites_data = load_sites_data()
-    for site in sites_data['sites']:
-        site['indexed_articles'] = get_indexed_articles(site['domain'])
-        site['indexed_percentage'] = (site['indexed_articles'] / site['published_articles'] * 100) if site['published_articles'] > 0 else 0
-    save_sites_data(sites_data)
+def update_sites_data(indexed=False):
+    data_path = "data/sites_data.json"
+    if os.path.exists(data_path):
+        with open(data_path, "r") as f:
+            sites_data = json.load(f)
+    else:
+        sites_data = {"sites": []}
 
+    existing_domains = {site["domain"]: site for site in sites_data["sites"]}
 
-def update_sites_basic_data():
-    sites_data = load_sites_data()
-    for site in sites_data['sites']:
-        site['published_articles'] = get_published_articles(site['domain'])
+    domains = [
+        domain for domain in os.listdir("/var/www/")
+        if os.path.isdir(os.path.join("/var/www/", domain)) and not domain.startswith(".")
+    ]
+
+    for domain in domains:
+        published_articles = get_published_articles(domain)
+        if indexed:
+            indexed_articles = get_indexed_articles(domain)
+            indexed_percentage = (indexed_articles / published_articles * 100) if published_articles > 0 else 0
+        else:
+            indexed_articles = existing_domains.get(domain, {}).get("indexed_articles", 0)
+            indexed_percentage = existing_domains.get(domain, {}).get("indexed_percentage", 0)
+
+        existing_domains[domain] = {
+            "domain": domain,
+            "published_articles": published_articles,
+            "indexed_articles": indexed_articles,
+            "indexed_percentage": round(indexed_percentage, 2)
+        }
+
+    sites_data["sites"] = list(existing_domains.values())
     sites_data['last_update'] = datetime.datetime.now().strftime("%d/%m/%Y - %Hh%M")
     save_sites_data(sites_data)
+
+def save_sites_data(data):
+    data_path = "data/sites_data.json"
+    run_command("chown www-data:www-data data", elevated=True)
+    with open(data_path, "w") as f:
+        json.dump(data, f, indent=4)
+    run_command("chown www-data:www-data data/sites_data.json", elevated=True)
 
 
 def load_sites_data():
@@ -593,8 +620,7 @@ def load_sites_data():
         with open(data_path, "r") as f:
             return json.load(f)
     else:
-        update_sites_basic_data()
-        update_indexed_articles_data()
+        update_sites_data()
         return load_sites_data()
 
 
