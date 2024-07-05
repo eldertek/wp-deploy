@@ -86,19 +86,12 @@ def index():
     try:
         sites = fetch_site_data()
         
-        if not os.path.exists("data/last_update.json"):
-            # Forcer une actualisation manuelle
-            update_published_articles_data()
-            update_indexed_articles_data()
-            update_last_update_time()
-        
         with open("data/last_update.json", "r") as f:
             last_update_data = json.load(f)
         last_update = last_update_data["last_update"]
 
         return render_template("index.html", sites=sites, last_update=last_update)
     except Exception as e:
-        logger.error(f"Error in index route: {str(e)}")
         flash("Une erreur est survenue lors du chargement des données.", "danger")
         return redirect(url_for("login"))
 

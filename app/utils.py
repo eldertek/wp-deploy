@@ -575,7 +575,8 @@ def fetch_site_data():
     data_path = "data/site_data.json"
     if not os.path.exists(data_path):
         with open(data_path, "w") as f:
-            json.dump(sites, f)
+            update_published_articles_data()
+            update_indexed_articles_data()
     else:
         with open(data_path, "r") as f:
             sites = json.load(f)
