@@ -8,6 +8,7 @@ import datetime
 from functools import lru_cache
 from app import socketio
 from werkzeug.security import check_password_hash, generate_password_hash
+import shlex
 
 
 def run_command(command, elevated=False):
@@ -112,11 +113,11 @@ dns = DNS(api_key, password, test_mode)
 def publish_article(site, title, content, image_path=None):
     wp_path = f"/var/www/{site}"
     # Escape single quotes in title and content
-    title = title.replace("'", "\\'")
-    content = content.replace("'", "\\'")
+    title = shlex.quote(title)
+    content = shlex.quote(content)
     
     # Create the post
-    create_command = f"wp post create --post_type=post --post_title='{title}' --post_content='{content}' --post_status=publish --porcelain --path={wp_path}"
+    create_command = f"wp post create --post_type=post --post_title={title} --post_content={content} --post_status=publish --porcelain --path={shlex.quote(wp_path)}"
     post_id = run_command(create_command)
     
     if post_id:
@@ -124,11 +125,11 @@ def publish_article(site, title, content, image_path=None):
         
         if image_path:
             # Import the image and set it as featured image
-            import_command = f"wp media import '{image_path}' --porcelain --path={wp_path}"
+            import_command = f"wp media import {shlex.quote(image_path)} --porcelain --path={shlex.quote(wp_path)}"
             attachment_id = run_command(import_command)
             
             if attachment_id:
-                set_featured_command = f"wp post meta add {post_id.strip()} _thumbnail_id {attachment_id.strip()} --path={wp_path}"
+                set_featured_command = f"wp post meta add {post_id.strip()} _thumbnail_id {attachment_id.strip()} --path={shlex.quote(wp_path)}"
                 if run_command(set_featured_command):
                     socketio.emit("message", f'Image à la une ajoutée pour l\'article "{title}" sur {site}.')
                 else:
