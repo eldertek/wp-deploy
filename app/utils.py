@@ -381,6 +381,10 @@ def install_wordpress(domain_name, force=False):
         )
 
         socketio.emit("message", f"WordPress installé pour {domain_name}.")
+        
+        # Ensure www-data is the owner of the domain directory
+        run_command(f"chown -R www-data:www-data {wp_path}", elevated=True)
+        
         return True
     except Exception as e:
         socketio.emit(
