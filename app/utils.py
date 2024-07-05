@@ -128,7 +128,7 @@ def publish_article(site, title, content, image_path=None):
             attachment_id = run_command(import_command)
             
             if attachment_id:
-                set_featured_command = f"wp post meta add {post_id} _thumbnail_id {attachment_id} --path={wp_path}"
+                set_featured_command = f"wp post meta add {post_id.strip()} _thumbnail_id {attachment_id.strip()} --path={wp_path}"
                 if run_command(set_featured_command):
                     socketio.emit("message", f'Image à la une ajoutée pour l\'article "{title}" sur {site}.')
                 else:
