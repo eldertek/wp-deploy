@@ -287,7 +287,7 @@ def editor():
                     image_path = os.path.join(upload_dir, filename)
                     featured_image.save(image_path)
                 
-                publish_article(site, title, content, image_path)
+                # publish_article(site, title, content, image_path)
                 return redirect(url_for("index"))
             except Exception as e:
                 logger.error(f"Error publishing article: {str(e)}")
