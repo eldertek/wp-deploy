@@ -89,7 +89,7 @@ def load_settings():
 
 
 def save_settings(settings):
-    from app import socketio  # Importer socketio ici pour éviter l'importation circulaire
+    from app import socketio
     run_command("chown www-data:www-data data", elevated=True)
     config_path = "data/config.json"
     try:
@@ -430,6 +430,7 @@ def get_published_articles(domain_name):
 
 def get_indexed_articles(domain_name):
     api_key = "33cef647-1f76-4604-927d-e7f0d5b93205"
+    return 0
     url = f"https://api.spaceserp.com/google/search?apiKey={api_key}&q=site%3A{domain_name}&location=Lyon%2CAuvergne-Rhone-Alpes%2CFrance&domain=google.fr&gl=fr&hl=fr&resultFormat=json&resultBlocks=total_results_count"
     response = requests.get(url)
     if response.status_code == 200:
