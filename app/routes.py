@@ -123,12 +123,12 @@ def check_domain_availability():
     if not domain_name:
         return jsonify({"status": "error", "message": "Nom de domaine manquant"}), 400
     try:
-        if is_domain_available(domain_name):
-            return jsonify({"status": "available"})
-        return jsonify({"status": "not_available"})
+        availability, message = is_domain_available(domain_name)
+        if availability:
+            return jsonify({"status": "available", "message": message})
+        return jsonify({"status": "not_available", "message": message})
     except Exception as e:
-        logger.error(f"Error checking domain availability: {str(e)}")
-        return jsonify({"status": "error", "message": "Une erreur est survenue"}), 500
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 
 @app.route("/purchase_domain", methods=["POST"])
