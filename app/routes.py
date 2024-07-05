@@ -21,7 +21,10 @@ from app.utils import (
     load_settings,
     save_settings,
     verify_admin_credentials,
-    update_admin_password
+    update_admin_password,
+    update_published_articles_data,
+    update_indexed_articles_data,
+    update_last_update_time
 )
 import json, os, datetime
 from functools import wraps
@@ -79,6 +82,12 @@ def jobs():
 def index():
     try:
         sites = fetch_site_data()
+        
+        if not os.path.exists("data/last_update.json"):
+            # Forcer une actualisation manuelle
+            update_published_articles_data()
+            update_indexed_articles_data()
+            update_last_update_time()
         
         with open("data/last_update.json", "r") as f:
             last_update_data = json.load(f)
