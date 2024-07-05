@@ -256,6 +256,14 @@
                     </div>
                 </div>
                 <div class="form-group">
+                    <label>Token Internet.bs:</label>
+                    <input type="text" class="form-control" name="internetbs_token" value="{{ contacts.internetbs_token }}">
+                </div>
+                <div class="form-group">
+                    <label>Mot de passe Internet.bs:</label>
+                    <input type="password" class="form-control" name="internetbs_password" value="{{ contacts.internetbs_password }}">
+                </div>
+                <div class="form-group">
                     <label>Mode test:</label>
                     <input type="checkbox" class="form-control" name="test_mode" {% if contacts.test_mode %}checked{% endif %}>
                 </div>
