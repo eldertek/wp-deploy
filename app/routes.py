@@ -281,13 +281,13 @@ def editor():
                 image_path = None
                 if featured_image and featured_image.filename:
                     filename = secure_filename(featured_image.filename)
-                    upload_dir = f"/var/www/{site}/wp-content/uploads"
+                    upload_dir = f"/tmp"
                     if not os.path.exists(upload_dir):
                         os.makedirs(upload_dir)
                     image_path = os.path.join(upload_dir, filename)
                     featured_image.save(image_path)
                 
-                # publish_article(site, title, content, image_path)
+                #publish_article(site, title, content, image_path)
                 return redirect(url_for("index"))
             except Exception as e:
                 logger.error(f"Error publishing article: {str(e)}")
