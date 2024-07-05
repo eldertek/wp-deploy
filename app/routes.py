@@ -101,7 +101,7 @@ def add_domain():
     return render_template("add_domain.html")
 
 
-@app.route("/check_domain_ownership", methods=["POST"])
+@app.route("/check_domain_ownership", methods=["GET", "POST"])
 @login_required
 def check_domain_ownership():
     domain_name = request.form.get("domain")
@@ -339,16 +339,16 @@ def settings():
                     ).strip()
 
             settings["internetbs_token"] = request.form.get(
-                "internetbs_token", ""
+                "internetbs_token", "testapi"
             ).strip()
             settings["internetbs_password"] = request.form.get(
-                "internetbs_password", ""
+                "internetbs_password", "testpass"
             ).strip()
             settings["github_username"] = request.form.get(
                 "github_username", ""
             ).strip()
             settings["github_token"] = request.form.get("github_token", "").strip()
-            settings["test_mode"] = "test_mode" in request.form
+            settings["test_mode"] = request.form.get("test_mode", True)
 
             # Update admin password if provided
             new_admin_password = request.form.get("admin_password", "").strip()
