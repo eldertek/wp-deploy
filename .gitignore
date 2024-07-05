@@ -3,6 +3,6 @@ __pycache__/
 app/__pycache__/
 data/config.json
 data/deployments.json
-data/data.json
+data/sites_data.json
 data/secret_key.json
 data/users.json
