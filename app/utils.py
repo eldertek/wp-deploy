@@ -571,6 +571,13 @@ def deploy_static(domain_name):
         return False
 
 
+def check_site_status(domain):
+    try:
+        response = requests.get(f"https://bo.{domain}/wp-json")
+        return response.status_code == 200
+    except Exception:
+        return False
+
 def update_sites_data(indexed=False):
     data_path = "data/sites_data.json"
     if os.path.exists(data_path):
@@ -595,16 +602,20 @@ def update_sites_data(indexed=False):
             indexed_articles = existing_domains.get(domain, {}).get("indexed_articles", 0)
             indexed_percentage = existing_domains.get(domain, {}).get("indexed_percentage", 0)
 
+        status = "online" if check_site_status(domain) else "offline"
+
         existing_domains[domain] = {
             "domain": domain,
             "published_articles": published_articles,
             "indexed_articles": indexed_articles,
-            "indexed_percentage": round(indexed_percentage, 2)
+            "indexed_percentage": round(indexed_percentage, 2),
+            "status": status
         }
 
     sites_data["sites"] = list(existing_domains.values())
     sites_data['last_update'] = datetime.datetime.now().strftime("%d/%m/%Y - %Hh%M")
     save_sites_data(sites_data)
+
 
 def save_sites_data(data):
     data_path = "data/sites_data.json"
@@ -622,14 +633,6 @@ def load_sites_data():
     else:
         update_sites_data()
         return load_sites_data()
-
-
-def save_sites_data(data):
-    data_path = "data/sites_data.json"
-    run_command("chown www-data:www-data data", elevated=True)
-    with open(data_path, "w") as f:
-        json.dump(data, f, indent=4)
-    run_command("chown www-data:www-data data/sites_data.json", elevated=True)
 
 
 def verify_admin_credentials(username, password):
