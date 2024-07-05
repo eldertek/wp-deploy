@@ -37,7 +37,7 @@ def update_site_data():
 
 scheduler = BackgroundScheduler(timezone=pytz.timezone('Europe/Paris'))
 scheduler.add_job(deploy_all_websites, 'cron', hour=0, minute=0)
-scheduler.add_job(update_site_data, 'interval', minutes=10)
+scheduler.add_job(update_site_data, 'interval', minutes=5)
 scheduler.start()
 
 atexit.register(lambda: scheduler.shutdown())
