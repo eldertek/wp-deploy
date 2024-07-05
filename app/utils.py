@@ -430,7 +430,6 @@ def get_published_articles(domain_name):
 
 def get_indexed_articles(domain_name):
     api_key = "33cef647-1f76-4604-927d-e7f0d5b93205"
-    return 0
     url = f"https://api.spaceserp.com/google/search?apiKey={api_key}&q=site%3A{domain_name}&location=Lyon%2CAuvergne-Rhone-Alpes%2CFrance&domain=google.fr&gl=fr&hl=fr&resultFormat=json&resultBlocks=total_results_count"
     response = requests.get(url)
     if response.status_code == 200:
@@ -572,38 +571,39 @@ def deploy_static(domain_name):
 
 
 def fetch_site_data():
-    sites = []
-    for domain in os.listdir("/var/www/"):
-        if os.path.isdir(os.path.join("/var/www/", domain)) and not domain.startswith(
-            "."
-        ):
-            published_articles = get_published_articles(domain)
-            indexed_articles = get_indexed_articles(domain)
-            indexed_percentage = (
-                (indexed_articles / published_articles * 100)
-                if published_articles > 0
-                else 0
-            )
-            site_info = {
-                "domain": domain,
-                "status": "online",
-                "published_articles": published_articles,
-                "indexed_articles": indexed_articles,
-                "indexed_percentage": indexed_percentage,
-            }
-            sites.append(site_info)
-    return sites
+    return load_sites_data()
 
 
-def save_site_data():
-    data = {
-        "sites": fetch_site_data(),
-        "last_update": datetime.datetime.now().strftime("%d/%m/%Y - %Hh%M"),
-    }
+def update_indexed_articles_data():
+    sites_data = load_sites_data()
+    for site in sites_data['sites']:
+        site['indexed_articles'] = get_indexed_articles(site['domain'])
+        site['indexed_percentage'] = (site['indexed_articles'] / site['published_articles'] * 100) if site['published_articles'] > 0 else 0
+    save_sites_data(sites_data)
+
+
+def update_sites_basic_data():
+    sites_data = load_sites_data()
+    for site in sites_data['sites']:
+        site['published_articles'] = get_published_articles(site['domain'])
+    sites_data['last_update'] = datetime.datetime.now().strftime("%d/%m/%Y - %Hh%M")
+    save_sites_data(sites_data)
+
+
+def load_sites_data():
+    data_path = "data/sites_data.json"
+    if os.path.exists(data_path):
+        with open(data_path, "r") as f:
+            return json.load(f)
+    return {"sites": [], "last_update": ""}
+
+
+def save_sites_data(data):
+    data_path = "data/sites_data.json"
     run_command("chown www-data:www-data data", elevated=True)
-    with open("data/data.json", "w") as f:
+    with open(data_path, "w") as f:
         json.dump(data, f, indent=4)
-    run_command("chown www-data:www-data data/data.json", elevated=True)
+    run_command("chown www-data:www-data data/sites_data.json", elevated=True)
 
 
 def verify_admin_credentials(username, password):
@@ -615,6 +615,7 @@ def verify_admin_credentials(username, password):
     if username in users and check_password_hash(users[username], password):
         return True
     return False
+
 
 def update_admin_password(username, new_password):
     users_file = "data/users.json"

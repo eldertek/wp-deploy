@@ -31,14 +31,18 @@ def deploy_all_websites():
         duration = (datetime.datetime.now() - start_time).total_seconds()
         log_deployment(domain, success, duration)
 
-def update_sites_data():
-    from app.utils import save_site_data
-    save_site_data()
+def update_indexed_articles():
+    from app.utils import update_indexed_articles_data
+    update_indexed_articles_data()
 
+def update_sites_basic_data():
+    from app.utils import update_sites_basic_data
+    update_sites_basic_data()
 
 scheduler = BackgroundScheduler(timezone=pytz.timezone('Europe/Paris'))
 scheduler.add_job(deploy_all_websites, 'cron', hour=0, minute=0)
-scheduler.add_job(update_sites_data, 'interval', minutes=5)
+scheduler.add_job(update_indexed_articles, 'cron', hour=0, minute=0)
+scheduler.add_job(update_sites_basic_data, 'interval', minutes=5)
 scheduler.start()
 
 atexit.register(lambda: scheduler.shutdown())

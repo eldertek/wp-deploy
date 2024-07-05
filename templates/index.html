@@ -4,6 +4,17 @@
 
 {% block content %}
 <div class="container mt-5">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
     <h2 class="mb-4">Monitoring des sites</h2>
     <p class="text-muted">Dernière actualisation: {{ last_update }}</p>
     <div class="row">
@@ -17,7 +28,7 @@
                     </div>
                     <p class="card-text">Articles publiés: {{ site.published_articles }}</p>
                     <p class="card-text">Articles indexés: {{ site.indexed_articles }}</p>
-                    <p class="card-text">Pourcentage indexé: {{ site.indexed_percentage }}%</p>
+                    <p class="card-text">Pourcentage indexé: {{ site.indexed_percentage|round(2) }}%</p>
                     <div class="mt-auto">
                         <a href="{{ url_for('backoffice', domain=site.domain) }}" class="btn btn-outline-primary btn-sm me-2">Backoffice</a>
                         <a href="{{ url_for('editor', site=site.domain) }}" class="btn btn-outline-secondary btn-sm">Rédiger</a>

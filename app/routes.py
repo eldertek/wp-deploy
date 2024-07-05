@@ -81,10 +81,11 @@ def jobs():
 @login_required
 def index():
     try:
-        sites = fetch_site_data()
-        return render_template("index.html", sites=sites)
+        sites_data = fetch_site_data()
+        return render_template("index.html", sites=sites_data['sites'], last_update=sites_data['last_update'])
     except Exception as e:
-        return render_template("index.html", sites=[])
+        flash(f"Erreur lors du chargement des données des sites : {str(e)}", "danger")
+        return render_template("index.html", sites=[], last_update="")
 
 
 @app.route("/add_domain", methods=["GET", "POST"])
