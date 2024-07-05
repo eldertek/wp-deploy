@@ -573,7 +573,10 @@ def deploy_static(domain_name):
 def fetch_site_data():
     sites = []
     data_path = "data/site_data.json"
-    if os.path.exists(data_path):
+    if not os.path.exists(data_path):
+        with open(data_path, "w") as f:
+            json.dump(sites, f)
+    else:
         with open(data_path, "r") as f:
             sites = json.load(f)
     return sites
