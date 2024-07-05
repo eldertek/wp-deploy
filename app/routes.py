@@ -104,7 +104,7 @@ def add_domain():
 @app.route("/check_domain_ownership", methods=["GET", "POST"])
 @login_required
 def check_domain_ownership():
-    domain_name = request.form.get("domain")
+    domain_name = request.form.get("domain") if request.method == "POST" else request.args.get("domain")
     if not domain_name:
         return jsonify({"status": "error", "message": "Nom de domaine manquant"}), 400
     try:
