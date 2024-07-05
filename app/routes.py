@@ -22,9 +22,6 @@ from app.utils import (
     save_settings,
     verify_admin_credentials,
     update_admin_password,
-    update_published_articles_data,
-    update_indexed_articles_data,
-    update_last_update_time
 )
 import json, os, datetime
 from functools import wraps
