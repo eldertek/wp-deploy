@@ -16,7 +16,7 @@ from app.utils import (
     initialize_git_repo,
     deploy_static,
     log_deployment,
-    save_site_data,
+    fetch_site_data,
     format_deployment_log,
     load_settings,
     save_settings,
@@ -78,15 +78,11 @@ def jobs():
 @login_required
 def index():
     try:
-        data_path = "data/data.json"
-        if not os.path.exists(data_path):
-            save_site_data()
-
-        with open(data_path, "r") as f:
-            data = json.load(f)
-
-        sites = data["sites"]
-        last_update = data["last_update"]
+        sites = fetch_site_data()
+        
+        with open("data/last_update.json", "r") as f:
+            last_update_data = json.load(f)
+        last_update = last_update_data["last_update"]
 
         return render_template("index.html", sites=sites, last_update=last_update)
     except Exception as e:
