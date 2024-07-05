@@ -116,10 +116,10 @@ def check_domain_ownership():
         return jsonify({"status": "error", "message": "Une erreur est survenue"}), 500
 
 
-@app.route("/check_domain_availability", methods=["POST"])
+@app.route("/check_domain_availability", methods=["GET", "POST"])
 @login_required
 def check_domain_availability():
-    domain_name = request.form.get("domain")
+    domain_name = request.form.get("domain") if request.method == "POST" else request.args.get("domain")
     if not domain_name:
         return jsonify({"status": "error", "message": "Nom de domaine manquant"}), 400
     try:
