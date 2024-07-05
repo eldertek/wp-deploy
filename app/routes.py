@@ -82,12 +82,8 @@ def jobs():
 def index():
     try:
         sites = fetch_site_data()
-        
-        with open("data/last_update.json", "r") as f:
-            last_update_data = json.load(f)
-        last_update = last_update_data["last_update"]
 
-        return render_template("index.html", sites=sites, last_update=last_update)
+        return render_template("index.html", sites=[])
     except Exception as e:
         flash("Une erreur est survenue lors du chargement des données.", "danger")
         return redirect(url_for("login"))
