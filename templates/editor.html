@@ -81,16 +81,14 @@
             var submitButton = document.getElementById('submitButton');
             submitButton.disabled = true;
 
-            var formData = {
-                site: document.getElementById('site').value,
-                title: document.getElementById('title').value,
-                content: document.getElementById('content').value
-            };
+            var formData = new FormData(document.getElementById('articleForm'));
 
             $.ajax({
                 type: 'POST',
                 url: '{{ url_for("editor") }}',
                 data: formData,
+                processData: false,
+                contentType: false,
                 success: function(response) {
                     console.log('Article publié avec succès');
                     submitButton.disabled = false;
