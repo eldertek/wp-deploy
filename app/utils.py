@@ -278,13 +278,13 @@ def setup_ssl(domain_name):
         registrant_email = settings["registrant"]["email"]
         # Install Certbot and obtain SSL certificate using HTTP-01 challenge
         result = run_command(
-            f"certbot --nginx -d bo.{domain_name} --non-interactive --agree-tos -m {registrant_email}",
+            f"certbot --nginx -d bo.{domain_name} --non-interactive --agree-tos -m {registrant_email} --force-renewal",
             elevated=True,
         )
         if "Some challenges have failed" in result:
             # Fallback to DNS-01 challenge
             result = run_command(
-                f"certbot --nginx -d bo.{domain_name} --preferred-challenges dns --non-interactive --agree-tos -m {registrant_email}",
+                f"certbot --nginx -d bo.{domain_name} --preferred-challenges dns --non-interactive --agree-tos -m {registrant_email} --force-renewal",
                 elevated=True,
             )
             if "Some challenges have failed" in result:
