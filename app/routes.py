@@ -26,6 +26,7 @@ from app.utils import (
 import json, os, datetime
 from functools import wraps
 import logging
+from werkzeug.utils import secure_filename
 
 logger = logging.getLogger(__name__)
 
@@ -273,9 +274,20 @@ def editor():
         site = request.form.get("site")
         title = request.form.get("title")
         content = request.form.get("content")
+        featured_image = request.files.get("featured_image")
+        
         if site in domains:
             try:
-                publish_article(site, title, content)
+                image_path = None
+                if featured_image and featured_image.filename:
+                    filename = secure_filename(featured_image.filename)
+                    upload_dir = f"/var/www/{site}/wp-content/uploads"
+                    if not os.path.exists(upload_dir):
+                        os.makedirs(upload_dir)
+                    image_path = os.path.join(upload_dir, filename)
+                    featured_image.save(image_path)
+                
+                publish_article(site, title, content, image_path)
                 return redirect(url_for("index"))
             except Exception as e:
                 logger.error(f"Error publishing article: {str(e)}")

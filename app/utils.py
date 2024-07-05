@@ -109,14 +109,25 @@ domain = Domain(api_key, password, test_mode)
 dns = DNS(api_key, password, test_mode)
 
 
-def publish_article(site, title, content):
+def publish_article(site, title, content, image_path=None):
     wp_path = f"/var/www/{site}"
     # Escape single quotes in title and content
     title = title.replace("'", "\\'")
     content = content.replace("'", "\\'")
-    command = f"wp post create --post_type=post --post_title='{title}' --post_content='{content}' --post_status=publish --allow-root --path={wp_path}"
+    
+    command = f"wp post create --post_type=post --post_title='{title}' --post_content='{content}' --post_status=publish --path={wp_path}"
+    
     result = run_command(command)
     if result:
+        post_id = result.strip().split()[-1]
+        if image_path:
+            # Upload and set featured image
+            image_command = f"wp media import '{image_path}' --post_id={post_id} --featured_image --path={wp_path}"
+            image_result = run_command(image_command)
+            if image_result:
+                socketio.emit("message", f'Image à la une ajoutée pour l\'article "{title}" sur {site}.')
+            else:
+                socketio.emit("error", f'Erreur lors de l\'ajout de l\'image à la une pour l\'article "{title}" sur {site}.')
         socketio.emit("message", f'Article "{title}" publié sur {site}.')
     else:
         socketio.emit(
@@ -396,7 +407,7 @@ def generate_wp_login_link(domain_name):
 
 def get_published_articles(domain_name):
     wp_path = f"/var/www/{domain_name}"
-    command = f"wp post list --post_type=post --format=count --path={wp_path}"
+    command = f"wp post list --post_type=post --post_status=publish --format=count --path={wp_path}"
     result = run_command(command)
     return int(result.strip()) if result else 0
 
