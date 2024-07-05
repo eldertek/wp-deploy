@@ -115,25 +115,28 @@ def publish_article(site, title, content, image_path=None):
     title = title.replace("'", "\\'")
     content = content.replace("'", "\\'")
     
-    command = f"wp post create --post_type=post --post_title='{title}' --post_content='{content}' --post_status=publish --path={wp_path}"
+    # Create the post
+    create_command = f"wp post create --post_type=post --post_title='{title}' --post_content='{content}' --post_status=publish --porcelain --path={wp_path}"
+    post_id = run_command(create_command)
     
-    result = run_command(command)
-    if result:
-        post_id = result.strip().split()[-1]
-        if image_path:
-            # Upload and set featured image
-            image_command = f"wp media import '{image_path}' --post_id={post_id} --featured_image --path={wp_path}"
-            image_result = run_command(image_command)
-            if image_result:
-                socketio.emit("message", f'Image à la une ajoutée pour l\'article "{title}" sur {site}.')
-            else:
-                socketio.emit("error", f'Erreur lors de l\'ajout de l\'image à la une pour l\'article "{title}" sur {site}.')
+    if post_id:
         socketio.emit("message", f'Article "{title}" publié sur {site}.')
+        
+        if image_path:
+            # Import the image and set it as featured image
+            import_command = f"wp media import '{image_path}' --porcelain --path={wp_path}"
+            attachment_id = run_command(import_command)
+            
+            if attachment_id:
+                set_featured_command = f"wp post meta add {post_id} _thumbnail_id {attachment_id} --path={wp_path}"
+                if run_command(set_featured_command):
+                    socketio.emit("message", f'Image à la une ajoutée pour l\'article "{title}" sur {site}.')
+                else:
+                    socketio.emit("error", f'Erreur lors de la définition de l\'image à la une pour l\'article "{title}" sur {site}.')
+            else:
+                socketio.emit("error", f'Erreur lors de l\'import de l\'image pour l\'article "{title}" sur {site}.')
     else:
-        socketio.emit(
-            "error",
-            f'Erreur lors de la publication de l\'article "{title}" sur {site}.',
-        )
+        socketio.emit("error", f'Erreur lors de la publication de l\'article "{title}" sur {site}.')
 
 
 def is_domain_owned(domain_name):
