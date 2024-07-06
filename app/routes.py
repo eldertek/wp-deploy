@@ -253,9 +253,10 @@ def deploy_static_route():
         return jsonify({"status": "error", "message": "Une erreur est survenue"}), 500
 
 
-@app.route("/deploy_site/<domain>", methods=["POST"])
+@app.route("/deploy_site", methods=["POST"])
 @login_required
-def deploy_site(domain):
+def deploy_site():
+    domain = request.json.get('domain')
     start_time = datetime.datetime.now()
     try:
         success = deploy_static(domain)
