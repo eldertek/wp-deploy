@@ -256,6 +256,7 @@ def deploy_static_route():
 @app.route("/deploy_site", methods=["POST"])
 @login_required
 def deploy_site():
+    socketio.emit("message", "Déploiement en cours...")
     domain = request.json.get('domain')
     start_time = datetime.datetime.now()
     try:
