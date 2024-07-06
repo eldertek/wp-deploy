@@ -32,6 +32,7 @@
                     <div class="mt-auto">
                         <a href="{{ url_for('backoffice', domain=site.domain) }}" class="btn btn-outline-primary btn-sm me-2">Backoffice</a>
                         <a href="{{ url_for('editor', site=site.domain) }}" class="btn btn-outline-secondary btn-sm">Rédiger</a>
+                        <button type="button" class="btn btn-outline-warning btn-sm force-update-btn" data-domain="{{ site.domain }}">Forcer la mise à jour</button>
                     </div>
                 </div>
             </div>
@@ -59,4 +60,45 @@
         background-color: #dc3545;
     }
 </style>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
+<script>
+    var socket = io.connect('https://' + document.domain + ':' + location.port);
+    socket.on('message', function(msg) {
+        console.log('Received message:', msg);
+        var messages = document.getElementById('messages');
+        var message = document.createElement('div');
+        message.className = 'alert alert-info mt-4';
+        message.innerText = msg;
+        messages.insertBefore(message, messages.firstChild);
+    });
+
+    socket.on('error', function(msg) {
+        console.log('Received error:', msg);
+        var messages = document.getElementById('messages');
+        var message = document.createElement('div');
+        message.className = 'alert alert-danger mt-4';
+        message.innerText = msg;
+        messages.insertBefore(message, messages.firstChild);
+    });
+
+    $(document).on('click', '.force-update-btn', function() {
+        var domain = $(this).data('domain');
+        $.ajax({
+            type: 'POST',
+            url: '{{ url_for("deploy_site") }}',
+            data: JSON.stringify({domain: domain}),
+            contentType: 'application/json',
+            success: function(response) {
+                console.log('Force update initiated for domain:', domain);
+            },
+            error: function(error) {
+                console.log('Error initiating force update for domain:', domain);
+            }
+        });
+    });
+</script>
 {% endblock %}

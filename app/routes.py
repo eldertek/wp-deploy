@@ -253,6 +253,23 @@ def deploy_static_route():
         return jsonify({"status": "error", "message": "Une erreur est survenue"}), 500
 
 
+@app.route("/deploy_site/<domain>", methods=["POST"])
+@login_required
+def deploy_site(domain):
+    start_time = datetime.datetime.now()
+    try:
+        success = deploy_static(domain)
+        duration = (datetime.datetime.now() - start_time).total_seconds()
+        log_deployment(domain, success, duration)
+        if success:
+            socketio.emit("message", f"Le site {domain} a été déployé avec succès.")
+        else:
+            socketio.emit("error", f"Erreur lors du déploiement du site {domain}.")
+    except Exception as e:
+        socketio.emit("error", f"Erreur lors du déploiement du site {domain} : {str(e)}")
+    return redirect(url_for("index"))
+
+
 @app.route("/editor", methods=["GET", "POST"])
 @login_required
 def editor():
@@ -410,4 +427,3 @@ def deployments():
     else:
         deployments = []
     return render_template("deployments.html", deployments=deployments)
-
