@@ -4,16 +4,7 @@
 
 {% block content %}
 <div class="container mt-5">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
+    <div id="socket-messages"></div>
 
     <h2 class="mb-4">Monitoring des sites</h2>
     <p class="text-muted">Dernière actualisation: {{ last_update }}</p>
@@ -69,7 +60,7 @@
     var socket = io.connect('https://' + document.domain + ':' + location.port);
     socket.on('message', function(msg) {
         console.log('Received message:', msg);
-        var messages = document.getElementById('messages');
+        var messages = document.getElementById('socket-messages');
         var message = document.createElement('div');
         message.className = 'alert alert-info mt-4';
         message.innerText = msg;
@@ -78,7 +69,7 @@
 
     socket.on('error', function(msg) {
         console.log('Received error:', msg);
-        var messages = document.getElementById('messages');
+        var messages = document.getElementById('socket-messages');
         var message = document.createElement('div');
         message.className = 'alert alert-danger mt-4';
         message.innerText = msg;
