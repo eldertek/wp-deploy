@@ -11,7 +11,7 @@ def run_command(command, elevated=False):
         )
         return result.stdout
     except subprocess.CalledProcessError as e:
-        socketio.emit("error", f"Erreur: {e.stderr}")
+        socketio.emit("error", f"Erreur: {e}")
     except subprocess.TimeoutExpired:
         socketio.emit(
             "error", f"Timeout: La commande a pris trop de temps à s'exécuter"

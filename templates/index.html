@@ -78,6 +78,8 @@
 
     $(document).on('click', '.force-update-btn', function() {
         var domain = $(this).data('domain');
+        // Clear all current messages
+        $('#socket-messages').empty();
         $.ajax({
             type: 'POST',
             url: '{{ url_for("deployment.deploy_site") }}',
