@@ -21,8 +21,8 @@
                     <p class="card-text">Articles indexés: {{ site.indexed_articles }}</p>
                     <p class="card-text">Pourcentage indexé: {{ site.indexed_percentage|round(2) }}%</p>
                     <div class="mt-auto">
-                        <a href="{{ url_for('backoffice', domain=site.domain) }}" class="btn btn-outline-primary btn-sm me-2">Backoffice</a>
-                        <a href="{{ url_for('editor', site=site.domain) }}" class="btn btn-outline-secondary btn-sm">Rédiger</a>
+                        <a href="{{ url_for('site_management.backoffice', domain=site.domain) }}" class="btn btn-outline-primary btn-sm me-2">Backoffice</a>
+                        <a href="{{ url_for('editor.editor', site=site.domain) }}" class="btn btn-outline-secondary btn-sm">Rédiger</a>
                         <button type="button" class="btn btn-outline-warning btn-sm force-update-btn" data-domain="{{ site.domain }}">Forcer la mise à jour</button>
                     </div>
                 </div>
