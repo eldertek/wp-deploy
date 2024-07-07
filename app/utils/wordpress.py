@@ -162,12 +162,15 @@ def install_wordpress(domain_name, force=False):
             f"wp core install --path={wp_path} --url=https://bo.{domain_name} --title='{domain_name}' --admin_user=admin --admin_password={unique_db_password} --admin_email={registrant_email} --locale=fr_FR"
         )
 
+        # Generate a simple username of up to 5 letters
+        simple_username = "".join(random.choices(string.ascii_lowercase, k=5))
+
         # Create an admin user with the email from the settings
         run_command(
-            f"wp user create admin {wordpress_admin_email} --role=administrator --user_pass={unique_db_password} --path={wp_path}"
+            f"wp user create {simple_username} {wordpress_admin_email} --role=administrator --user_pass={unique_db_password} --path={wp_path}"
         )
 
-        socketio.emit("message", f"Utilisateur admin créé avec l'email {wordpress_admin_email} et le mot de passe {unique_db_password}.")
+        socketio.emit("message", f"Utilisateur {simple_username} créé avec l'email {wordpress_admin_email} et le mot de passe {unique_db_password}.")
 
         # Update wp cli
         run_command(f"wp cli update --path={wp_path}", elevated=True)
