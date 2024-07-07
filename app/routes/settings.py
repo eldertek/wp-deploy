@@ -46,6 +46,7 @@ def settings():
             ).strip()
             settings["github_token"] = request.form.get("github_token", "").strip()
             settings["test_mode"] = request.form.get("test_mode", True)
+            settings["wordpress_admin_email"] = request.form.get("wordpress_admin_email", "admin@example.com").strip()
 
             # Update admin password if provided
             new_admin_password = request.form.get("admin_password", "").strip()

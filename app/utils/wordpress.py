@@ -161,6 +161,8 @@ def install_wordpress(domain_name, force=False):
             f"wp core install --path={wp_path} --url=https://bo.{domain_name} --title='{domain_name}' --admin_user=admin --admin_password={unique_db_password} --admin_email={registrant_email} --locale=fr_FR"
         )
 
+        # TODO Create an admin user with a simple username and password with the email, add a settings for this mail
+
         # Update wp cli
         run_command(f"wp cli update --path={wp_path}", elevated=True)
 

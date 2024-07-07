@@ -264,6 +264,10 @@
                     <input type="password" class="form-control" name="internetbs_password" value="{{ contacts.internetbs_password }}">
                 </div>
                 <div class="form-group">
+                    <label>Email de l'administrateur WordPress:</label>
+                    <input type="email" class="form-control" name="wordpress_admin_email" value="{{ contacts.wordpress_admin_email }}">
+                </div>
+                <div class="form-group">
                     <label>Mode test:</label>
                     <input type="checkbox" class="form-control" name="test_mode" {% if contacts.test_mode %}checked{% endif %}>
                 </div>
