@@ -45,9 +45,14 @@ def deploy_static(domain_name):
                         f"unzip {os.path.join(static_path, first_zip)} -d {destination_path}"
                     )
 
+                # Create Readme.md with deployment details
+                readme_content = f"# Deployment Info\n\nDomain: {domain_name}\nDate: {datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n"
+                with open(os.path.join(destination_path, "Readme.md"), "w") as readme_file:
+                    readme_file.write(readme_content)
+
                 # Add, commit, and push changes to the git repository, forcing the push even if the tree is clean or up-to-date
                 run_command(
-                    f"cd {destination_path} && git add . && git commit -m 'Deploy static site' || true && git push --force"
+                    f"cd {destination_path} && git add . && git commit -m 'Deploy static site' && git push --force"
                 )
 
                 # Clear the static path
