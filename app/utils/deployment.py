@@ -45,9 +45,9 @@ def deploy_static(domain_name):
                         f"unzip {os.path.join(static_path, first_zip)} -d {destination_path}"
                     )
 
-                # Add, commit, and push changes to the git repository
+                # Add, commit, and push changes to the git repository, forcing the push even if the tree is clean or up-to-date
                 run_command(
-                    f"cd {destination_path} && git add . && git commit -m 'Deploy static site' && git push"
+                    f"cd {destination_path} && git add . && git commit -m 'Deploy static site' || true && git push --force"
                 )
 
                 # Clear the static path
