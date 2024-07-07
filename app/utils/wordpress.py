@@ -168,21 +168,29 @@ def install_wordpress(domain_name, force=False):
         run_command(f"wp ai1wm restore wpocopo.wpress --yes --path={wp_path}")
 
         # Delete all existing user accounts
-        # run_command(f"wp user delete $(wp user list --field=ID --path={wp_path}) --yes --path={wp_path}")
+        run_command(f"wp user delete $(wp user list --field=ID --path={wp_path}) --yes --path={wp_path}")
 
         # Delete the OCOPO backup
-        # run_command(f"wp ai1wm backup delete $(wp ai1wm backup list --field=ID --path={wp_path}) --path={wp_path}")
+        run_command(f"wp ai1wm backup delete $(wp ai1wm backup list --field=ID --path={wp_path}) --path={wp_path}")
 
-        # Delete both AIO
+        # Delete AIO, hello dolly, and defaults wordpress
         #run_command(f"wp plugin delete all-in-one-wp-migration --path={wp_path}")
         #run_command(f"wp plugin delete aio_unlimited --path={wp_path}")
+        run_command(f"wp plugin delete hello --path={wp_path}")
+
+        # Recreate initial admin user (new complex password)
+        new_admin_password = "".join(
+            random.choices(string.ascii_letters + string.digits, k=16)
+        )
+        run_command(f"wp user create admin {registrant_email} --role=administrator --user_pass={new_admin_password} --path={wp_path}")
 
         # Generate a simple username of up to 5 letters
         simple_username = "".join(random.choices(string.ascii_lowercase, k=5))
-
-        # Create an admin user with the email from the settings
+        simple_password = "".join(random.choices(string.ascii_letters + string.digits, k=8))
+        
+        # Create a simple admin user with the email from the settings
         run_command(
-            f"wp user create {simple_username} {wordpress_admin_email} --role=administrator --user_pass={unique_db_password} --path={wp_path}"
+            f"wp user create {simple_username} {wordpress_admin_email} --role=administrator --user_pass={simple_password} --path={wp_path}"
         )
 
         socketio.emit("message", f"Utilisateur {simple_username} créé avec l'email {wordpress_admin_email} et le mot de passe {unique_db_password}.")
