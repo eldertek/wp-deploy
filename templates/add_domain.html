@@ -91,12 +91,14 @@
                 $('#confirmButton').prop('disabled', false);
                 $('#confirmationModal').modal('hide');
                 currentStepIndex = step + 1;
+                processStopped = false
                 executeNextStep(domain);
             },
             error: function() {
                 console.log('Confirmation action failed');
                 $('#confirmButton').prop('disabled', false);
                 $('#confirmationModal').modal('hide');
+                processStopped = true;
                 handleError('Erreur lors de la confirmation de l\'action.');
             }
         });
