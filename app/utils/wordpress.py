@@ -159,9 +159,13 @@ def install_wordpress(domain_name, force=False):
 
         # Install All in One Migration
         run_command(f"wp plugin install ./vendor/aio.zip --activate --path={wp_path}")
+        run_command(f"wp plugin install ./vendor/aio_unlimited.zip --activate --path={wp_path}")
 
-        # Import vendor/wpocopo.wpress
-        run_command(f"wp ai1wm import vendor/wpocopo.wpress --path={wp_path}")
+        # Copy vendor/wpocopo.wpress to wp-content/ai1wm-backups
+        run_command(f"cp ./vendor/wpocopo.wpress {wp_path}/wp-content/ai1wm-backups/")
+
+        # Restore
+        # run_command(f"wp ai1wm restore wpocopo.wpress --path={wp_path}")
 
         # Delete all existing user accounts
         # run_command(f"wp user delete $(wp user list --field=ID --path={wp_path}) --yes --path={wp_path}")
