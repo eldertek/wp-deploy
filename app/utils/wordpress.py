@@ -165,7 +165,7 @@ def install_wordpress(domain_name, force=False):
         run_command(f"cp ../wpocopo.wpress {wp_path}/wp-content/ai1wm-backups/")
 
         # Restore
-        # run_command(f"wp ai1wm restore wpocopo.wpress --path={wp_path}")
+        run_command(f"wp ai1wm restore wpocopo.wpress --yes --path={wp_path}")
 
         # Delete all existing user accounts
         # run_command(f"wp user delete $(wp user list --field=ID --path={wp_path}) --yes --path={wp_path}")
@@ -173,8 +173,9 @@ def install_wordpress(domain_name, force=False):
         # Delete the OCOPO backup
         # run_command(f"wp ai1wm backup delete $(wp ai1wm backup list --field=ID --path={wp_path}) --path={wp_path}")
 
-        # Delete the import plugin
-        # run_command(f"wp plugin delete all-in-one-wp-migration --path={wp_path}")
+        # Delete both AIO
+        #run_command(f"wp plugin delete all-in-one-wp-migration --path={wp_path}")
+        #run_command(f"wp plugin delete aio_unlimited --path={wp_path}")
 
         # Generate a simple username of up to 5 letters
         simple_username = "".join(random.choices(string.ascii_lowercase, k=5))
