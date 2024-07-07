@@ -81,7 +81,7 @@
 
         $.ajax({
             type: 'POST',
-            url: '{{ url_for("confirm_action") }}',
+            url: '{{ url_for("deployment.confirm_action") }}',
             data: JSON.stringify({action: action, domain: domain, step: step}),
             contentType: 'application/json',
             success: function() {
@@ -135,7 +135,7 @@
     }
 
     function checkDomainOwnership(domain) {
-        $.post('{{ url_for("check_domain_ownership") }}', {domain: domain}, function(data) {
+        $.post('{{ url_for("site_management.check_domain_ownership") }}', {domain: domain}, function(data) {
             console.log('Domain ownership check result:', data);
             if (data.status === 'owned') {
                 currentStepIndex = steps.findIndex(step => step.name === 'configureDNS');
@@ -148,7 +148,7 @@
     }
 
     function checkDomainAvailability(domain) {
-        $.post('{{ url_for("check_domain_availability") }}', {domain: domain}, function(data) {
+        $.post('{{ url_for("site_management.check_domain_availability") }}', {domain: domain}, function(data) {
             console.log('Domain availability check result:', data);
             if (data.status === 'available') {
                 currentStepIndex++;
@@ -160,7 +160,7 @@
     }
 
     function purchaseDomain(domain) {
-        $.post('{{ url_for("purchase_domain_route") }}', {domain: domain}, function(data) {
+        $.post('{{ url_for("site_management.purchase_domain_route") }}', {domain: domain}, function(data) {
             console.log('Domain purchase result:', data);
             if (data.status === 'purchased') {
                 currentStepIndex++;
@@ -172,7 +172,7 @@
     }
 
     function configureDNS(domain) {
-        $.post('{{ url_for("configure_dns_route") }}', {domain: domain}, function(data) {
+        $.post('{{ url_for("deployment.configure_dns_route") }}', {domain: domain}, function(data) {
             console.log('DNS configuration result:', data);
             if (data.status === 'configured') {
                 currentStepIndex++;
@@ -184,7 +184,7 @@
     }
 
     function createNginxConfig(domain) {
-        $.post('{{ url_for("create_nginx_config_route") }}', {domain: domain}, function(data) {
+        $.post('{{ url_for("deployment.create_nginx_config_route") }}', {domain: domain}, function(data) {
             console.log('Nginx config creation result:', data);
             if (data.status === 'created') {
                 currentStepIndex++;
@@ -196,7 +196,7 @@
     }
 
     function setupSSL(domain) {
-        $.post('{{ url_for("setup_ssl_route") }}', {domain: domain}, function(data) {
+        $.post('{{ url_for("deployment.setup_ssl_route") }}', {domain: domain}, function(data) {
             console.log('SSL setup result:', data);
             if (data.status === 'setup') {
                 currentStepIndex++;
@@ -208,7 +208,7 @@
     }
 
     function installWordPress(domain) {
-        $.post('{{ url_for("install_wordpress_route") }}', {domain: domain}, function(data) {
+        $.post('{{ url_for("deployment.install_wordpress_route") }}', {domain: domain}, function(data) {
             console.log('WordPress installation result:', data);
             if (data.status === 'installed') {
                 currentStepIndex++;
@@ -220,7 +220,7 @@
     }
 
     function initializeGitRepo(domain) {
-        $.post('{{ url_for("initialize_git_repo_route") }}', {domain: domain}, function(data) {
+        $.post('{{ url_for("deployment.initialize_git_repo_route") }}', {domain: domain}, function(data) {
             console.log('Git repository initialization result:', data);
             if (data.status === 'initialized') {
                 currentStepIndex++;
@@ -232,7 +232,7 @@
     }
 
     function deployStatic(domain) {
-        $.post('{{ url_for("deploy_static_route") }}', {domain: domain}, function(data) {
+        $.post('{{ url_for("deployment.deploy_static_route") }}', {domain: domain}, function(data) {
             console.log('Static deployment result:', data);
             if (data.status === 'deployed') {
                 currentStepIndex++;
@@ -259,4 +259,3 @@
     });
 </script>
 {% endblock %}
-

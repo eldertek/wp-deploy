@@ -80,7 +80,7 @@
         var domain = $(this).data('domain');
         $.ajax({
             type: 'POST',
-            url: '{{ url_for("deploy_site") }}',
+            url: '{{ url_for("deployment.deploy_site") }}',
             data: JSON.stringify({domain: domain}),
             contentType: 'application/json',
             success: function(response) {
