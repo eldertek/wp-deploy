@@ -147,11 +147,6 @@ def install_wordpress(domain_name, force=False):
         )
         run_command(f"mysql -u root -e 'FLUSH PRIVILEGES;'", elevated=True)
 
-        socketio.emit(
-            "message",
-            f"Base de données WordPress {unique_db_name} créée avec le mot de passe {unique_db_password} pour wp_{unique_db_user}.",
-        )
-
         # Create wp-config.php
         run_command(
             f"wp config create --path={wp_path} --dbname={unique_db_name} --dbuser=wp_{unique_db_user} --dbpass={unique_db_password} --dbhost=localhost --skip-check"
