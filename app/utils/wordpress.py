@@ -165,7 +165,7 @@ def install_wordpress(domain_name, force=False):
         run_command(f"cp ../wpocopo.wpress {wp_path}/wp-content/ai1wm-backups/")
 
         # Restore
-        run_command(f"wp ai1wm restore wpocopo.wpress --yes --path={wp_path}")
+        # run_command(f"wp ai1wm restore wpocopo.wpress --yes --path={wp_path}")
 
         # Delete all existing user accounts
         # run_command(f"wp user delete $(wp user list --field=ID --path={wp_path}) --yes --path={wp_path}")
