@@ -168,10 +168,10 @@ def install_wordpress(domain_name, force=False):
         run_command(f"wp ai1wm restore wpocopo.wpress --yes --path={wp_path}")
 
         # Delete all existing user accounts
-        run_command(f"wp user delete $(wp user list --field=ID --path={wp_path}) --yes --path={wp_path}")
+        # run_command(f"wp user delete $(wp user list --field=ID --path={wp_path}) --yes --path={wp_path}")
 
         # Delete the OCOPO backup
-        run_command(f"wp ai1wm backup delete $(wp ai1wm backup list --field=ID --path={wp_path}) --path={wp_path}")
+        #run_command(f"wp ai1wm backup delete $(wp ai1wm backup list --field=ID --path={wp_path}) --path={wp_path}")
 
         # Delete AIO, hello dolly, and defaults wordpress
         #run_command(f"wp plugin delete all-in-one-wp-migration --path={wp_path}")
