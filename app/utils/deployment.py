@@ -46,7 +46,7 @@ def deploy_static(domain_name):
                     )
 
                 # Create Readme.md with deployment details
-                readme_content = f"# Deployment Info\n\nDomain: {domain_name}\nDate: {datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n"
+                readme_content = f"# Deployment Info\n\nDomain: {domain_name}\n\nDate: {datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n"
                 with open(os.path.join(destination_path, "Readme.md"), "w") as readme_file:
                     readme_file.write(readme_content)
 
