@@ -158,19 +158,19 @@ def install_wordpress(domain_name, force=False):
         )
 
         # Install All in One Migration
-        run_command(f"wp plugin install all-in-one-wp-migration --activate --path={wp_path}")
+        # run_command(f"wp plugin install all-in-one-wp-migration --activate --path={wp_path}")
 
         # Import vendor/wpocopo.wpress
-        run_command(f"wp ai1wm import vendor/wpocopo.wpress --path={wp_path}")
+        # run_command(f"wp ai1wm import vendor/wpocopo.wpress --path={wp_path}")
 
         # Delete all existing user accounts
-        run_command(f"wp user delete $(wp user list --field=ID --path={wp_path}) --yes --path={wp_path}")
+        # run_command(f"wp user delete $(wp user list --field=ID --path={wp_path}) --yes --path={wp_path}")
 
         # Delete the OCOPO backup
-        run_command(f"wp ai1wm backup delete $(wp ai1wm backup list --field=ID --path={wp_path}) --path={wp_path}")
+        # run_command(f"wp ai1wm backup delete $(wp ai1wm backup list --field=ID --path={wp_path}) --path={wp_path}")
 
         # Delete the import plugin
-        run_command(f"wp plugin delete all-in-one-wp-migration --path={wp_path}")
+        # run_command(f"wp plugin delete all-in-one-wp-migration --path={wp_path}")
 
         # Generate a simple username of up to 5 letters
         simple_username = "".join(random.choices(string.ascii_lowercase, k=5))
