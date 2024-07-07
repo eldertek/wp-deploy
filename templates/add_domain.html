@@ -52,7 +52,6 @@
     socket.on('error', function(msg) {
         console.log('Received error:', msg);
         addMessage(msg, 'danger');
-        resetForm(false); // Pass false to avoid resetting currentStepIndex
     });
 
     socket.on('confirm', function(data) {
@@ -66,7 +65,7 @@
     $('#confirmButton').on('click', function() {
         var action = $(this).data('action');
         var domain = $('#domain').val();
-        var step = currentStepIndex
+        var step = currentStepIndex;
 
         console.log('Confirm button clicked with action:', action, 'domain:', domain, 'and step:', step);
         
@@ -124,7 +123,7 @@
         } else {
             console.log('All steps completed');
             addMessage(`Le domaine ${domain} a été ajouté avec succès.`, 'success');
-            resetForm(true); // Pass true to reset currentStepIndex
+            document.getElementById('submitButton').disabled = false;
         }
     }
 
@@ -258,7 +257,7 @@
 
     function handleError(errorMessage) {
         addMessage(errorMessage, 'danger');
-        resetForm(false); // Pass false to avoid resetting currentStepIndex
+        document.getElementById('submitButton').disabled = false;
     }
 
     function addMessage(message, type) {
@@ -267,13 +266,6 @@
         messageDiv.className = `alert alert-${type} mt-4`;
         messageDiv.innerText = message;
         messages.insertBefore(messageDiv, messages.firstChild);
-    }
-
-    function resetForm(resetStepIndex) {
-        document.getElementById('submitButton').disabled = false;
-        if (resetStepIndex) {
-            currentStepIndex = 0;
-        }
     }
 
     document.getElementById('submitButton').addEventListener('click', function() {
