@@ -52,7 +52,7 @@
     socket.on('error', function(msg) {
         console.log('Received error:', msg);
         addMessage(msg, 'danger');
-        resetForm();
+        resetForm(false); // Pass false to avoid resetting currentStepIndex
     });
 
     socket.on('confirm', function(data) {
@@ -124,7 +124,7 @@
         } else {
             console.log('All steps completed');
             addMessage(`Le domaine ${domain} a été ajouté avec succès.`, 'success');
-            resetForm();
+            resetForm(true); // Pass true to reset currentStepIndex
         }
     }
 
@@ -258,7 +258,7 @@
 
     function handleError(errorMessage) {
         addMessage(errorMessage, 'danger');
-        resetForm();
+        resetForm(false); // Pass false to avoid resetting currentStepIndex
     }
 
     function addMessage(message, type) {
@@ -269,9 +269,11 @@
         messages.insertBefore(messageDiv, messages.firstChild);
     }
 
-    function resetForm() {
+    function resetForm(resetStepIndex) {
         document.getElementById('submitButton').disabled = false;
-        currentStepIndex = 0;
+        if (resetStepIndex) {
+            currentStepIndex = 0;
+        }
     }
 
     document.getElementById('submitButton').addEventListener('click', function() {
