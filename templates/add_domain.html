@@ -66,7 +66,8 @@
     $('#confirmButton').on('click', function() {
         var action = $(this).data('action');
         var domain = $('#domain').val();
-        var step = $(this).data('step');
+        var step = currentStepIndex
+
         console.log('Confirm button clicked with action:', action, 'domain:', domain, 'and step:', step);
         
         $(this).prop('disabled', true);
