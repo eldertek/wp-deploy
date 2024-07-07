@@ -46,22 +46,13 @@
     var socket = io.connect('https://' + document.domain + ':' + location.port);
     socket.on('message', function(msg) {
         console.log('Received message:', msg);
-        var messages = document.getElementById('messages');
-        var message = document.createElement('div');
-        message.className = 'alert alert-info mt-4';
-        message.innerText = msg;
-        messages.insertBefore(message, messages.firstChild);
+        addMessage(msg, 'info');
     });
 
     socket.on('error', function(msg) {
         console.log('Received error:', msg);
-        var messages = document.getElementById('messages');
-        var message = document.createElement('div');
-        message.className = 'alert alert-danger mt-4';
-        message.innerText = msg;
-        messages.insertBefore(message, messages.firstChild);
-        document.getElementById('submitButton').disabled = false;
-        currentStepIndex = 0; // Reset the step index on error
+        addMessage(msg, 'danger');
+        resetForm();
     });
 
     socket.on('confirm', function(data) {
@@ -78,7 +69,6 @@
         var step = $(this).data('step');
         console.log('Confirm button clicked with action:', action, 'domain:', domain, 'and step:', step);
         
-        // Disable the confirm button to prevent multiple clicks
         $(this).prop('disabled', true);
 
         $.ajax({
@@ -90,14 +80,12 @@
                 console.log('Confirmation action successful');
                 $('#confirmButton').prop('disabled', false);
                 $('#confirmationModal').modal('hide');
-                currentStepIndex = step + 1;
                 executeNextStep(domain);
             },
             error: function() {
                 console.log('Confirmation action failed');
                 $('#confirmButton').prop('disabled', false);
                 $('#confirmationModal').modal('hide');
-                
                 handleError('Erreur lors de la confirmation de l\'action.');
             }
         });
@@ -133,13 +121,8 @@
             steps[currentStepIndex].func(domain);
         } else {
             console.log('All steps completed');
-            var messages = document.getElementById('messages');
-            var message = document.createElement('div');
-            message.className = 'alert alert-success mt-4';
-            message.innerText = `Le domaine ${domain} a été ajouté avec succès.`;
-            messages.insertBefore(message, messages.firstChild);
-            document.getElementById('submitButton').disabled = false;
-            document.getElementById('domain').value = '';
+            addMessage(`Le domaine ${domain} a été ajouté avec succès.`, 'success');
+            resetForm();
         }
     }
 
@@ -147,12 +130,13 @@
         $.post('{{ url_for("site_management.check_domain_ownership") }}', {domain: domain}, function(data) {
             console.log('Domain ownership check result:', data);
             if (data.status === 'owned') {
+                addMessage(`Le domaine ${domain} vous appartient déjà. Configuration en cours...`, 'info');
                 currentStepIndex = steps.findIndex(step => step.name === 'configureDNS');
-                executeNextStep(domain);
             } else {
-                currentStepIndex++;
-                executeNextStep(domain);
+                addMessage(`Le domaine ${domain} n'est pas encore enregistré. Vérification de la disponibilité...`, 'info');
             }
+            currentStepIndex++;
+            executeNextStep(domain);
         }).fail(function() {
             handleError('Erreur lors de la vérification de la possession du domaine.');
         });
@@ -165,7 +149,7 @@
                 currentStepIndex++;
                 executeNextStep(domain);
             } else {
-                handleError('Le domaine n\'est pas disponible.');
+                handleError(`Le domaine ${domain} n'est pas disponible.`);
             }
         }).fail(function() {
             handleError('Erreur lors de la vérification de la disponibilité du domaine.');
@@ -179,10 +163,10 @@
                 currentStepIndex++;
                 executeNextStep(domain);
             } else {
-                handleError('Erreur lors de l\'achat du domaine.');
+                handleError(`Erreur lors de l'achat du domaine ${domain}.`);
             }
         }).fail(function() {
-            handleError('Erreur lors de l\'achat du domaine.');
+            handleError(`Erreur lors de l'achat du domaine ${domain}.`);
         });
     }
 
@@ -193,10 +177,10 @@
                 currentStepIndex++;
                 executeNextStep(domain);
             } else {
-                handleError('Erreur lors de la configuration du DNS.');
+                handleError(`Erreur lors de la configuration du DNS pour ${domain}.`);
             }
         }).fail(function() {
-            handleError('Erreur lors de la configuration du DNS.');
+            handleError(`Erreur lors de la configuration du DNS pour ${domain}.`);
         });
     }
 
@@ -207,10 +191,10 @@
                 currentStepIndex++;
                 executeNextStep(domain);
             } else {
-                handleError('Erreur lors de la création de la configuration Nginx.');
+                handleError(`Erreur lors de la création de la configuration Nginx pour ${domain}.`);
             }
         }).fail(function() {
-            handleError('Erreur lors de la création de la configuration Nginx.');
+            handleError(`Erreur lors de la création de la configuration Nginx pour ${domain}.`);
         });
     }
 
@@ -221,10 +205,10 @@
                 currentStepIndex++;
                 executeNextStep(domain);
             } else {
-                handleError('Erreur lors de la configuration du SSL.');
+                handleError(`Erreur lors de la configuration du SSL pour ${domain}.`);
             }
         }).fail(function() {
-            handleError('Erreur lors de la configuration du SSL.');
+            handleError(`Erreur lors de la configuration du SSL pour ${domain}.`);
         });
     }
 
@@ -235,10 +219,10 @@
                 currentStepIndex++;
                 executeNextStep(domain);
             } else {
-                handleError('Erreur lors de l\'installation de WordPress.');
+                handleError(`Erreur lors de l'installation de WordPress pour ${domain}.`);
             }
         }).fail(function() {
-            handleError('Erreur lors de l\'installation de WordPress.');
+            handleError(`Erreur lors de l'installation de WordPress pour ${domain}.`);
         });
     }
 
@@ -249,10 +233,10 @@
                 currentStepIndex++;
                 executeNextStep(domain);
             } else {
-                handleError('Erreur lors de l\'initialisation du dépôt Git.');
+                handleError(`Erreur lors de l'initialisation du dépôt Git pour ${domain}.`);
             }
         }).fail(function() {
-            handleError('Erreur lors de l\'initialisation du dépôt Git.');
+            handleError(`Erreur lors de l'initialisation du dépôt Git pour ${domain}.`);
         });
     }
 
@@ -263,26 +247,33 @@
                 currentStepIndex++;
                 executeNextStep(domain);
             } else {
-                handleError('Erreur lors du déploiement statique.');
+                handleError(`Erreur lors du déploiement statique pour ${domain}.`);
             }
         }).fail(function() {
-            handleError('Erreur lors du déploiement statique.');
+            handleError(`Erreur lors du déploiement statique pour ${domain}.`);
         });
     }
 
     function handleError(errorMessage) {
+        addMessage(errorMessage, 'danger');
+        resetForm();
+    }
+
+    function addMessage(message, type) {
         var messages = document.getElementById('messages');
-        var message = document.createElement('div');
-        message.className = 'alert alert-danger mt-4';
-        message.innerText = errorMessage;
-        messages.insertBefore(message, messages.firstChild);
+        var messageDiv = document.createElement('div');
+        messageDiv.className = `alert alert-${type} mt-4`;
+        messageDiv.innerText = message;
+        messages.insertBefore(messageDiv, messages.firstChild);
+    }
+
+    function resetForm() {
         document.getElementById('submitButton').disabled = false;
         currentStepIndex = 0;
     }
 
     document.getElementById('submitButton').addEventListener('click', function() {
-        var messages = document.getElementById('messages');
-        messages.innerHTML = '';
+        document.getElementById('messages').innerHTML = '';
     });
 </script>
 {% endblock %}
