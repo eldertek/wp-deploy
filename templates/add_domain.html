@@ -91,14 +91,13 @@
                 $('#confirmButton').prop('disabled', false);
                 $('#confirmationModal').modal('hide');
                 currentStepIndex = step + 1;
-                processStopped = false
                 executeNextStep(domain);
             },
             error: function() {
                 console.log('Confirmation action failed');
                 $('#confirmButton').prop('disabled', false);
                 $('#confirmationModal').modal('hide');
-                processStopped = true;
+                
                 handleError('Erreur lors de la confirmation de l\'action.');
             }
         });
@@ -117,7 +116,6 @@
     ];
 
     let currentStepIndex = 0;
-    let processStopped = false; // Added processStopped variable
 
     document.getElementById('domainForm').addEventListener('submit', function(event) {
         event.preventDefault();
@@ -126,15 +124,10 @@
         var submitButton = document.getElementById('submitButton');
         submitButton.disabled = true;
         currentStepIndex = 0;
-        processStopped = false; // Reset the processStopped flag
         executeNextStep(domain);
     });
 
     function executeNextStep(domain) {
-        if (processStopped) {
-            console.log('Process stopped due to an error.');
-            return;
-        }
         if (currentStepIndex < steps.length) {
             console.log(`Executing step: ${steps[currentStepIndex].name}`);
             steps[currentStepIndex].func(domain);
@@ -285,7 +278,6 @@
         messages.insertBefore(message, messages.firstChild);
         document.getElementById('submitButton').disabled = false;
         currentStepIndex = 0;
-        processStopped = true; // Stop the process on error
     }
 
     document.getElementById('submitButton').addEventListener('click', function() {
