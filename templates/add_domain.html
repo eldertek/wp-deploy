@@ -81,6 +81,7 @@
                 console.log('Confirmation action successful');
                 $('#confirmButton').prop('disabled', false);
                 $('#confirmationModal').modal('hide');
+                currentStepIndex++;
                 executeNextStep(domain);
             },
             error: function() {
@@ -118,7 +119,7 @@
 
     function executeNextStep(domain) {
         if (currentStepIndex < steps.length) {
-            console.log(`Executing step: ${steps[currentStepIndex].name}`);
+            console.log(`Executing step: (${currentStepIndex}) ${steps[currentStepIndex].name}`);
             steps[currentStepIndex].func(domain);
         } else {
             console.log('All steps completed');
