@@ -60,6 +60,8 @@
         message.className = 'alert alert-danger mt-4';
         message.innerText = msg;
         messages.insertBefore(message, messages.firstChild);
+        document.getElementById('submitButton').disabled = false;
+        currentStepIndex = 0; // Reset the step index on error
     });
 
     socket.on('confirm', function(data) {
@@ -90,6 +92,12 @@
                 $('#confirmationModal').modal('hide');
                 currentStepIndex = step + 1;
                 executeNextStep(domain);
+            },
+            error: function() {
+                console.log('Confirmation action failed');
+                $('#confirmButton').prop('disabled', false);
+                $('#confirmationModal').modal('hide');
+                handleError('Erreur lors de la confirmation de l\'action.');
             }
         });
     });
@@ -144,6 +152,8 @@
                 currentStepIndex++;
                 executeNextStep(domain);
             }
+        }).fail(function() {
+            handleError('Erreur lors de la vérification de la possession du domaine.');
         });
     }
 
@@ -156,6 +166,8 @@
             } else {
                 handleError('Le domaine n\'est pas disponible.');
             }
+        }).fail(function() {
+            handleError('Erreur lors de la vérification de la disponibilité du domaine.');
         });
     }
 
@@ -168,6 +180,8 @@
             } else {
                 handleError('Erreur lors de l\'achat du domaine.');
             }
+        }).fail(function() {
+            handleError('Erreur lors de l\'achat du domaine.');
         });
     }
 
@@ -180,6 +194,8 @@
             } else {
                 handleError('Erreur lors de la configuration du DNS.');
             }
+        }).fail(function() {
+            handleError('Erreur lors de la configuration du DNS.');
         });
     }
 
@@ -192,6 +208,8 @@
             } else {
                 handleError('Erreur lors de la création de la configuration Nginx.');
             }
+        }).fail(function() {
+            handleError('Erreur lors de la création de la configuration Nginx.');
         });
     }
 
@@ -204,6 +222,8 @@
             } else {
                 handleError('Erreur lors de la configuration du SSL.');
             }
+        }).fail(function() {
+            handleError('Erreur lors de la configuration du SSL.');
         });
     }
 
@@ -216,6 +236,8 @@
             } else {
                 handleError('Erreur lors de l\'installation de WordPress.');
             }
+        }).fail(function() {
+            handleError('Erreur lors de l\'installation de WordPress.');
         });
     }
 
@@ -228,6 +250,8 @@
             } else {
                 handleError('Erreur lors de l\'initialisation du dépôt Git.');
             }
+        }).fail(function() {
+            handleError('Erreur lors de l\'initialisation du dépôt Git.');
         });
     }
 
@@ -240,6 +264,8 @@
             } else {
                 handleError('Erreur lors du déploiement statique.');
             }
+        }).fail(function() {
+            handleError('Erreur lors du déploiement statique.');
         });
     }
 
