@@ -126,6 +126,7 @@ def install_wordpress(domain_name, force=False):
             random.choices(string.ascii_letters + string.digits, k=16)
         )
         registrant_email = settings["registrant"]["email"]
+        wordpress_admin_email = settings.get("wordpress_admin_email", "admin@example.com")
 
         # Download WordPress
         run_command(f"wp core download --path={wp_path} --locale=fr_FR")
@@ -161,7 +162,12 @@ def install_wordpress(domain_name, force=False):
             f"wp core install --path={wp_path} --url=https://bo.{domain_name} --title='{domain_name}' --admin_user=admin --admin_password={unique_db_password} --admin_email={registrant_email} --locale=fr_FR"
         )
 
-        # TODO Create an admin user with a simple username and password with the email, add a settings for this mail
+        # Create an admin user with the email from the settings
+        run_command(
+            f"wp user create admin {wordpress_admin_email} --role=administrator --user_pass={unique_db_password} --path={wp_path}"
+        )
+
+        socketio.emit("message", f"Utilisateur admin créé avec l'email {wordpress_admin_email} et le mot de passe {unique_db_password}.")
 
         # Update wp cli
         run_command(f"wp cli update --path={wp_path}", elevated=True)

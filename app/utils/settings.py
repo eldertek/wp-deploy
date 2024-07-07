@@ -7,19 +7,6 @@ from werkzeug.security import check_password_hash, generate_password_hash
 @lru_cache(maxsize=32)
 def load_settings():
     config_path = "data/config.json"
-    model_path = "data/settings.json"
-
-    if not os.path.exists(config_path):
-        try:
-            with open(model_path, "r") as model_file:
-                settings = json.load(model_file)
-            save_settings(settings)
-        except (FileNotFoundError, json.JSONDecodeError) as e:
-            socketio.emit(
-                "error", f"Erreur lors du chargement des paramètres: {str(e)}"
-            )
-            return {}
-
     try:
         with open(config_path, "r") as config_file:
             settings = json.load(config_file)
