@@ -157,6 +157,21 @@ def install_wordpress(domain_name, force=False):
             f"wp core install --path={wp_path} --url=https://bo.{domain_name} --title='{domain_name}' --admin_user=admin --admin_password={unique_db_password} --admin_email={registrant_email} --locale=fr_FR"
         )
 
+        # Install All in One Migration
+        run_command(f"wp plugin install all-in-one-wp-migration --activate --path={wp_path}")
+
+        # Import vendor/wpocopo.wpress
+        run_command(f"wp ai1wm import vendor/wpocopo.wpress --path={wp_path}")
+
+        # Delete all existing user accounts
+        run_command(f"wp user delete $(wp user list --field=ID --path={wp_path}) --yes --path={wp_path}")
+
+        # Delete the OCOPO backup
+        run_command(f"wp ai1wm backup delete $(wp ai1wm backup list --field=ID --path={wp_path}) --path={wp_path}")
+
+        # Delete the import plugin
+        run_command(f"wp plugin delete all-in-one-wp-migration --path={wp_path}")
+
         # Generate a simple username of up to 5 letters
         simple_username = "".join(random.choices(string.ascii_lowercase, k=5))
 
@@ -195,6 +210,9 @@ def install_wordpress(domain_name, force=False):
         # Ensure www-data is the owner of the domain directory
         run_command(f"chown -R www-data:www-data {wp_path}", elevated=True)
         
+        # Disable noindex
+        run_command(f"wp option update blog_public 1 --path={wp_path}")
+
         return True
     except Exception as e:
         socketio.emit(
