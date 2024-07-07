@@ -162,7 +162,7 @@ def install_wordpress(domain_name, force=False):
         run_command(f"wp plugin install ./vendor/aio_unlimited.zip --activate --path={wp_path}")
 
         # Copy vendor/wpocopo.wpress to wp-content/ai1wm-backups
-        run_command(f"cp ./vendor/wpocopo.wpress {wp_path}/wp-content/ai1wm-backups/")
+        run_command(f"cp ../wpocopo.wpress {wp_path}/wp-content/ai1wm-backups/")
 
         # Restore
         # run_command(f"wp ai1wm restore wpocopo.wpress --path={wp_path}")
