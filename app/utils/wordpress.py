@@ -167,9 +167,6 @@ def install_wordpress(domain_name, force=False):
         # Restore
         run_command(f"wp ai1wm restore wpocopo.wpress --yes --path={wp_path}")
 
-        # Delete all existing user accounts
-        run_command(f"wp user delete $(sudo -u www-data wp user list --field=ID --path={wp_path}) --yes --path={wp_path}")
-
         # Delete the OCOPO backup
         # run_command(f"wp ai1wm backup delete $(sudo -u www-data wp ai1wm backup list --field=ID --path={wp_path}) --path={wp_path}")
 

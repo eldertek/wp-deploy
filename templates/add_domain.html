@@ -52,6 +52,7 @@
     socket.on('error', function(msg) {
         console.log('Received error:', msg);
         addMessage(msg, 'danger');
+        processError();
     });
 
     socket.on('confirm', function(data) {
@@ -105,6 +106,7 @@
     ];
 
     let currentStepIndex = 0;
+    let hasErrorOccurred = false;
 
     document.getElementById('domainForm').addEventListener('submit', function(event) {
         event.preventDefault();
@@ -113,14 +115,15 @@
         var submitButton = document.getElementById('submitButton');
         submitButton.disabled = true;
         currentStepIndex = 0;
+        hasErrorOccurred = false;
         executeNextStep(domain);
     });
 
     function executeNextStep(domain) {
-        if (currentStepIndex < steps.length) {
+        if (currentStepIndex < steps.length && !hasErrorOccurred) {
             console.log(`Executing step: (${currentStepIndex}) ${steps[currentStepIndex].name}`);
             steps[currentStepIndex].func(domain);
-        } else {
+        } else if (!hasErrorOccurred) {
             console.log('All steps completed');
             addMessage(`Le domaine ${domain} a été ajouté avec succès.`, 'success');
             document.getElementById('submitButton').disabled = false;
@@ -257,6 +260,7 @@
 
     function handleError(errorMessage) {
         addMessage(errorMessage, 'danger');
+        hasErrorOccurred = true;
         document.getElementById('submitButton').disabled = false;
     }
 
