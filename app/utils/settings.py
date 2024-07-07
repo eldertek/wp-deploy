@@ -22,7 +22,13 @@ def load_settings():
 
     try:
         with open(config_path, "r") as config_file:
-            return json.load(config_file)
+            settings = json.load(config_file)
+            # Ensure the new setting has a default value if not present
+            if "wordpress_admin_email" not in settings:
+                settings["wordpress_admin_email"] = "admin@example.com"
+            if "test_mode" not in settings:
+                settings["test_mode"] = False
+            return settings
     except (FileNotFoundError, json.JSONDecodeError) as e:
         socketio.emit(
             "error", f"Erreur lors du chargement de la configuration: {str(e)}"
