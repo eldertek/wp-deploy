@@ -168,7 +168,7 @@ def install_wordpress(domain_name, force=False):
         run_command(f"wp ai1wm restore wpocopo.wpress --yes --path={wp_path}")
 
         # Delete AIO, hello dolly, akismet
-        run_command(f"wp plugin delete all-in-one-wp-migration --path={wp_path}")
+        # run_command(f"wp plugin delete all-in-one-wp-migration --path={wp_path}")
         # run_command(f"wp plugin delete aio_unlimited --path={wp_path}")
         run_command(f"wp plugin delete akismet --path={wp_path}")
         run_command(f"wp plugin delete hello --path={wp_path}")
