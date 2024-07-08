@@ -82,6 +82,7 @@
                 $('#confirmButton').prop('disabled', false);
                 $('#confirmationModal').modal('hide');
                 currentStepIndex++;
+                hasErrorOccurred = false;
                 executeNextStep(domain);
             },
             error: function() {
