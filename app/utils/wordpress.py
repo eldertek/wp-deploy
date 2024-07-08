@@ -199,7 +199,7 @@ def install_wordpress(domain_name, force=False):
 
         # Deactivate AIO 
         run_command(f"wp plugin deactivate all-in-one-wp-migration --path={wp_path}")
-        run_command(f"wp plugin deactivate aio_unlimited --path={wp_path}")
+        # run_command(f"wp plugin deactivate aio_unlimited --path={wp_path}")
 
         # Install and activate Simply Static
         run_command(
