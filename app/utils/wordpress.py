@@ -215,9 +215,10 @@ def install_wordpress(domain_name, force=False):
         # Disable noindex
         run_command(f"wp option update blog_public 1 --path={wp_path}")
 
-        # Uninstall AIO
+        # Uninstall AIO, and defaults
         run_command(f"wp plugin uninstall aio_unlimited --deactivate --path={wp_path}")
-        run_command(f"wp plugin uninstall all-in-one-wp-migration --deactivate --path={wp_path}")
+        run_command(f"wp plugin uninstall hello --deactivate --path={wp_path}")
+        run_command(f"wp plugin uninstall akismet --deactivate --path={wp_path}")
 
         return True
     except Exception as e:
