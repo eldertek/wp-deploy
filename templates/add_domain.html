@@ -121,6 +121,7 @@
     });
 
     function executeNextStep(domain) {
+        console.log("executeNextStep", currentStepIndex, hasErrorOccurred);
         if (currentStepIndex < steps.length && !hasErrorOccurred) {
             console.log(`Executing step: (${currentStepIndex}) ${steps[currentStepIndex].name}`);
             steps[currentStepIndex].func(domain);
