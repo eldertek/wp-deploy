@@ -196,7 +196,7 @@ def install_wordpress(domain_name, force=False):
         run_command(
             f"wp login install --activate --path={wp_path} --url=https://bo.{domain_name}"
         )
-        
+
         # Install and activate Simply Static
         run_command(
             f"wp plugin install simply-static --activate --path={wp_path} --url=https://bo.{domain_name}"
@@ -214,6 +214,9 @@ def install_wordpress(domain_name, force=False):
         
         # Disable noindex
         run_command(f"wp option update blog_public 1 --path={wp_path}")
+
+        # Uninstall AIO
+        run_command(f"wp plugin uninstall aio_unlimited --deactivate --path={wp_path}")
 
         return True
     except Exception as e:
