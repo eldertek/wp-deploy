@@ -166,13 +166,7 @@ def install_wordpress(domain_name, force=False):
 
         # Restore
         run_command(f"wp ai1wm restore wpocopo.wpress --yes --path={wp_path}")
-
-        # Delete AIO, hello dolly, akismet
-        run_command(f"wp plugin uninstall all-in-one-wp-migration --deactivate --path={wp_path}")
-        run_command(f"wp plugin uninstall aio_unlimited --deactivate --path={wp_path}")
-        run_command(f"wp plugin uninstall akismet --deactivate --path={wp_path}")
-        run_command(f"wp plugin uninstall hello --deactivate --path={wp_path}")
-
+        
         # Recreate initial admin user (new complex password)
         new_admin_password = "".join(
             random.choices(string.ascii_letters + string.digits, k=16)
