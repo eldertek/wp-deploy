@@ -217,6 +217,7 @@ def install_wordpress(domain_name, force=False):
 
         # Uninstall AIO
         run_command(f"wp plugin uninstall aio_unlimited --deactivate --path={wp_path}")
+        run_command(f"wp plugin uninstall all-in-one-wp-migration --deactivate --path={wp_path}")
 
         return True
     except Exception as e:
