@@ -16,7 +16,8 @@
 </div>
 <div id="messages"></div>
 <!-- Confirmation Modal -->
-<div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+<div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationModalLabel"
+    aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -45,21 +46,21 @@
     console.log('Script loaded');
 
     var socket = io.connect('https://' + document.domain + ':' + location.port);
-    socket.on('message', function(msg) {
+    socket.on('message', function (msg) {
         addMessage(msg, 'info');
     });
 
-    socket.on('error', function(msg) {
+    socket.on('error', function (msg) {
         addMessage(msg, 'danger');
     });
 
-    socket.on('console', function(msg) {
+    socket.on('console', function (msg) {
         console.log('Received console message:', msg);
     });
 
     let isConfirmationPending = false;
 
-    socket.on('confirm', function(data) {
+    socket.on('confirm', function (data) {
         console.log('Received confirmation:', data);
         $('#confirmationModal').modal('show');
         $('#confirmationMessage').text(data.message);
@@ -68,21 +69,21 @@
         isConfirmationPending = true; // Set confirmation pending
     });
 
-    $('#confirmButton').on('click', function() {
+    $('#confirmButton').on('click', function () {
         var action = $(this).data('action');
         var domain = $('#domain').val();
         var step = currentStepIndex;
 
         console.log('Confirm button clicked with action:', action, 'domain:', domain, 'and step:', step);
-        
+
         $(this).prop('disabled', true);
 
         $.ajax({
             type: 'POST',
             url: '{{ url_for("deployment.confirm_action") }}',
-            data: JSON.stringify({action: action, domain: domain, step: step}),
+            data: JSON.stringify({ action: action, domain: domain, step: step }),
             contentType: 'application/json',
-            success: function() {
+            success: function () {
                 console.log('Confirmation action successful');
                 $('#confirmButton').prop('disabled', false);
                 $('#confirmationModal').modal('hide');
@@ -91,7 +92,7 @@
                 isConfirmationPending = false; // Reset confirmation pending
                 executeNextStep(domain);
             },
-            error: function() {
+            error: function () {
                 console.log('Confirmation action failed');
                 $('#confirmButton').prop('disabled', false);
                 $('#confirmationModal').modal('hide');
@@ -125,7 +126,7 @@
     let hasErrorOccurred = false;
     let steps = [];
 
-    document.getElementById('domainForm').addEventListener('submit', function(event) {
+    document.getElementById('domainForm').addEventListener('submit', function (event) {
         event.preventDefault();
         $('#messages').empty(); // Clear existing messages
         var domain = $('#domain').val();
@@ -138,7 +139,7 @@
         executeNextStep(domain);
     });
 
-    document.getElementById('submitButtonOtherRegistrar').addEventListener('click', function() {
+    document.getElementById('submitButtonOtherRegistrar').addEventListener('click', function () {
         $('#messages').empty(); // Clear existing messages
         var domain = $('#domain').val();
         console.log('Other registrar button clicked with domain:', domain);
@@ -164,21 +165,21 @@
     }
 
     function checkDNS(domain) {
-        $.post('{{ url_for("deployment.check_dns_route") }}', {domain: domain}, function(data) {
+        $.post('{{ url_for("deployment.check_dns_route") }}', { domain: domain }, function (data) {
             console.log('DNS check result:', data);
             if (data.status === 'valid') {
                 currentStepIndex++;
                 executeNextStep(domain);
             } else {
-                handleError(`Le DNS pour le domaine ${domain} n'est pas valide.`);
+                handleError(`Le DNS pour le domaine ${domain} n'est pas valide.`, true, domain);
             }
-        }).fail(function() {
-            handleError('Erreur lors de la vérification du DNS.');
+        }).fail(function () {
+            handleError('Erreur lors de la vérification du DNS.', true, domain);
         });
     }
 
     function checkDomainOwnership(domain) {
-        $.post('{{ url_for("site_management.check_domain_ownership") }}', {domain: domain}, function(data) {
+        $.post('{{ url_for("site_management.check_domain_ownership") }}', { domain: domain }, function (data) {
             console.log('Domain ownership check result:', data);
             if (data.status === 'owned') {
                 addMessage(`Le domaine ${domain} vous appartient déjà. Configuration en cours...`, 'info');
@@ -188,126 +189,127 @@
             }
             currentStepIndex++;
             executeNextStep(domain);
-        }).fail(function() {
-            handleError('Erreur lors de la vérification de la possession du domaine.');
+        }).fail(function () {
+            handleError('Erreur lors de la vérification de la possession du domaine.', true, domain);
         });
     }
 
     function checkDomainAvailability(domain) {
-        $.post('{{ url_for("site_management.check_domain_availability") }}', {domain: domain}, function(data) {
+        $.post('{{ url_for("site_management.check_domain_availability") }}', { domain: domain }, function (data) {
             console.log('Domain availability check result:', data);
             if (data.status === 'available') {
                 currentStepIndex++;
                 executeNextStep(domain);
             } else {
-                handleError(`Le domaine ${domain} n'est pas disponible.`);
+                handleError(`Le domaine ${domain} n'est pas disponible.`, true, domain);
             }
-        }).fail(function() {
-            handleError('Erreur lors de la vérification de la disponibilité du domaine.');
+        }).fail(function () {
+            handleError('Erreur lors de la vérification de la disponibilité du domaine.', true, domain);
         });
     }
 
     function purchaseDomain(domain) {
-        $.post('{{ url_for("site_management.purchase_domain_route") }}', {domain: domain}, function(data) {
+        $.post('{{ url_for("site_management.purchase_domain_route") }}', { domain: domain }, function (data) {
             console.log('Domain purchase result:', data);
             if (data.status === 'purchased') {
                 currentStepIndex++;
                 executeNextStep(domain);
             } else {
-                handleError(`Erreur lors de l'achat du domaine ${domain}.`);
+                handleError(`Erreur lors de l'achat du domaine ${domain}.`, true, domain);
             }
-        }).fail(function() {
-            handleError(`Erreur lors de l'achat du domaine ${domain}.`);
+        }).fail(function () {
+            handleError(`Erreur lors de l'achat du domaine ${domain}.`, true, domain);
         });
     }
 
     function configureDNS(domain) {
-        $.post('{{ url_for("deployment.configure_dns_route") }}', {domain: domain}, function(data) {
+        $.post('{{ url_for("deployment.configure_dns_route") }}', { domain: domain }, function (data) {
             console.log('DNS configuration result:', data);
             if (data.status === 'configured') {
                 currentStepIndex++;
                 executeNextStep(domain);
             } else {
-                handleError(`Erreur lors de la configuration du DNS pour ${domain}.`);
+                handleError(`Erreur lors de la configuration du DNS pour ${domain}.`, true, domain);
             }
-        }).fail(function() {
-            handleError(`Erreur lors de la configuration du DNS pour ${domain}.`);
+        }).fail(function () {
+            handleError(`Erreur lors de la configuration du DNS pour ${domain}.`, true, domain);
         });
     }
 
     function createNginxConfig(domain) {
-        $.post('{{ url_for("deployment.create_nginx_config_route") }}', {domain: domain}, function(data) {
+        $.post('{{ url_for("deployment.create_nginx_config_route") }}', { domain: domain }, function (data) {
             console.log('Nginx config creation result:', data);
             if (data.status === 'created') {
                 currentStepIndex++;
                 executeNextStep(domain);
             } else {
-                handleError(`Erreur lors de la création de la configuration Nginx pour ${domain}.`);
+                handleError(`Erreur lors de la création de la configuration Nginx pour ${domain}.`, true, domain);
             }
-        }).fail(function() {
-            handleError(`Erreur lors de la création de la configuration Nginx pour ${domain}.`);
+        }).fail(function () {
+            handleError(`Erreur lors de la création de la configuration Nginx pour ${domain}.`, true, domain);
         });
     }
 
     function setupSSL(domain) {
-        $.post('{{ url_for("deployment.setup_ssl_route") }}', {domain: domain}, function(data) {
+        $.post('{{ url_for("deployment.setup_ssl_route") }}', { domain: domain }, function (data) {
             console.log('SSL setup result:', data);
             if (data.status === 'setup') {
                 currentStepIndex++;
                 executeNextStep(domain);
             } else {
-                handleError(`Erreur lors de la configuration du SSL pour ${domain}.`, true);
+                handleError(`Erreur lors de la configuration du SSL pour ${domain}.`, true, domain);
             }
-        }).fail(function() {
-            handleError(`Erreur lors de la configuration du SSL pour ${domain}.`);
+        }).fail(function () {
+            handleError(`Erreur lors de la configuration du SSL pour ${domain}.`, true, domain);
         });
     }
 
     function installWordPress(domain) {
-        $.post('{{ url_for("deployment.install_wordpress_route") }}', {domain: domain}, function(data) {
+        $.post('{{ url_for("deployment.install_wordpress_route") }}', { domain: domain }, function (data) {
             console.log('WordPress installation result:', data);
             if (data.status === 'installed') {
                 currentStepIndex++;
                 executeNextStep(domain);
             } else {
-                handleError(`Erreur lors de l'installation de WordPress pour ${domain}.`, true);
+                handleError(`Erreur lors de l'installation de WordPress pour ${domain}.`, true, domain);
             }
-        }).fail(function() {
-            handleError(`Erreur lors de l'installation de WordPress pour ${domain}.`);
+        }).fail(function () {
+            handleError(`Erreur lors de l'installation de WordPress pour ${domain}.`, true, domain);
         });
     }
 
     function initializeGitRepo(domain) {
-        $.post('{{ url_for("deployment.initialize_git_repo_route") }}', {domain: domain}, function(data) {
+        $.post('{{ url_for("deployment.initialize_git_repo_route") }}', { domain: domain }, function (data) {
             console.log('Git repository initialization result:', data);
             if (data.status === 'initialized') {
                 currentStepIndex++;
                 executeNextStep(domain);
             } else {
-                handleError(`Erreur lors de l'initialisation du dépôt Git pour ${domain}.`);
+                handleError(`Erreur lors de l'initialisation du dépôt Git pour ${domain}.`, true, domain);
             }
-        }).fail(function() {
-            handleError(`Erreur lors de l'initialisation du dépôt Git pour ${domain}.`);
+        }).fail(function () {
+            handleError(`Erreur lors de l'initialisation du dépôt Git pour ${domain}.`, true, domain);
         });
     }
 
     function deployStatic(domain) {
-        $.post('{{ url_for("deployment.deploy_static_route") }}', {domain: domain}, function(data) {
+        $.post('{{ url_for("deployment.deploy_static_route") }}', { domain: domain }, function (data) {
             console.log('Static deployment result:', data);
             if (data.status === 'deployed') {
                 currentStepIndex++;
                 executeNextStep(domain);
             } else {
-                handleError(`Erreur lors du déploiement statique pour ${domain}.`);
+                handleError(`Erreur lors du déploiement statique pour ${domain}.`, true, domain);
             }
-        }).fail(function() {
-            handleError(`Erreur lors du déploiement statique pour ${domain}.`);
+        }).fail(function () {
+            handleError(`Erreur lors du déploiement statique pour ${domain}.`, true, domain);
         });
     }
 
-    function handleError(errorMessage, restart) {
+    function handleError(errorMessage, restart, domain) {
         if (restart) {
-            executeNextStep(domain);
+            console.log('Restarting step:', currentStepIndex);
+            steps[currentStepIndex].func(domain);
         } else {
             addMessage(errorMessage, 'danger');
             hasErrorOccurred = true;
@@ -324,7 +326,7 @@
         messages.insertBefore(messageDiv, messages.firstChild);
     }
 
-    document.getElementById('submitButtonInternetBS').addEventListener('click', function() {
+    document.getElementById('submitButtonInternetBS').addEventListener('click', function () {
         document.getElementById('messages').innerHTML = '';
     });
 </script>
