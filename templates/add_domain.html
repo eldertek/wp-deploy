@@ -61,6 +61,7 @@
     let currentStepIndex = 0;
     let hasErrorOccurred = false;
     let steps = [];
+    let tempMessages = [];
 
     document.getElementById('domainForm').addEventListener('submit', function (event) {
         event.preventDefault();
@@ -71,6 +72,7 @@
         submitButton.disabled = true;
         currentStepIndex = 0;
         hasErrorOccurred = false;
+        tempMessages = [];
         steps = stepsInternetBS;
         executeNextStep(domain);
     });
@@ -83,6 +85,7 @@
         submitButton.disabled = true;
         currentStepIndex = 0;
         hasErrorOccurred = false;
+        tempMessages = [];
         steps = stepsOtherRegistrar;
         executeNextStep(domain);
     });
@@ -94,6 +97,7 @@
             steps[currentStepIndex].func(domain);
         } else if (!hasErrorOccurred) {
             console.log('All steps completed');
+            displayTempMessages();
             addMessage(`Le domaine ${domain} a été ajouté avec succès.`, 'success');
             document.getElementById('submitButtonInternetBS').disabled = false;
             document.getElementById('submitButtonOtherRegistrar').disabled = false;
@@ -245,6 +249,7 @@
     function handleError(errorMessage, restart, domain) {
         if (restart) {
             console.log('Restarting step:', currentStepIndex);
+            tempMessages = [];
             steps[currentStepIndex].func(domain);
         } else {
             addMessage(errorMessage, 'danger');
@@ -255,11 +260,18 @@
     }
 
     function addMessage(message, type) {
+        tempMessages.push({ message, type });
+    }
+
+    function displayTempMessages() {
         var messages = document.getElementById('messages');
-        var messageDiv = document.createElement('div');
-        messageDiv.className = `alert alert-${type} mt-4`;
-        messageDiv.innerText = message;
-        messages.insertBefore(messageDiv, messages.firstChild);
+        tempMessages.forEach(msg => {
+            var messageDiv = document.createElement('div');
+            messageDiv.className = `alert alert-${msg.type} mt-4`;
+            messageDiv.innerText = msg.message;
+            messages.insertBefore(messageDiv, messages.firstChild);
+        });
+        tempMessages = [];
     }
 
     document.getElementById('submitButtonInternetBS').addEventListener('click', function () {
