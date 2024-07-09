@@ -46,7 +46,7 @@ def create_nginx_config(domain_name, force=False):
 
                 # Security headers
                 add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
-                add_header Content-Security-Policy "default-src 'self'; script-src 'self'; object-src 'none'; style-src 'self'; img-src 'self'; media-src 'self'; frame-src 'self'; font-src 'self'; connect-src 'self';" always;
+                add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'nonce-{{nonce}}'; object-src 'none'; style-src 'self'; img-src 'self'; media-src 'self'; frame-src 'self'; font-src 'self'; connect-src 'self';" always;
                 add_header X-Frame-Options "SAMEORIGIN" always;
                 add_header X-Content-Type-Options "nosniff" always;
                 add_header Referrer-Policy "no-referrer-when-downgrade" always;
@@ -228,8 +228,6 @@ def install_wordpress(domain_name, force=False):
 
         # Uninstall AIO, and defaults
         run_command(f"wp plugin uninstall aio_unlimited --deactivate --path={wp_path}")
-        run_command(f"wp plugin uninstall hello --deactivate --path={wp_path}")
-        run_command(f"wp plugin uninstall akismet --deactivate --path={wp_path}")
 
         return True
     except Exception as e:
