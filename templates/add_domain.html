@@ -57,12 +57,15 @@
         console.log('Received console message:', msg);
     });
 
+    let isConfirmationPending = false;
+
     socket.on('confirm', function(data) {
         console.log('Received confirmation:', data);
         $('#confirmationModal').modal('show');
         $('#confirmationMessage').text(data.message);
         $('#confirmButton').data('action', data.action);
         $('#confirmButton').data('step', currentStepIndex);
+        isConfirmationPending = true; // Set confirmation pending
     });
 
     $('#confirmButton').on('click', function() {
@@ -85,6 +88,7 @@
                 $('#confirmationModal').modal('hide');
                 currentStepIndex++;
                 hasErrorOccurred = false;
+                isConfirmationPending = false; // Reset confirmation pending
                 executeNextStep(domain);
             },
             error: function() {
@@ -147,11 +151,11 @@
     });
 
     function executeNextStep(domain) {
-        console.log("executeNextStep", currentStepIndex, hasErrorOccurred);
-        if (currentStepIndex < steps.length && !hasErrorOccurred) {
+        console.log("executeNextStep", currentStepIndex, hasErrorOccurred, isConfirmationPending);
+        if (currentStepIndex < steps.length && !hasErrorOccurred && !isConfirmationPending) {
             console.log(`Executing step: (${currentStepIndex}) ${steps[currentStepIndex].name}`);
             steps[currentStepIndex].func(domain);
-        } else if (!hasErrorOccurred) {
+        } else if (!hasErrorOccurred && !isConfirmationPending) {
             console.log('All steps completed');
             addMessage(`Le domaine ${domain} a été ajouté avec succès.`, 'success');
             document.getElementById('submitButtonInternetBS').disabled = false;
