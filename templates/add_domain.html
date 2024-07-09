@@ -55,6 +55,10 @@
         addMessage(msg, 'danger');
     });
 
+    socket.on('console', function(msg) {
+        console.log('Received console message:', msg);
+    });
+
     socket.on('confirm', function(data) {
         console.log('Received confirmation:', data);
         $('#confirmationModal').modal('show');

@@ -17,8 +17,13 @@ def deploy_static(domain_name):
                 raise Exception("Failed to remove static path")
 
         # Force Elementor data update
-        if not run_command(f"wp elementor update db --path={wp_path}"):
-            raise Exception("Failed to update Elementor data")
+        try:
+            run_command(f"wp elementor update db --path={wp_path}")
+        except Exception as e:
+            if "is not a registered wp command" in str(e):
+                socketio.emit("console", "Elementor command not found, skipping Elementor data update.")
+            else:
+                raise Exception("Failed to update Elementor data")
 
         # Run Simply Static export
         if not run_command(f"wp simply-static run --path={wp_path}"):
