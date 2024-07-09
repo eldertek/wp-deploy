@@ -99,13 +99,15 @@ def install_wordpress(domain_name):
         settings = load_settings()
         wp_path = f"/var/www/{domain_name}"
         if os.path.exists(wp_path):
-            if not run_command(f"rm -rf {wp_path}", elevated=True):
+            if not run_command(f"rm -rf {wp_path}/*", elevated=True):
+                raise Exception("Échec de la suppression du contenu du répertoire WordPress existant")
+            if not run_command(f"rmdir {wp_path}", elevated=True):
                 raise Exception("Échec de la suppression du répertoire WordPress existant")
-        else:
-            if not run_command(f"mkdir -p {wp_path}", elevated=True):
-                raise Exception("Échec de la création du répertoire WordPress")
-            if not run_command(f"chown www-data:www-data {wp_path}", elevated=True):
-                raise Exception("Échec du changement de propriétaire du répertoire WordPress")
+       
+        if not run_command(f"mkdir -p {wp_path}", elevated=True):
+            raise Exception("Échec de la création du répertoire WordPress")
+        if not run_command(f"chown www-data:www-data {wp_path}", elevated=True):
+            raise Exception("Échec du changement de propriétaire du répertoire WordPress")
 
         # Generate random names for the database and user
         unique_db_name = "".join(
