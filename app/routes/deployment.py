@@ -173,6 +173,7 @@ def check_dns_route():
         return jsonify({"status": "error", "message": "Nom de domaine manquant"}), 400
     try:
         if check_dns(domain_name):
+            socketio.emit("message", f"Le DNS pour {domain_name} est correctement configuré.")
             return jsonify({"status": "valid"})
         return jsonify({"status": "error"})
     except Exception as e:
