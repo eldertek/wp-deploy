@@ -219,9 +219,14 @@ def install_wordpress(domain_name, force=False):
             raise Exception("Failed to install WP Login package")
 
         # Install Companion plugin
-        if not run_command(
-            f"wp login install --activate --path={wp_path} --url=https://bo.{domain_name}"
-        ):
+        result = run_command(
+            f"wp login install --activate --path={wp_path} --url=https://bo.{domain_name}",
+            return_output=True
+        )
+
+        if "Success: Companion plugin installed" in result:
+            pass
+        else:
             raise Exception("Failed to install Companion plugin")
 
         # Install and activate Simply Static
