@@ -19,6 +19,9 @@ def create_nginx_config(domain_name, force=False):
             )
             return False
 
+        # Generate a nonce for CSP
+        nonce = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
+
         # Create a temporary file for the Nginx config
         temp_config_path = f"/tmp/nginx_config_{domain_name}.conf"
         with open(temp_config_path, "w") as temp_config_file:
@@ -46,7 +49,7 @@ def create_nginx_config(domain_name, force=False):
 
                 # Security headers
                 add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
-                add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'nonce-{{nonce}}'; object-src 'none'; style-src 'self'; img-src 'self'; media-src 'self'; frame-src 'self'; font-src 'self'; connect-src 'self';" always;
+                add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'nonce-{nonce}'; style-src 'self' 'nonce-{nonce}'; object-src 'none'; img-src 'self'; media-src 'self'; frame-src 'self'; font-src 'self'; connect-src 'self';" always;
                 add_header X-Frame-Options "SAMEORIGIN" always;
                 add_header X-Content-Type-Options "nosniff" always;
                 add_header Referrer-Policy "no-referrer-when-downgrade" always;
