@@ -92,7 +92,7 @@ def setup_ssl(domain_name):
                 elevated=True,
             )
             if "Some challenges have failed" in result:
-                raise Exception("Both HTTP-01 and DNS-01 challenges failed")
+                raise Exception("Les défis HTTP-01 et DNS-01 ont échoué")
         
         socketio.emit("message", f"SSL configuré pour bo.{domain_name}.")
         return True
@@ -119,12 +119,12 @@ def install_wordpress(domain_name, force=False):
                 return False
             else:
                 if not run_command(f"rm -rf {wp_path}", elevated=True):
-                    raise Exception("Failed to remove existing WordPress directory")
+                    raise Exception("Échec de la suppression du répertoire WordPress existant")
         else:
             if not run_command(f"mkdir -p {wp_path}", elevated=True):
-                raise Exception("Failed to create WordPress directory")
+                raise Exception("Échec de la création du répertoire WordPress")
             if not run_command(f"chown www-data:www-data {wp_path}", elevated=True):
-                raise Exception("Failed to change ownership of WordPress directory")
+                raise Exception("Échec du changement de propriétaire du répertoire WordPress")
 
         # Generate random names for the database and user
         unique_db_name = "".join(
@@ -141,60 +141,60 @@ def install_wordpress(domain_name, force=False):
 
         # Download WordPress
         if not run_command(f"wp core download --path={wp_path} --locale=fr_FR"):
-            raise Exception("Failed to download WordPress")
+            raise Exception("Échec du téléchargement de WordPress")
 
         # Create the database
         if not run_command(
             f"mysql -u root -e 'CREATE DATABASE {unique_db_name};'", elevated=True
         ):
-            raise Exception("Failed to create database")
+            raise Exception("Échec de la création de la base de données")
 
         # Create a unique user for WordPress
         if not run_command(
             f"mysql -u root -e 'CREATE USER wp_{unique_db_user}@localhost IDENTIFIED BY \"{unique_db_password}\";'",
             elevated=True,
         ):
-            raise Exception("Failed to create database user")
+            raise Exception("Échec de la création de l'utilisateur de la base de données")
         if not run_command(
             f"mysql -u root -e 'GRANT ALL PRIVILEGES ON {unique_db_name}.* TO wp_{unique_db_user}@localhost;'",
             elevated=True,
         ):
-            raise Exception("Failed to grant privileges to database user")
+            raise Exception("Échec de l'octroi des privilèges à l'utilisateur de la base de données")
         if not run_command(f"mysql -u root -e 'FLUSH PRIVILEGES;'", elevated=True):
-            raise Exception("Failed to flush privileges")
+            raise Exception("Échec de l'actualisation des privilèges")
 
         # Create wp-config.php
         if not run_command(
             f"wp config create --path={wp_path} --dbname={unique_db_name} --dbuser=wp_{unique_db_user} --dbpass={unique_db_password} --dbhost=localhost --skip-check"
         ):
-            raise Exception("Failed to create wp-config.php")
+            raise Exception("Échec de la création de wp-config.php")
 
         # Install WordPress
         if not run_command(
             f"wp core install --path={wp_path} --url=https://bo.{domain_name} --title='{domain_name}' --admin_user=admin --admin_password={unique_db_password} --admin_email={registrant_email} --locale=fr_FR"
         ):
-            raise Exception("Failed to install WordPress")
+            raise Exception("Échec de l'installation de WordPress")
 
         # Install All in One Migration
         if not run_command(f"wp plugin install ./vendor/aio.zip --activate --path={wp_path}"):
-            raise Exception("Failed to install All in One Migration plugin")
+            raise Exception("Échec de l'installation du plugin All in One Migration")
         if not run_command(f"wp plugin install ./vendor/aio_unlimited.zip --activate --path={wp_path}"):
-            raise Exception("Failed to install All in One Migration Unlimited plugin")
+            raise Exception("Échec de l'installation du plugin All in One Migration Unlimited")
 
         # Copy vendor/wpocopo.wpress to wp-content/ai1wm-backups
         if not run_command(f"cp ../wpocopo.wpress {wp_path}/wp-content/ai1wm-backups/"):
-            raise Exception("Failed to copy wpocopo.wpress")
+            raise Exception("Échec de la copie de wpocopo.wpress")
 
         # Restore
         if not run_command(f"wp ai1wm restore wpocopo.wpress --yes --path={wp_path}"):
-            raise Exception("Failed to restore wpocopo.wpress")
+            raise Exception("Échec de la restauration de wpocopo.wpress")
 
         # Recreate initial admin user (new complex password)
         new_admin_password = "".join(
             random.choices(string.ascii_letters + string.digits, k=16)
         )
         if not run_command(f"wp user create admin {registrant_email} --role=administrator --user_pass={new_admin_password} --path={wp_path}"):
-            raise Exception("Failed to recreate initial admin user")
+            raise Exception("Échec de la recréation de l'utilisateur administrateur initial")
 
         # Generate a simple username of up to 5 letters
         simple_username = "".join(random.choices(string.ascii_lowercase, k=5))
@@ -204,19 +204,19 @@ def install_wordpress(domain_name, force=False):
         if not run_command(
             f"wp user create {simple_username} {wordpress_admin_email} --role=administrator --user_pass={simple_password} --path={wp_path}"
         ):
-            raise Exception("Failed to create simple admin user")
+            raise Exception("Échec de la création de l'utilisateur administrateur simple")
 
         socketio.emit("message", f"Utilisateur {simple_username} créé avec l'email {wordpress_admin_email} et le mot de passe {unique_db_password}.")
 
         # Update wp cli
         if not run_command(f"wp cli update --path={wp_path}", elevated=True):
-            raise Exception("Failed to update wp cli")
+            raise Exception("Échec de la mise à jour de wp cli")
 
         # Install WP Login
         if not run_command(
             f"wp package install aaemnnosttv/wp-cli-login-command --path={wp_path} --url=https://bo.{domain_name}"
         ):
-            raise Exception("Failed to install WP Login package")
+            raise Exception("Échec de l'installation du package WP Login")
 
         # Install Companion plugin
         result = run_command(
@@ -227,37 +227,45 @@ def install_wordpress(domain_name, force=False):
         if "Success: Companion plugin installed" in result:
             pass
         else:
-            raise Exception("Failed to install Companion plugin")
+            raise Exception("Échec de l'installation du plugin Companion")
 
-        # Install and activate Simply Static
+        # Install Simply Static
         if not run_command(
-            f"wp plugin install simply-static --activate --path={wp_path} --url=https://bo.{domain_name}"
+            f"wp plugin install simply-static --path={wp_path} --url=https://bo.{domain_name}"
         ):
-            raise Exception("Failed to install Simply Static plugin")
+            raise Exception("Échec de l'installation du plugin Simply Static")
 
-        # Install and activate Simply Static Pro
+        # Activate Simply Static
+        if not run_command(f"wp plugin activate simply-static --path={wp_path} --url=https://bo.{domain_name}"):
+            raise Exception("Échec de l'activation du plugin Simply Static")
+
+        # Install SSP
         if not run_command(
-            f"wp plugin install ./vendor/ssp.zip --activate --path={wp_path} --url=https://bo.{domain_name}"
+            f"wp plugin install ./vendor/ssp.zip --path={wp_path} --url=https://bo.{domain_name}"
         ):
-            raise Exception("Failed to install Simply Static Pro plugin")
+            raise Exception("Échec de l'installation du plugin Simply Static Pro")
+        
+        # Activate SSP
+        if not run_command(f"wp plugin activate simply-static-pro --path={wp_path} --url=https://bo.{domain_name}"):
+            raise Exception("Échec de l'activation du plugin Simply Static Pro")
 
         socketio.emit("message", f"WordPress installé pour {domain_name}.")
         
         # Ensure www-data is the owner of the domain directory
         if not run_command(f"chown -R www-data:www-data {wp_path}", elevated=True):
-            raise Exception("Failed to change ownership of WordPress directory")
+            raise Exception("Échec du changement de propriétaire du répertoire WordPress")
         
         # Disable noindex
         if not run_command(f"wp option update blog_public 1 --path={wp_path}"):
-            raise Exception("Failed to disable noindex")
+            raise Exception("Échec de la désactivation de noindex")
 
         # Uninstall AIO, and defaults
         if not run_command(f"wp plugin uninstall aio_unlimited --deactivate --path={wp_path}"):
-            raise Exception("Failed to uninstall AIO Unlimited plugin")
+            raise Exception("Échec de la désinstallation du plugin AIO Unlimited")
 
         # Delete user 'Adrien'
         if not run_command(f"wp user delete adrien --reassign=admin --path={wp_path}"):
-            raise Exception("Failed to delete user 'Adrien'")
+            raise Exception("Échec de la suppression de l'utilisateur 'Adrien'")
 
         return True
     except Exception as e:
