@@ -95,7 +95,13 @@
 
     function updateProgressBar() {
         const progress = (currentStepIndex / steps.length) * 100;
-        $('#progressBar').animate({ width: progress + '%' }, 500).attr('aria-valuenow', progress);
+        const progressBar = $('#progressBar');
+        progressBar.animate({ width: progress + '%' }, 500).attr('aria-valuenow', progress);
+        if (progress === 100) {
+            progressBar.addClass('bg-success');
+        } else {
+            progressBar.removeClass('bg-success');
+        }
     }
 
     function executeNextStep(domain) {
