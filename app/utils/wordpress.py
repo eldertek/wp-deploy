@@ -268,7 +268,7 @@ def generate_wp_login_link(domain_name):
         command = (
             f"wp login create admin --path={wp_path} --url=https://bo.{domain_name}"
         )
-        result = run_command(command)
+        result = run_command(command, return_output=True)
         if result:
             lines = result.strip().split("\n")
             login_link = lines[2].strip()
@@ -283,7 +283,7 @@ def generate_wp_login_link(domain_name):
 def get_published_articles(domain_name):
     wp_path = f"/var/www/{domain_name}"
     command = f"wp post list --post_type=post --post_status=publish --format=count --path={wp_path}"
-    result = run_command(command)
+    result = run_command(command, return_output=True)
     return int(result.strip()) if result else 0
 
 def publish_article(site, title, content, image_path=None):
