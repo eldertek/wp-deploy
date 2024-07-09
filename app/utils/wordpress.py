@@ -98,7 +98,7 @@ def setup_ssl(domain_name):
         return True
     except Exception as e:
         socketio.emit(
-            "error",
+            "console",
             f"Erreur lors de la configuration SSL pour bo.{domain_name}: {str(e)}",
         )
         return False
