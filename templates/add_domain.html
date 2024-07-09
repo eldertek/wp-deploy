@@ -68,8 +68,8 @@
         $('#messages').empty(); // Clear existing messages
         var domain = $('#domain').val();
         console.log('Form submitted with domain:', domain);
-        var submitButton = document.getElementById('submitButtonInternetBS');
-        submitButton.disabled = true;
+        document.getElementById('submitButtonInternetBS').disabled = true;
+        document.getElementById('submitButtonOtherRegistrar').disabled = true;
         currentStepIndex = 0;
         hasErrorOccurred = false;
         tempMessages = [];
@@ -81,8 +81,8 @@
         $('#messages').empty(); // Clear existing messages
         var domain = $('#domain').val();
         console.log('Other registrar button clicked with domain:', domain);
-        var submitButton = document.getElementById('submitButtonOtherRegistrar');
-        submitButton.disabled = true;
+        document.getElementById('submitButtonInternetBS').disabled = true;
+        document.getElementById('submitButtonOtherRegistrar').disabled = true;
         currentStepIndex = 0;
         hasErrorOccurred = false;
         tempMessages = [];
@@ -97,8 +97,8 @@
             steps[currentStepIndex].func(domain);
         } else if (!hasErrorOccurred) {
             console.log('All steps completed');
-            displayTempMessages();
             addMessage(`Le domaine ${domain} a été ajouté avec succès.`, 'success');
+            displayTempMessages();
             document.getElementById('submitButtonInternetBS').disabled = false;
             document.getElementById('submitButtonOtherRegistrar').disabled = false;
         }
@@ -109,6 +109,7 @@
             console.log('DNS check result:', data);
             if (data.status === 'valid') {
                 currentStepIndex++;
+                displayTempMessages(); // Display messages after each step
                 executeNextStep(domain);
             } else {
                 handleError(`Le DNS pour le domaine ${domain} n'est pas valide.`, true, domain);
@@ -128,6 +129,7 @@
                 addMessage(`Le domaine ${domain} n'est pas encore enregistré. Vérification de la disponibilité...`, 'info');
             }
             currentStepIndex++;
+            displayTempMessages(); // Display messages after each step
             executeNextStep(domain);
         }).fail(function () {
             handleError('Erreur lors de la vérification de la possession du domaine.', true, domain);
@@ -139,6 +141,7 @@
             console.log('Domain availability check result:', data);
             if (data.status === 'available') {
                 currentStepIndex++;
+                displayTempMessages(); // Display messages after each step
                 executeNextStep(domain);
             } else {
                 handleError(`Le domaine ${domain} n'est pas disponible.`, true, domain);
@@ -153,6 +156,7 @@
             console.log('Domain purchase result:', data);
             if (data.status === 'purchased') {
                 currentStepIndex++;
+                displayTempMessages(); // Display messages after each step
                 executeNextStep(domain);
             } else {
                 handleError(`Erreur lors de l'achat du domaine ${domain}.`, true, domain);
@@ -167,6 +171,7 @@
             console.log('DNS configuration result:', data);
             if (data.status === 'configured') {
                 currentStepIndex++;
+                displayTempMessages(); // Display messages after each step
                 executeNextStep(domain);
             } else {
                 handleError(`Erreur lors de la configuration du DNS pour ${domain}.`, true, domain);
@@ -181,6 +186,7 @@
             console.log('Nginx config creation result:', data);
             if (data.status === 'created') {
                 currentStepIndex++;
+                displayTempMessages(); // Display messages after each step
                 executeNextStep(domain);
             } else {
                 handleError(`Erreur lors de la création de la configuration Nginx pour ${domain}.`);
@@ -195,6 +201,7 @@
             console.log('SSL setup result:', data);
             if (data.status === 'setup') {
                 currentStepIndex++;
+                displayTempMessages(); // Display messages after each step
                 executeNextStep(domain);
             } else {
                 handleError(`Erreur lors de la configuration du SSL pour ${domain}.`, true, domain);
@@ -209,6 +216,7 @@
             console.log('WordPress installation result:', data);
             if (data.status === 'installed') {
                 currentStepIndex++;
+                displayTempMessages(); // Display messages after each step
                 executeNextStep(domain);
             } else {
                 handleError(`Erreur lors de l'installation de WordPress pour ${domain}.`, true, domain);
@@ -223,6 +231,7 @@
             console.log('Git repository initialization result:', data);
             if (data.status === 'initialized') {
                 currentStepIndex++;
+                displayTempMessages(); // Display messages after each step
                 executeNextStep(domain);
             } else {
                 handleError(`Erreur lors de l'initialisation du dépôt Git pour ${domain}.`, true, domain);
@@ -237,6 +246,7 @@
             console.log('Static deployment result:', data);
             if (data.status === 'deployed') {
                 currentStepIndex++;
+                displayTempMessages(); // Display messages after each step
                 executeNextStep(domain);
             } else {
                 handleError(`Erreur lors du déploiement statique pour ${domain}.`, true, domain);
