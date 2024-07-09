@@ -121,6 +121,7 @@
 
     document.getElementById('domainForm').addEventListener('submit', function(event) {
         event.preventDefault();
+        $('#messages').empty(); // Clear existing messages
         var domain = $('#domain').val();
         console.log('Form submitted with domain:', domain);
         var submitButton = document.getElementById('submitButtonInternetBS');
@@ -132,6 +133,7 @@
     });
 
     document.getElementById('submitButtonOtherRegistrar').addEventListener('click', function() {
+        $('#messages').empty(); // Clear existing messages
         var domain = $('#domain').val();
         console.log('Other registrar button clicked with domain:', domain);
         var submitButton = document.getElementById('submitButtonOtherRegistrar');
