@@ -187,7 +187,7 @@ def install_wordpress(domain_name):
         ):
             raise Exception("Échec de la création de l'utilisateur administrateur simple")
 
-        socketio.emit("message", f"Utilisateur {simple_username} créé avec l'email {wordpress_admin_email} et le mot de passe {unique_db_password}.")
+        socketio.emit("message", f"Utilisateur {simple_username} créé avec l'email {wordpress_admin_email} et le mot de passe {simple_password}.")
 
         # Update wp cli
         if not run_command(f"wp cli update --path={wp_path}", elevated=True):
