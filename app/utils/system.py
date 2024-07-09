@@ -9,17 +9,17 @@ def run_command(command, elevated=False):
         result = subprocess.run(
             command, shell=True, check=True, capture_output=True, text=True, timeout=300
         )
-        return result.stdout
+        return True  # Command succeeded
     except subprocess.CalledProcessError as e:
         # Emit both stdout and stderr in case of error
-        socketio.emit("error", f"Erreur: {e}\nSortie: {e.stdout}")
-        raise e
+        socketio.emit("error", f"Erreur: {e}\nSortie: {e.stdout}\nErreur: {e.stderr}")
+        return False  # Command failed
     except subprocess.TimeoutExpired as e:
         socketio.emit(
             "error", f"Timeout: La commande a pris trop de temps à s'exécuter"
         )
-        raise e
+        return False  # Command timed out
     except Exception as e:
         socketio.emit("error", f"Erreur inattendue: {str(e)}")
-        raise e
+        return False  # Unexpected error
     return None
