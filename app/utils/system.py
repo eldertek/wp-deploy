@@ -1,13 +1,13 @@
 import subprocess
 from app import socketio
 
-def run_command(command, elevated=False, return_output=False):
+def run_command(command, elevated=False, return_output=False, timeout=300):
     if elevated:
         command = f"sudo -s {command}"
     try:
         # Use subprocess.run with timeout and capture_output for better control
         result = subprocess.run(
-            command, shell=True, check=True, capture_output=True, text=True, timeout=300
+            command, shell=True, check=True, capture_output=True, text=True, timeout=timeout
         )
         if return_output:
             return result.stdout  # Return the command output
