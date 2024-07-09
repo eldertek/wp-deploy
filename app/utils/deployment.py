@@ -15,6 +15,9 @@ def deploy_static(domain_name):
         if os.path.exists(static_path):
             run_command(f"rm -rf {static_path}", elevated=True)
 
+        # Force Elementor data update
+        run_command(f"wp elementor update db --path={wp_path}")
+
         # Run Simply Static export
         result = run_command(f"wp simply-static run --path={wp_path}")
 
@@ -61,7 +64,7 @@ def deploy_static(domain_name):
                 socketio.emit("error", f"Aucun fichier ZIP trouvé dans {static_path}.")
                 return False
         else:
-            socketio.emit("error", "Erreur lors de l'exportation Simply Static.")
+            socketio.emit("error", f"Erreur lors de l'exportation Simply Static: {result}")
             return False
         return True
     except Exception as e:
