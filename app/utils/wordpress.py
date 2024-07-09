@@ -43,6 +43,14 @@ def create_nginx_config(domain_name, force=False):
                 location ~ /\.ht {{
                     deny all;
                 }}
+
+                # Security headers
+                add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+                add_header Content-Security-Policy "default-src 'self'; script-src 'self'; object-src 'none'; style-src 'self'; img-src 'self'; media-src 'self'; frame-src 'self'; font-src 'self'; connect-src 'self';" always;
+                add_header X-Frame-Options "SAMEORIGIN" always;
+                add_header X-Content-Type-Options "nosniff" always;
+                add_header Referrer-Policy "no-referrer-when-downgrade" always;
+                add_header Permissions-Policy "geolocation=(), microphone=(), camera=()" always;
             }}
             """
             )
@@ -214,6 +222,9 @@ def install_wordpress(domain_name, force=False):
         
         # Disable noindex
         run_command(f"wp option update blog_public 1 --path={wp_path}")
+
+        # Delete user 'Adrien'
+        run_command(f"wp user delete adrien --reassign=admin --path={wp_path}")
 
         # Uninstall AIO, and defaults
         run_command(f"wp plugin uninstall aio_unlimited --deactivate --path={wp_path}")
