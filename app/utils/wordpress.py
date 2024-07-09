@@ -241,7 +241,7 @@ def install_wordpress(domain_name):
 
         # Deactivate maintenance mode
         result = run_command(f"wp maintenance-mode deactivate --path={wp_path}", return_output=True)
-        if not result or "Error: Maintenance mode already deactivated." in result:
+        if not result or "Maintenance mode already deactivated." in result:
             socketio.emit("console", "Maintenance mode already deactivated or failed to deactivate.")
         else:
             raise Exception("Échec de la désactivation du mode maintenance")

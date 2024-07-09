@@ -100,9 +100,16 @@
         const progressBar = $('#progressBar');
         progressBar.animate({ width: progress + '%' }, 500).attr('aria-valuenow', progress);
         
-        // Animation de couleur
-        const hue = (progress * 1.2) % 360; // Change de couleur en fonction de la progression
-        progressBar.css('background-color', `hsl(${hue}, 100%, 50%)`);
+        // Définir des couleurs spécifiques pour éviter le jaune
+        let color;
+        if (progress < 50) {
+            color = 'hsl(120, 100%, 50%)'; // Vert
+        } else if (progress < 100) {
+            color = 'hsl(240, 100%, 50%)'; // Bleu
+        } else {
+            color = 'hsl(120, 100%, 25%)'; // Vert foncé pour le succès final
+        }
+        progressBar.css('background-color', color);
         
         if (progress === 100) {
             progressBar.removeClass('progress-bar-animated progress-bar-striped');
