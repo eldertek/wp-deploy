@@ -243,10 +243,10 @@
                 currentStepIndex++;
                 executeNextStep(domain);
             } else {
-                handleError(`Erreur lors de la création de la configuration Nginx pour ${domain}.`, true, domain);
+                handleError(`Erreur lors de la création de la configuration Nginx pour ${domain}.`);
             }
         }).fail(function () {
-            handleError(`Erreur lors de la création de la configuration Nginx pour ${domain}.`, true, domain);
+            handleError(`Erreur lors de la création de la configuration Nginx pour ${domain}.`);
         });
     }
 
