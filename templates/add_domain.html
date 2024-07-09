@@ -13,7 +13,7 @@
         <button type="submit" class="btn btn-primary" id="submitButtonInternetBS">Via Internet.bs</button>
         <button type="button" class="btn btn-secondary" id="submitButtonOtherRegistrar">Via un autre registrar</button>
     </form>
-    <div class="progress mt-4">
+    <div class="progress mt-4 d-none" id="progressContainer">
         <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
     </div>
     <div id="messages"></div>
@@ -73,6 +73,7 @@
         console.log('Form submitted with domain:', domain);
         document.getElementById('submitButtonInternetBS').disabled = true;
         document.getElementById('submitButtonOtherRegistrar').disabled = true;
+        document.getElementById('progressContainer').classList.remove('d-none'); // Show progress bar
         currentStepIndex = 0;
         hasErrorOccurred = false;
         tempMessages = [];
@@ -86,6 +87,7 @@
         console.log('Other registrar button clicked with domain:', domain);
         document.getElementById('submitButtonInternetBS').disabled = true;
         document.getElementById('submitButtonOtherRegistrar').disabled = true;
+        document.getElementById('progressContainer').classList.remove('d-none'); // Show progress bar
         currentStepIndex = 0;
         hasErrorOccurred = false;
         tempMessages = [];
