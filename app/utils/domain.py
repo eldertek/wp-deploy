@@ -99,8 +99,8 @@ def check_dns(domain_name):
                 return False
         return True
     except Exception as e:
-        socketio.emit(
-            "error",
-            f"Erreur lors de la vérification DNS pour {domain_name}: {str(e)}"
-        )
+        error_message = f"Erreur lors de la vérification DNS pour {domain_name}: {str(e)}"
+        if "The DNS query name does not exist" in str(e):
+            error_message = f"Le domaine {domain_name} ou l'un de ses sous-domaines n'existe pas."
+        socketio.emit("error", error_message)
         return False
