@@ -117,10 +117,13 @@ def install_wordpress(domain_name, force=False):
                 )
                 return False
             else:
-                run_command(f"rm -rf {wp_path}", elevated=True)
+                if not run_command(f"rm -rf {wp_path}", elevated=True):
+                    raise Exception("Failed to remove existing WordPress directory")
         else:
-            run_command(f"mkdir -p {wp_path}", elevated=True)
-            run_command(f"chown www-data:www-data {wp_path}", elevated=True)
+            if not run_command(f"mkdir -p {wp_path}", elevated=True):
+                raise Exception("Failed to create WordPress directory")
+            if not run_command(f"chown www-data:www-data {wp_path}", elevated=True):
+                raise Exception("Failed to change ownership of WordPress directory")
 
         # Generate random names for the database and user
         unique_db_name = "".join(
@@ -136,97 +139,119 @@ def install_wordpress(domain_name, force=False):
         wordpress_admin_email = settings.get("wordpress_admin_email", "admin@example.com")
 
         # Download WordPress
-        run_command(f"wp core download --path={wp_path} --locale=fr_FR")
+        if not run_command(f"wp core download --path={wp_path} --locale=fr_FR"):
+            raise Exception("Failed to download WordPress")
 
         # Create the database
-        run_command(
+        if not run_command(
             f"mysql -u root -e 'CREATE DATABASE {unique_db_name};'", elevated=True
-        )
+        ):
+            raise Exception("Failed to create database")
 
         # Create a unique user for WordPress
-        run_command(
+        if not run_command(
             f"mysql -u root -e 'CREATE USER wp_{unique_db_user}@localhost IDENTIFIED BY \"{unique_db_password}\";'",
             elevated=True,
-        )
-        run_command(
+        ):
+            raise Exception("Failed to create database user")
+        if not run_command(
             f"mysql -u root -e 'GRANT ALL PRIVILEGES ON {unique_db_name}.* TO wp_{unique_db_user}@localhost;'",
             elevated=True,
-        )
-        run_command(f"mysql -u root -e 'FLUSH PRIVILEGES;'", elevated=True)
+        ):
+            raise Exception("Failed to grant privileges to database user")
+        if not run_command(f"mysql -u root -e 'FLUSH PRIVILEGES;'", elevated=True):
+            raise Exception("Failed to flush privileges")
 
         # Create wp-config.php
-        run_command(
+        if not run_command(
             f"wp config create --path={wp_path} --dbname={unique_db_name} --dbuser=wp_{unique_db_user} --dbpass={unique_db_password} --dbhost=localhost --skip-check"
-        )
+        ):
+            raise Exception("Failed to create wp-config.php")
 
         # Install WordPress
-        run_command(
+        if not run_command(
             f"wp core install --path={wp_path} --url=https://bo.{domain_name} --title='{domain_name}' --admin_user=admin --admin_password={unique_db_password} --admin_email={registrant_email} --locale=fr_FR"
-        )
+        ):
+            raise Exception("Failed to install WordPress")
 
         # Install All in One Migration
-        run_command(f"wp plugin install ./vendor/aio.zip --activate --path={wp_path}")
-        run_command(f"wp plugin install ./vendor/aio_unlimited.zip --activate --path={wp_path}")
+        if not run_command(f"wp plugin install ./vendor/aio.zip --activate --path={wp_path}"):
+            raise Exception("Failed to install All in One Migration plugin")
+        if not run_command(f"wp plugin install ./vendor/aio_unlimited.zip --activate --path={wp_path}"):
+            raise Exception("Failed to install All in One Migration Unlimited plugin")
 
         # Copy vendor/wpocopo.wpress to wp-content/ai1wm-backups
-        run_command(f"cp ../wpocopo.wpress {wp_path}/wp-content/ai1wm-backups/")
+        if not run_command(f"cp ../wpocopo.wpress {wp_path}/wp-content/ai1wm-backups/"):
+            raise Exception("Failed to copy wpocopo.wpress")
 
         # Restore
-        run_command(f"wp ai1wm restore wpocopo.wpress --yes --path={wp_path}")
+        if not run_command(f"wp ai1wm restore wpocopo.wpress --yes --path={wp_path}"):
+            raise Exception("Failed to restore wpocopo.wpress")
 
         # Recreate initial admin user (new complex password)
         new_admin_password = "".join(
             random.choices(string.ascii_letters + string.digits, k=16)
         )
-        run_command(f"wp user create admin {registrant_email} --role=administrator --user_pass={new_admin_password} --path={wp_path}")
+        if not run_command(f"wp user create admin {registrant_email} --role=administrator --user_pass={new_admin_password} --path={wp_path}"):
+            raise Exception("Failed to recreate initial admin user")
 
         # Generate a simple username of up to 5 letters
         simple_username = "".join(random.choices(string.ascii_lowercase, k=5))
         simple_password = "".join(random.choices(string.ascii_letters + string.digits, k=8))
         
         # Create a simple admin user with the email from the settings
-        run_command(
+        if not run_command(
             f"wp user create {simple_username} {wordpress_admin_email} --role=administrator --user_pass={simple_password} --path={wp_path}"
-        )
+        ):
+            raise Exception("Failed to create simple admin user")
 
         socketio.emit("message", f"Utilisateur {simple_username} créé avec l'email {wordpress_admin_email} et le mot de passe {unique_db_password}.")
 
         # Update wp cli
-        run_command(f"wp cli update --path={wp_path}", elevated=True)
+        if not run_command(f"wp cli update --path={wp_path}", elevated=True):
+            raise Exception("Failed to update wp cli")
 
         # Install WP Login
-        run_command(
+        if not run_command(
             f"wp package install aaemnnosttv/wp-cli-login-command --path={wp_path} --url=https://bo.{domain_name}"
-        )
+        ):
+            raise Exception("Failed to install WP Login package")
 
         # Install Companion plugin
-        run_command(
+        if not run_command(
             f"wp login install --activate --path={wp_path} --url=https://bo.{domain_name}"
-        )
+        ):
+            raise Exception("Failed to install Companion plugin")
 
         # Install and activate Simply Static
-        run_command(
+        if not run_command(
             f"wp plugin install simply-static --activate --path={wp_path} --url=https://bo.{domain_name}"
-        )
+        ):
+            raise Exception("Failed to install Simply Static plugin")
 
         # Install and activate Simply Static Pro
-        run_command(
+        if not run_command(
             f"wp plugin install ./vendor/ssp.zip --activate --path={wp_path} --url=https://bo.{domain_name}"
-        )
+        ):
+            raise Exception("Failed to install Simply Static Pro plugin")
 
         socketio.emit("message", f"WordPress installé pour {domain_name}.")
         
         # Ensure www-data is the owner of the domain directory
-        run_command(f"chown -R www-data:www-data {wp_path}", elevated=True)
+        if not run_command(f"chown -R www-data:www-data {wp_path}", elevated=True):
+            raise Exception("Failed to change ownership of WordPress directory")
         
         # Disable noindex
-        run_command(f"wp option update blog_public 1 --path={wp_path}")
-
-        # Delete user 'Adrien'
-        run_command(f"wp user delete adrien --reassign=admin --path={wp_path}")
+        if not run_command(f"wp option update blog_public 1 --path={wp_path}"):
+            raise Exception("Failed to disable noindex")
 
         # Uninstall AIO, and defaults
-        run_command(f"wp plugin uninstall aio_unlimited --deactivate --path={wp_path}")
+        if not run_command(f"wp plugin uninstall aio_unlimited --deactivate --path={wp_path}"):
+            raise Exception("Failed to uninstall AIO Unlimited plugin")
+
+        # Delete user 'Adrien'
+        if not run_command(f"wp user delete adrien --reassign=admin --path={wp_path}"):
+            raise Exception("Failed to delete user 'Adrien'")
 
         return True
     except Exception as e:
