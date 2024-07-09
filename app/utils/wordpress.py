@@ -217,6 +217,10 @@ def install_wordpress(domain_name, force=False):
             f"wp package install aaemnnosttv/wp-cli-login-command --path={wp_path} --url=https://bo.{domain_name}"
         ):
             raise Exception("Échec de l'installation du package WP Login")
+        
+        # Ensure www-data is the owner of the domain directory
+        if not run_command(f"chown -R www-data:www-data {wp_path}", elevated=True):
+            raise Exception("Échec du changement de propriétaire du répertoire WordPress")
 
         # Install Companion plugin
         result = run_command(
@@ -234,26 +238,14 @@ def install_wordpress(domain_name, force=False):
             f"wp plugin install simply-static --path={wp_path} --url=https://bo.{domain_name}"
         ):
             raise Exception("Échec de l'installation du plugin Simply Static")
-
-        # Activate Simply Static
-        if not run_command(f"wp plugin activate simply-static --path={wp_path} --url=https://bo.{domain_name}"):
-            raise Exception("Échec de l'activation du plugin Simply Static")
-
+        
         # Install SSP
         if not run_command(
             f"wp plugin install ./vendor/ssp.zip --path={wp_path} --url=https://bo.{domain_name}"
         ):
             raise Exception("Échec de l'installation du plugin Simply Static Pro")
-        
-        # Activate SSP
-        if not run_command(f"wp plugin activate simply-static-pro --path={wp_path} --url=https://bo.{domain_name}"):
-            raise Exception("Échec de l'activation du plugin Simply Static Pro")
 
         socketio.emit("message", f"WordPress installé pour {domain_name}.")
-        
-        # Ensure www-data is the owner of the domain directory
-        if not run_command(f"chown -R www-data:www-data {wp_path}", elevated=True):
-            raise Exception("Échec du changement de propriétaire du répertoire WordPress")
         
         # Disable noindex
         if not run_command(f"wp option update blog_public 1 --path={wp_path}"):
@@ -272,6 +264,14 @@ def install_wordpress(domain_name, force=False):
         if "Error: Maintenance mode already deactivated." not in result:
             if not result:
                 raise Exception("Échec de la désactivation du mode maintenance")
+
+        # Activate Simply Static
+        if not run_command(f"wp plugin activate simply-static --path={wp_path} --url=https://bo.{domain_name}"):
+            raise Exception("Échec de l'activation du plugin Simply Static")
+
+        # Activate SSP
+        if not run_command(f"wp plugin activate simply-static-pro --path={wp_path} --url=https://bo.{domain_name}"):
+            raise Exception("Échec de l'activation du plugin Simply Static Pro")
 
         return True
     except Exception as e:
