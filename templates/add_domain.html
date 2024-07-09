@@ -10,7 +10,8 @@
             <label for="domain">Nom de domaine</label>
             <input type="text" class="form-control" id="domain" name="domain" required>
         </div>
-        <button type="submit" class="btn btn-primary" id="submitButton">Achat via Internet.bs</button>
+        <button type="submit" class="btn btn-primary" id="submitButtonInternetBS">Via Internet.bs</button>
+        <button type="button" class="btn btn-secondary" id="submitButtonOtherRegistrar">Via un autre registrar</button>
     </form>
 </div>
 <div id="messages"></div>
@@ -94,7 +95,7 @@
         });
     });
 
-    const steps = [
+    const stepsInternetBS = [
         { name: 'checkDomainOwnership', func: checkDomainOwnership },
         { name: 'checkDomainAvailability', func: checkDomainAvailability },
         { name: 'purchaseDomain', func: purchaseDomain },
@@ -106,17 +107,39 @@
         { name: 'deployStatic', func: deployStatic }
     ];
 
+    const stepsOtherRegistrar = [
+        { name: 'checkDNS', func: checkDNS },
+        { name: 'createNginxConfig', func: createNginxConfig },
+        { name: 'setupSSL', func: setupSSL },
+        { name: 'installWordPress', func: installWordPress },
+        { name: 'initializeGitRepo', func: initializeGitRepo },
+        { name: 'deployStatic', func: deployStatic }
+    ];
+
     let currentStepIndex = 0;
     let hasErrorOccurred = false;
+    let steps = [];
 
     document.getElementById('domainForm').addEventListener('submit', function(event) {
         event.preventDefault();
         var domain = $('#domain').val();
         console.log('Form submitted with domain:', domain);
-        var submitButton = document.getElementById('submitButton');
+        var submitButton = document.getElementById('submitButtonInternetBS');
         submitButton.disabled = true;
         currentStepIndex = 0;
         hasErrorOccurred = false;
+        steps = stepsInternetBS;
+        executeNextStep(domain);
+    });
+
+    document.getElementById('submitButtonOtherRegistrar').addEventListener('click', function() {
+        var domain = $('#domain').val();
+        console.log('Other registrar button clicked with domain:', domain);
+        var submitButton = document.getElementById('submitButtonOtherRegistrar');
+        submitButton.disabled = true;
+        currentStepIndex = 0;
+        hasErrorOccurred = false;
+        steps = stepsOtherRegistrar;
         executeNextStep(domain);
     });
 
@@ -128,8 +151,23 @@
         } else if (!hasErrorOccurred) {
             console.log('All steps completed');
             addMessage(`Le domaine ${domain} a été ajouté avec succès.`, 'success');
-            document.getElementById('submitButton').disabled = false;
+            document.getElementById('submitButtonInternetBS').disabled = false;
+            document.getElementById('submitButtonOtherRegistrar').disabled = false;
         }
+    }
+
+    function checkDNS(domain) {
+        $.post('{{ url_for("deployment.check_dns_route") }}', {domain: domain}, function(data) {
+            console.log('DNS check result:', data);
+            if (data.status === 'valid') {
+                currentStepIndex++;
+                executeNextStep(domain);
+            } else {
+                handleError(`Le DNS pour le domaine ${domain} n'est pas valide.`);
+            }
+        }).fail(function() {
+            handleError('Erreur lors de la vérification du DNS.');
+        });
     }
 
     function checkDomainOwnership(domain) {
@@ -263,7 +301,8 @@
     function handleError(errorMessage) {
         addMessage(errorMessage, 'danger');
         hasErrorOccurred = true;
-        document.getElementById('submitButton').disabled = false;
+        document.getElementById('submitButtonInternetBS').disabled = false;
+        document.getElementById('submitButtonOtherRegistrar').disabled = false;
     }
 
     function addMessage(message, type) {
@@ -274,7 +313,7 @@
         messages.insertBefore(messageDiv, messages.firstChild);
     }
 
-    document.getElementById('submitButton').addEventListener('click', function() {
+    document.getElementById('submitButtonInternetBS').addEventListener('click', function() {
         document.getElementById('messages').innerHTML = '';
     });
 </script>

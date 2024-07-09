@@ -1,6 +1,7 @@
 from internetbs import Domain, DNS
 from app import socketio
 from .settings import load_settings
+import requests
 
 settings = load_settings()
 api_key = settings["internetbs_token"]
@@ -73,3 +74,27 @@ def configure_dns(domain_name):
             )
             return None
     return True
+
+def check_dns(domain_name):
+    expected_records = [
+        {"name": f"bo.{domain_name}", "type": "A", "value": "51.210.255.66"},
+        {"name": f"bo.{domain_name}", "type": "AAAA", "value": "2001:41d0:304:200::5ec6"},
+        {"name": f"{domain_name}", "type": "A", "value": "185.199.108.153"},
+        {"name": f"{domain_name}", "type": "AAAA", "value": "2606:50c0:8000::153"},
+    ]
+
+    try:
+        for record in expected_records:
+            answers = dns.resolver.resolve(record["name"], record["type"])
+            found = False
+            for rdata in answers:
+                if rdata.to_text() == record["value"]:
+                    found = True
+                    break
+            if not found:
+                print(f'Enregistrement DNS {record["type"]} pour {record["name"]} avec valeur {record["value"]} est manquant ou incorrect.')
+                return False
+        return True
+    except Exception as e:
+        print(f"Erreur lors de la vérification DNS pour {domain_name}: {str(e)}")
+        return False

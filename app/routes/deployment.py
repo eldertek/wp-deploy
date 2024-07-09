@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, jsonify
 from flask_login import login_required
 from app.utils.deployment import deploy_static, log_deployment, format_deployment_log
-from app.utils.domain import configure_dns
+from app.utils.domain import configure_dns, check_dns
 from app.utils.wordpress import create_nginx_config, setup_ssl, install_wordpress
 from app.utils.git import initialize_git_repo
 from app import socketio
@@ -161,6 +161,19 @@ def deploy_static_route():
         log_deployment(domain_name, success, duration)
         if success:
             return jsonify({"status": "deployed"})
+        return jsonify({"status": "error"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@deployment_bp.route("/check_dns", methods=["POST"])
+@login_required
+def check_dns_route():
+    domain_name = request.form.get("domain")
+    if not domain_name:
+        return jsonify({"status": "error", "message": "Nom de domaine manquant"}), 400
+    try:
+        if check_dns(domain_name):
+            return jsonify({"status": "valid"})
         return jsonify({"status": "error"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
