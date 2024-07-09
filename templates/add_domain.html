@@ -14,26 +14,10 @@
         <button type="button" class="btn btn-secondary" id="submitButtonOtherRegistrar">Via un autre registrar</button>
     </form>
     <div class="progress mt-4 d-none" id="progressContainer">
-        <div id="progressBar" class="progress-bar progress-bar-animated" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        <div id="progressBar" class="progress-bar progress-bar-animated progress-bar-striped" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
     </div>
     <div id="messages"></div>
 </div>
-{% endblock %}
-
-{% block styles %}
-<style>
-    @keyframes colorChange {
-        0% { background-color: #007bff; }
-        25% { background-color: #28a745; }
-        50% { background-color: #ffc107; }
-        75% { background-color: #dc3545; }
-        100% { background-color: #007bff; }
-    }
-
-    .progress-bar-animated {
-        animation: colorChange 2s linear infinite;
-    }
-</style>
 {% endblock %}
 
 {% block scripts %}
@@ -115,10 +99,17 @@
         const progress = (currentStepIndex / steps.length) * 100;
         const progressBar = $('#progressBar');
         progressBar.animate({ width: progress + '%' }, 500).attr('aria-valuenow', progress);
+        
+        // Animation de couleur
+        const hue = (progress * 1.2) % 360; // Change de couleur en fonction de la progression
+        progressBar.css('background-color', `hsl(${hue}, 100%, 50%)`);
+        
         if (progress === 100) {
-            progressBar.removeClass('progress-bar-animated').addClass('bg-success');
+            progressBar.removeClass('progress-bar-animated progress-bar-striped');
+            progressBar.addClass('bg-success');
         } else {
-            progressBar.addClass('progress-bar-animated').removeClass('bg-success');
+            progressBar.addClass('progress-bar-animated progress-bar-striped');
+            progressBar.removeClass('bg-success');
         }
     }
 
