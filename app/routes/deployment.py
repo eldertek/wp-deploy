@@ -118,7 +118,7 @@ def setup_ssl_route():
     try:
         if setup_ssl(domain_name):
             return jsonify({"status": "setup"})
-        return jsonify({"status": "error"})
+        return jsonify({"status": "error", "restart": True})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
