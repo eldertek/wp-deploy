@@ -129,8 +129,11 @@ def install_wordpress_route():
     if not domain_name:
         return jsonify({"status": "error", "message": "Nom de domaine manquant"}), 400
     try:
-        if install_wordpress(domain_name):
+        success, restart = install_wordpress(domain_name)
+        if success:
             return jsonify({"status": "installed"})
+        if restart:
+            return jsonify({"status": "error", "restart": True})
         return jsonify({"status": "error"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500

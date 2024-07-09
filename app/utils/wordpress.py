@@ -281,7 +281,7 @@ def install_wordpress(domain_name, force=False):
             "error",
             f"Erreur lors de l'installation de WordPress pour {domain_name}: {str(e)}",
         )
-        return False
+        return False, True  # Indicate that a restart is needed
 
 def generate_wp_login_link(domain_name):
     wp_path = f"/var/www/{domain_name}"
