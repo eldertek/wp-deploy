@@ -268,8 +268,10 @@ def install_wordpress(domain_name, force=False):
             raise Exception("Échec de la suppression de l'utilisateur 'Adrien'")
 
         # Deactivate maintenance mode
-        if not run_command(f"wp maintenance-mode deactivate --path={wp_path}"):
-            raise Exception("Échec de la désactivation du mode maintenance")
+        result = run_command(f"wp maintenance-mode deactivate --path={wp_path}", return_output=True)
+        if "Error: Maintenance mode already deactivated." not in result:
+            if not result:
+                raise Exception("Échec de la désactivation du mode maintenance")
 
         return True
     except Exception as e:
