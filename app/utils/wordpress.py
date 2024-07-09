@@ -267,6 +267,10 @@ def install_wordpress(domain_name, force=False):
         if not run_command(f"wp user delete adrien --reassign=admin --path={wp_path}"):
             raise Exception("Échec de la suppression de l'utilisateur 'Adrien'")
 
+        # Deactivate maintenance mode
+        if not run_command(f"wp maintenance-mode deactivate --path={wp_path}"):
+            raise Exception("Échec de la désactivation du mode maintenance")
+
         return True
     except Exception as e:
         socketio.emit(
