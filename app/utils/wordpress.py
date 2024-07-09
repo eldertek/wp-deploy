@@ -242,18 +242,6 @@ def install_wordpress(domain_name, force=False):
             else:
                 raise Exception("Failed to update Elementor data")
 
-        # Install Simply Static
-        if not run_command(
-            f"wp plugin install simply-static --path={wp_path} --url=https://bo.{domain_name}"
-        ):
-            raise Exception("Échec de l'installation du plugin Simply Static")
-        
-        # Install SSP
-        if not run_command(
-            f"wp plugin install ./vendor/ssp.zip --path={wp_path} --url=https://bo.{domain_name}"
-        ):
-            raise Exception("Échec de l'installation du plugin Simply Static Pro")
-
         socketio.emit("message", f"WordPress installé pour {domain_name}.")
         
         # Disable noindex
@@ -274,14 +262,18 @@ def install_wordpress(domain_name, force=False):
             if not result:
                 raise Exception("Échec de la désactivation du mode maintenance")
 
-        # Activate Simply Static
-        if not run_command(f"wp plugin activate simply-static --path={wp_path} --url=https://bo.{domain_name}"):
-            raise Exception("Échec de l'activation du plugin Simply Static")
-
-        # Activate SSP
-        if not run_command(f"wp plugin activate simply-static-pro --path={wp_path} --url=https://bo.{domain_name}"):
-            raise Exception("Échec de l'activation du plugin Simply Static Pro")
-
+        # Install Simply Static
+        if not run_command(
+            f"wp plugin install simply-static --activate --path={wp_path} --url=https://bo.{domain_name}"
+        ):
+            raise Exception("Échec de l'installation du plugin Simply Static")
+        
+        # Install SSP
+        if not run_command(
+            f"wp plugin install ./vendor/ssp.zip --activate --path={wp_path} --url=https://bo.{domain_name}"
+        ):
+            raise Exception("Échec de l'installation du plugin Simply Static Pro")
+        
         return True
     except Exception as e:
         socketio.emit(
