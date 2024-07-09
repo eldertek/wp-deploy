@@ -15,7 +15,7 @@ def run_command(command, elevated=False, return_output=False, timeout=300):
             return True  # Command succeeded without needing to return output
     except subprocess.CalledProcessError as e:
         # Emit both stdout and stderr in case of error
-        socketio.emit("error", f"Erreur: {e}\nSortie: {e.stdout}\nErreur: {e.stderr}")
+        socketio.emit("console", f"Erreur: {e}\nSortie: {e.stdout}\nErreur: {e.stderr}")
         return False  # Command failed
     except subprocess.TimeoutExpired as e:
         socketio.emit(
@@ -23,6 +23,6 @@ def run_command(command, elevated=False, return_output=False, timeout=300):
         )
         return False  # Command timed out
     except Exception as e:
-        socketio.emit("error", f"Erreur inattendue: {str(e)}")
+        socketio.emit("console", f"Erreur inattendue: {str(e)}")
         return False  # Unexpected error
     return None
