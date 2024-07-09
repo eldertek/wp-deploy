@@ -15,27 +15,6 @@
     </form>
 </div>
 <div id="messages"></div>
-<!-- Confirmation Modal -->
-<div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="confirmationModalLabel">Confirmation</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body" id="confirmationMessage">
-                <!-- Message will be inserted here -->
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
-                <button type="button" class="btn btn-primary" id="confirmButton">Continuer</button>
-            </div>
-        </div>
-    </div>
-</div>
 {% endblock %}
 
 {% block scripts %}
@@ -57,50 +36,7 @@
     socket.on('console', function (msg) {
         console.log('Received console message:', msg);
     });
-
-    let isConfirmationPending = false;
-
-    socket.on('confirm', function (data) {
-        console.log('Received confirmation:', data);
-        $('#confirmationModal').modal('show');
-        $('#confirmationMessage').text(data.message);
-        $('#confirmButton').data('action', data.action);
-        $('#confirmButton').data('step', currentStepIndex);
-        isConfirmationPending = true; // Set confirmation pending
-    });
-
-    $('#confirmButton').on('click', function () {
-        var action = $(this).data('action');
-        var domain = $('#domain').val();
-        var step = currentStepIndex;
-
-        console.log('Confirm button clicked with action:', action, 'domain:', domain, 'and step:', step);
-
-        $(this).prop('disabled', true);
-
-        $.ajax({
-            type: 'POST',
-            url: '{{ url_for("deployment.confirm_action") }}',
-            data: JSON.stringify({ action: action, domain: domain, step: step }),
-            contentType: 'application/json',
-            success: function () {
-                console.log('Confirmation action successful');
-                $('#confirmButton').prop('disabled', false);
-                $('#confirmationModal').modal('hide');
-                currentStepIndex++;
-                hasErrorOccurred = false;
-                isConfirmationPending = false; // Reset confirmation pending
-                executeNextStep(domain);
-            },
-            error: function () {
-                console.log('Confirmation action failed');
-                $('#confirmButton').prop('disabled', false);
-                $('#confirmationModal').modal('hide');
-                handleError('Erreur lors de la confirmation de l\'action.');
-            }
-        });
-    });
-
+    
     const stepsInternetBS = [
         { name: 'checkDomainOwnership', func: checkDomainOwnership },
         { name: 'checkDomainAvailability', func: checkDomainAvailability },
@@ -152,11 +88,11 @@
     });
 
     function executeNextStep(domain) {
-        console.log("executeNextStep", currentStepIndex, hasErrorOccurred, isConfirmationPending);
-        if (currentStepIndex < steps.length && !hasErrorOccurred && !isConfirmationPending) {
+        console.log("executeNextStep", currentStepIndex, hasErrorOccurred);
+        if (currentStepIndex < steps.length && !hasErrorOccurred) {
             console.log(`Executing step: (${currentStepIndex}) ${steps[currentStepIndex].name}`);
             steps[currentStepIndex].func(domain);
-        } else if (!hasErrorOccurred && !isConfirmationPending) {
+        } else if (!hasErrorOccurred) {
             console.log('All steps completed');
             addMessage(`Le domaine ${domain} a été ajouté avec succès.`, 'success');
             document.getElementById('submitButtonInternetBS').disabled = false;
