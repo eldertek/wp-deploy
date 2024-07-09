@@ -83,6 +83,7 @@ def setup_ssl(domain_name):
         result = run_command(
             f"certbot --nginx -d bo.{domain_name} --non-interactive --agree-tos -m {registrant_email}",
             elevated=True,
+            return_output=True
         )
         if "Some challenges have failed" in result:
             # Fallback to DNS-01 challenge
