@@ -1,7 +1,7 @@
 import subprocess
 from app import socketio
 
-def run_command(command, elevated=False):
+def run_command(command, elevated=False, return_output=False):
     if elevated:
         command = f"sudo -s {command}"
     try:
@@ -9,7 +9,10 @@ def run_command(command, elevated=False):
         result = subprocess.run(
             command, shell=True, check=True, capture_output=True, text=True, timeout=300
         )
-        return True  # Command succeeded
+        if return_output:
+            return result.stdout  # Return the command output
+        else:
+            return True  # Command succeeded without needing to return output
     except subprocess.CalledProcessError as e:
         # Emit both stdout and stderr in case of error
         socketio.emit("error", f"Erreur: {e}\nSortie: {e.stdout}\nErreur: {e.stderr}")

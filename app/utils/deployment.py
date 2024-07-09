@@ -13,15 +13,19 @@ def deploy_static(domain_name):
         static_path = f"{wp_path}/wp-content/uploads/simply-static/temp-files/"
 
         if os.path.exists(static_path):
-            run_command(f"rm -rf {static_path}", elevated=True)
+            if not run_command(f"rm -rf {static_path}", elevated=True):
+                raise Exception("Failed to remove static path")
 
         # Force Elementor data update
-        run_command(f"wp elementor update db --path={wp_path}")
+        if not run_command(f"wp elementor update db --path={wp_path}"):
+            raise Exception("Failed to update Elementor data")
 
         # Run Simply Static export
-        result = run_command(f"wp simply-static run --path={wp_path}")
+        if not run_command(f"wp simply-static run --path={wp_path}"):
+            raise Exception("Failed to run Simply Static export")
 
         # Check if the export was successful
+        result = run_command(f"wp simply-static run --path={wp_path}", return_output=True)
         if "Success: Export Completed" in result:
             # Move the first zip file in static path to the destination and copy content if folder exists
             zip_files = [f for f in os.listdir(static_path) if f.endswith(".zip")]
@@ -33,20 +37,18 @@ def deploy_static(domain_name):
 
                 # Ensure the destination path exists and set permissions
                 if not os.path.exists(destination_path):
-                    run_command(f"mkdir -p {destination_path}", elevated=True)
-                    run_command(
-                        f"chown -R www-data:www-data {destination_path}", elevated=True
-                    )
+                    if not run_command(f"mkdir -p {destination_path}", elevated=True):
+                        raise Exception("Failed to create destination path")
+                    if not run_command(f"chown -R www-data:www-data {destination_path}", elevated=True):
+                        raise Exception("Failed to change ownership of destination path")
 
                 # Check if the folder with the same name as the zip file exists
                 if os.path.exists(folder_path) and os.path.isdir(folder_path):
-                    run_command(
-                        f"cp -r {folder_path}/* {destination_path}", elevated=True
-                    )
+                    if not run_command(f"cp -r {folder_path}/* {destination_path}", elevated=True):
+                        raise Exception("Failed to copy folder contents to destination path")
                 else:
-                    run_command(
-                        f"unzip {os.path.join(static_path, first_zip)} -d {destination_path}"
-                    )
+                    if not run_command(f"unzip {os.path.join(static_path, first_zip)} -d {destination_path}"):
+                        raise Exception("Failed to unzip file to destination path")
 
                 # Create Readme.md with deployment details
                 readme_content = f"# Deployment Info\n\nDomain: {domain_name}\n\nDate: {datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n"
@@ -54,12 +56,12 @@ def deploy_static(domain_name):
                     readme_file.write(readme_content)
 
                 # Add, commit, and push changes to the git repository, forcing the push even if the tree is clean or up-to-date
-                run_command(
-                    f"cd {destination_path} && git add . && git commit -m 'Deploy static site' && git push --force"
-                )
+                if not run_command(f"cd {destination_path} && git add . && git commit -m 'Deploy static site' && git push --force"):
+                    raise Exception("Failed to push changes to git repository")
 
                 # Clear the static path
-                run_command(f"rm -rf {static_path}")
+                if not run_command(f"rm -rf {static_path}"):
+                    raise Exception("Failed to clear static path")
             else:
                 socketio.emit("error", f"Aucun fichier ZIP trouvé dans {static_path}.")
                 return False
