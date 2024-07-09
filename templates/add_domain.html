@@ -255,11 +255,8 @@
             if (data.status === 'setup') {
                 currentStepIndex++;
                 executeNextStep(domain);
-            } else if (data.status === 'error' && data.restart) {
-                console.log('Restarting process from setupSSL due to SSL setup error');
-                executeNextStep(domain); // Restart the process from setupSSL
             } else {
-                handleError(`Erreur lors de la configuration du SSL pour ${domain}.`);
+                handleError(`Erreur lors de la configuration du SSL pour ${domain}.`, true);
             }
         }).fail(function() {
             handleError(`Erreur lors de la configuration du SSL pour ${domain}.`);
@@ -272,11 +269,8 @@
             if (data.status === 'installed') {
                 currentStepIndex++;
                 executeNextStep(domain);
-            } else if (data.status === 'error' && data.restart) {
-                console.log('Restarting process from installWordPress due to installation error');
-                executeNextStep(domain); // Restart the process from installWordPress
             } else {
-                handleError(`Erreur lors de l'installation de WordPress pour ${domain}.`);
+                handleError(`Erreur lors de l'installation de WordPress pour ${domain}.`, true);
             }
         }).fail(function() {
             handleError(`Erreur lors de l'installation de WordPress pour ${domain}.`);
@@ -311,11 +305,15 @@
         });
     }
 
-    function handleError(errorMessage) {
-        addMessage(errorMessage, 'danger');
-        hasErrorOccurred = true;
-        document.getElementById('submitButtonInternetBS').disabled = false;
-        document.getElementById('submitButtonOtherRegistrar').disabled = false;
+    function handleError(errorMessage, restart) {
+        if (restart) {
+            executeNextStep(domain);
+        } else {
+            addMessage(errorMessage, 'danger');
+            hasErrorOccurred = true;
+            document.getElementById('submitButtonInternetBS').disabled = false;
+            document.getElementById('submitButtonOtherRegistrar').disabled = false;
+        }
     }
 
     function addMessage(message, type) {
