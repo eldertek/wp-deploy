@@ -46,12 +46,10 @@
 
     var socket = io.connect('https://' + document.domain + ':' + location.port);
     socket.on('message', function(msg) {
-        console.log('Received message:', msg);
         addMessage(msg, 'info');
     });
 
     socket.on('error', function(msg) {
-        console.log('Received error:', msg);
         addMessage(msg, 'danger');
     });
 
