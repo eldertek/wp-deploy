@@ -232,6 +232,15 @@ def install_wordpress(domain_name, force=False):
             pass
         else:
             raise Exception("Échec de l'installation du plugin Companion")
+    
+        # Force Elementor data update
+        try:
+            run_command(f"wp elementor update db --path={wp_path}")
+        except Exception as e:
+            if "is not a registered wp command" in str(e):
+                socketio.emit("console", "Elementor command not found, skipping Elementor data update.")
+            else:
+                raise Exception("Failed to update Elementor data")
 
         # Install Simply Static
         if not run_command(
