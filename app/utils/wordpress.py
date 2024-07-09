@@ -6,18 +6,9 @@ from .system import run_command
 from .settings import load_settings
 import shlex
 
-def create_nginx_config(domain_name, force=False):
+def create_nginx_config(domain_name):
     try:
         config_path = f"/etc/nginx/sites-available/bo.{domain_name}"
-        if os.path.exists(config_path) and not force:
-            socketio.emit(
-                "confirm",
-                {
-                    "message": f"Configuration Nginx pour bo.{domain_name} existe déjà. Voulez-vous continuer ?",
-                    "action": "create_nginx_config",
-                },
-            )
-            return False
 
         # Create a temporary file for the Nginx config
         temp_config_path = f"/tmp/nginx_config_{domain_name}.conf"
@@ -103,23 +94,13 @@ def setup_ssl(domain_name):
         )
         return False
 
-def install_wordpress(domain_name, force=False):
+def install_wordpress(domain_name):
     try:
         settings = load_settings()
         wp_path = f"/var/www/{domain_name}"
         if os.path.exists(wp_path):
-            if not force:
-                socketio.emit(
-                    "confirm",
-                    {
-                        "message": f"WordPress est déjà installé pour {domain_name}. Voulez-vous continuer ?",
-                        "action": "install_wordpress",
-                    },
-                )
-                return False
-            else:
-                if not run_command(f"rm -rf {wp_path}", elevated=True):
-                    raise Exception("Échec de la suppression du répertoire WordPress existant")
+            if not run_command(f"rm -rf {wp_path}", elevated=True):
+                raise Exception("Échec de la suppression du répertoire WordPress existant")
         else:
             if not run_command(f"mkdir -p {wp_path}", elevated=True):
                 raise Exception("Échec de la création du répertoire WordPress")

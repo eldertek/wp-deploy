@@ -30,27 +30,6 @@ def deploy_all():
             socketio.emit("error", f"Error deploying {domain}: {str(e)}")
     return jsonify({"status": "deployed"})
 
-@deployment_bp.route("/confirm_action", methods=["POST"])
-@login_required
-def confirm_action():
-    data = request.get_json()
-    action = data.get("action")
-    domain_name = data.get("domain")
-
-    if action == "create_nginx_config":
-        if not create_nginx_config(domain_name, force=True):
-            socketio.emit(
-                "error", f"Erreur lors de la configuration SSL pour {domain_name}."
-            )
-    elif action == "install_wordpress":
-        if not install_wordpress(domain_name, force=True):
-            socketio.emit(
-                "error",
-                f"Erreur lors de l'installation de WordPress pour {domain_name}.",
-            )
-
-    return "", 204
-
 @deployment_bp.route("/deploy_site", methods=["POST"])
 @login_required
 def deploy_site():
