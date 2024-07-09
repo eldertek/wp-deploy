@@ -1,20 +1,21 @@
 from internetbs import Domain, DNS
 from app import socketio
 from .settings import load_settings
+import dns.resolver
 
 settings = load_settings()
 api_key = settings["internetbs_token"]
 password = settings["internetbs_password"]
 test_mode = settings["test_mode"]
 
-domain = Domain(api_key, password, test_mode)
-dns = DNS(api_key, password, test_mode)
+domain_client = Domain(api_key, password, test_mode)
+dns_client = DNS(api_key, password, test_mode)
 
 def is_domain_owned(domain_name):
     socketio.emit(
         "message", f"Vérification de la possession du domaine {domain_name}..."
     )
-    domains = domain.list_domains()
+    domains = domain_client.list_domains()
     for d in domains:
         if d.domain_name == domain_name:
             socketio.emit("message", f"Domaine {domain_name} est déjà possédé.")
@@ -23,7 +24,7 @@ def is_domain_owned(domain_name):
 
 def is_domain_available(domain_name):
     try:
-        available = domain.check_availability(domain_name)
+        available = domain_client.check_availability(domain_name)
         message = f"Le domaine {domain_name} est {'disponible' if available else 'non disponible'}."
         socketio.emit("message", message)
         return available, message
@@ -34,7 +35,7 @@ def is_domain_available(domain_name):
 
 def purchase_domain(domain_name, contacts):
     try:
-        result = domain.create_domain(domain_name, contacts)
+        result = domain_client.create_domain(domain_name, contacts)
         socketio.emit("message", f"Domaine {domain_name} a été acheté.")
         return result
     except Exception as e:
@@ -57,11 +58,11 @@ def configure_dns(domain_name):
 
     for record in dns_records:
         try:
-            dns.remove_record(record["name"], record["type"])
+            dns_client.remove_record(record["name"], record["type"])
         except Exception:
             pass
         try:
-            result = dns.add_record(record["name"], record["type"], record["value"])
+            result = dns_client.add_record(record["name"], record["type"], record["value"])
             socketio.emit(
                 "message",
                 f'Enregistrement DNS {record["type"]} pour {record["name"]} configuré à {record["value"]}.',
