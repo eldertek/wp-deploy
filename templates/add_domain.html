@@ -13,8 +13,11 @@
         <button type="submit" class="btn btn-primary" id="submitButtonInternetBS">Via Internet.bs</button>
         <button type="button" class="btn btn-secondary" id="submitButtonOtherRegistrar">Via un autre registrar</button>
     </form>
+    <div class="progress mt-4">
+        <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+    </div>
+    <div id="messages"></div>
 </div>
-<div id="messages"></div>
 {% endblock %}
 
 {% block scripts %}
@@ -90,13 +93,20 @@
         executeNextStep(domain);
     });
 
+    function updateProgressBar() {
+        const progress = (currentStepIndex / steps.length) * 100;
+        $('#progressBar').css('width', progress + '%').attr('aria-valuenow', progress);
+    }
+
     function executeNextStep(domain) {
         console.log("executeNextStep", currentStepIndex, hasErrorOccurred);
         if (currentStepIndex < steps.length && !hasErrorOccurred) {
             console.log(`Executing step: (${currentStepIndex}) ${steps[currentStepIndex].name}`);
+            updateProgressBar();
             steps[currentStepIndex].func(domain);
         } else if (!hasErrorOccurred) {
             console.log('All steps completed');
+            updateProgressBar();
             addMessage(`Le domaine ${domain} a été ajouté avec succès.`, 'success');
             displayTempMessages();
             document.getElementById('submitButtonInternetBS').disabled = false;
