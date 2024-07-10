@@ -258,6 +258,12 @@ def install_wordpress(domain_name):
         ):
             raise Exception("Échec de l'installation du plugin Simply Static Pro")
         
+        # Installl otomatic
+        if not run_command(
+            f"wp plugin install ./vendor/otomatic.zip --activate --path={wp_path} --url=https://bo.{domain_name}"
+        ):
+            raise Exception("Échec de l'installation du plugin Otomatic")
+        
         return True
     except Exception as e:
         socketio.emit(
