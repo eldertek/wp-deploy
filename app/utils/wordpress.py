@@ -72,7 +72,7 @@ def setup_ssl(domain_name):
         registrant_email = settings["registrant"]["email"]
 
         # Check if SSL certificate already exists
-        existing_certs = run_command("certbot certificates", return_output=True)
+        existing_certs = run_command("certbot certificates", return_output=True, elevated=True)
         if f"bo.{domain_name}" in existing_certs:
             socketio.emit("message", f"SSL déjà configuré pour bo.{domain_name}.")
             return True
