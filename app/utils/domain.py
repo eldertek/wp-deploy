@@ -46,14 +46,14 @@ def purchase_domain(domain_name, contacts):
 
 def configure_dns(domain_name):
     dns_records = [
-        {"name": "bo", "type": "A", "value": "51.210.255.66"},
+        {"name": f"bo.{domain_name}", "type": "A", "value": "51.210.255.66"},
         {
-            "name": "bo",
+            "name": f"bo.{domain_name}",
             "type": "AAAA",
             "value": "2001:41d0:304:200::5ec6",
         },
-        {"name": "@", "type": "A", "value": "185.199.108.153"},
-        {"name": "@", "type": "AAAA", "value": "2606:50c0:8000::153"},
+        {"name": f"{domain_name}", "type": "A", "value": "185.199.108.153"},
+        {"name": f"{domain_name}", "type": "AAAA", "value": "2606:50c0:8000::153"},
     ]
 
     for record in dns_records:
