@@ -233,6 +233,10 @@
     }
 
     function setupSSL(domain) {
+        if (stepCounters['setupSSL'] > 2) {
+            handleError(`Le processus a été arrêté car l'étape setupSSL a été répétée plus de 2 fois.`, false, domain);
+            return;
+        }
         $.post('{{ url_for("deployment.setup_ssl_route") }}', { domain: domain }, function (data) {
             console.log('SSL setup result:', data);
             if (data.status === 'setup') {
