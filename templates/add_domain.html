@@ -66,6 +66,12 @@
     let steps = [];
     let tempMessages = [];
 
+    let stepCounters = {};
+
+    // Initialize step counters
+    stepsInternetBS.forEach(step => stepCounters[step.name] = 0);
+    stepsOtherRegistrar.forEach(step => stepCounters[step.name] = 0);
+
     document.getElementById('domainForm').addEventListener('submit', function (event) {
         event.preventDefault();
         $('#messages').empty(); // Clear existing messages
@@ -117,10 +123,18 @@
     function executeNextStep(domain) {
         console.log("executeNextStep", currentStepIndex, hasErrorOccurred);
         if (currentStepIndex < steps.length && !hasErrorOccurred) {
-            console.log(`Executing step: (${currentStepIndex}) ${steps[currentStepIndex].name}`);
+            const currentStep = steps[currentStepIndex];
+            stepCounters[currentStep.name]++;
+            
+            if (stepCounters[currentStep.name] > 10) {
+                handleError(`Le processus a été arrêté car l'étape ${currentStep.name} a été répétée plus de 10 fois.`, false, domain);
+                return;
+            }
+
+            console.log(`Executing step: (${currentStepIndex}) ${currentStep.name}`);
             updateProgressBar();
             displayTempMessages();
-            steps[currentStepIndex].func(domain);
+            currentStep.func(domain);
         } else if (!hasErrorOccurred) {
             console.log('All steps completed');
             updateProgressBar();
