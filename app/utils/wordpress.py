@@ -84,13 +84,7 @@ def setup_ssl(domain_name):
             return_output=True
         )
         if "Some challenges have failed" in result:
-            # Fallback to DNS-01 challenge
-            result = run_command(
-                f"certbot --nginx -d bo.{domain_name} --preferred-challenges dns --non-interactive --agree-tos -m {registrant_email}",
-                elevated=True,
-            )
-            if "Some challenges have failed" in result:
-                raise Exception("Les défis HTTP-01 et DNS-01 ont échoué")
+            raise Exception("Les défis HTTP-01 et DNS-01 ont échoué")
         
         socketio.emit("message", f"SSL configuré pour bo.{domain_name}.")
         return True
