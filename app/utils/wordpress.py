@@ -71,20 +71,14 @@ def setup_ssl(domain_name):
         settings = load_settings()
         registrant_email = settings["registrant"]["email"]
 
-        # Check if SSL certificate already exists
-        existing_certs = run_command("certbot certificates", return_output=True, elevated=True)
-        if f"bo.{domain_name}" in existing_certs:
-            socketio.emit("message", f"SSL déjà configuré pour bo.{domain_name}.")
-            return True
-
-        # Install Certbot and obtain SSL certificate using HTTP-01 challenge
+        # Install Certbot and obtain SSL certificate
         result = run_command(
             f"certbot --nginx -d bo.{domain_name} --non-interactive --agree-tos -m {registrant_email}",
             elevated=True,
             return_output=True
         )
         if "Some challenges have failed" in result:
-            raise Exception("Les défis HTTP-01 et DNS-01 ont échoué")
+            raise Exception("Les défis ont échoué")
         
         socketio.emit("message", f"SSL configuré pour bo.{domain_name}.")
         return True
