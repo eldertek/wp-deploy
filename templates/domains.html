@@ -30,6 +30,8 @@
             <!-- Les domaines seront ajoutés ici dynamiquement -->
         </tbody>
     </table>
+    
+    <div id="messages"></div> <!-- Conteneur pour les messages -->
 </div>
 {% endblock %}
 
@@ -123,6 +125,28 @@
                 alert('Erreur lors de la configuration du domaine: ' + data.message);
             }
         });
+    }
+
+    function deleteDomain(domainName) {
+        if (confirm('Êtes-vous sûr de vouloir supprimer ce domaine ?')) {
+            $.post('{{ url_for("domains.delete_domain") }}', { domain: domainName }, function(data) {
+                if (data.status === 'success') {
+                    loadDomains(); // Recharge la liste des domaines
+                } else {
+                    alert('Erreur lors de la suppression du domaine: ' + data.message);
+                }
+            });
+        }
+    }
+
+    function addMessage(msg, type) {
+        var messageContainer = $('#messages'); // Assurez-vous d'avoir un conteneur pour les messages
+        var alertClass = type === 'info' ? 'alert alert-info' : 'alert alert-danger';
+        var message = $('<div>').addClass(alertClass).text(msg);
+        messageContainer.append(message);
+        setTimeout(function() {
+            message.fadeOut(); // Optionnel : faire disparaître le message après un certain temps
+        }, 3000);
     }
 </script>
 {% endblock %}

@@ -56,10 +56,6 @@ def configure_dns(domain_name):
         # Github Pages
         {"name": f"{domain_name}", "type": "A", "value": "185.199.108.153"},
         {"name": f"{domain_name}", "type": "AAAA", "value": "2606:50c0:8000::153"},
-        # IBS NS
-        {"name": f"{domain_name}", "type": "NS", "value": "ns-uk.topdns.com"},
-        {"name": f"{domain_name}", "type": "NS", "value": "ns-usa.topdns.com"},
-        {"name": f"{domain_name}", "type": "NS", "value": "ns-canada.topdns.com"},
     ]
 
     for record in dns_records:
