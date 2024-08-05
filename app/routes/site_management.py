@@ -96,11 +96,8 @@ def jobs():
 @login_required
 def run_job(job_name):
     try:
-        job = scheduler.get_job(job_name)
-        if job:
-            job.func(*job.args, **job.kwargs)
-            return jsonify({"status": "success", "message": f"Job '{job_name}' lancé avec succès."})
-        else:
-            return jsonify({"status": "error", "message": f"Job '{job_name}' non trouvé."}), 404
+        from app.utils.jobs import run_job
+        run_job(job_name)
+        return jsonify({"status": "success", "message": f"Job '{job_name}' lancé avec succès."})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
