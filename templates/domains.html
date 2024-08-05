@@ -17,16 +17,19 @@
     </form>
 
     <!-- Liste des domaines -->
-    <div id="domain-categories">
-        <h2>Domaines Non Configurés</h2>
-        <ul id="non_configure"></ul>
-
-        <h2>Domaines Configurés</h2>
-        <ul id="configure"></ul>
-
-        <h2>Domaines Installés</h2>
-        <ul id="installe"></ul>
-    </div>
+    <h2>Domaines enregistrés</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Domaine</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="domainList">
+            <!-- Les domaines seront ajoutés ici dynamiquement -->
+        </tbody>
+    </table>
     
     <div id="messages"></div> <!-- Conteneur pour les messages -->
 </div>
@@ -38,7 +41,7 @@
 <script>
     console.log('Script loaded');
 
-    var socket = io.connect('https://' + document.domain + ':' + location.port);
+    var socket = io.connect('https://' + document.domain + ':' + location.port + '/domains');
     socket.on('message', function (msg) {
         addMessage(msg, 'info');
     });
@@ -68,17 +71,9 @@
 
     function loadDomains() {
         $.get('{{ url_for("domains.get_domains") }}', function(data) {
-            $('#non_configure').empty();
-            $('#configure').empty();
-            $('#installe').empty();
-            data.non_configure.forEach(function(domain) {
-                addDomainToList('non_configure', domain);
-            });
-            data.configure.forEach(function(domain) {
-                addDomainToList('configure', domain);
-            });
-            data.installe.forEach(function(domain) {
-                addDomainToList('installe', domain);
+            $('#domainList').empty();
+            data.domains.forEach(function(domain) {
+                addDomainToList(domain);
             });
         });
     }
@@ -89,7 +84,7 @@
             registrar: registrar
         }, function(data) {
             if (data.status === 'success') {
-                addDomainToList(data.domain.status, data.domain);
+                addDomainToList(data.domain);
                 $('#domain').val('');
             } else if (data.status === 'error' && data.message === 'Domaine déjà existant') {
                 alert('Le domaine est déjà dans la liste.');
@@ -99,11 +94,25 @@
         });
     }
 
-    function addDomainToList(category, domain) {
-        var list = $('#' + category);
-        var listItem = $('<li>');
-        listItem.text(domain.name + ' - ' + domain.status);
-        list.append(listItem);
+    function addDomainToList(domain) {
+        var row = $('<tr>');
+        row.append($('<td>').text(domain.name));
+        row.append($('<td>').text(domain.status));
+        var actionsCell = $('<td>');
+        
+        if (domain.status !== 'Configuré') {
+            actionsCell.append($('<button>').addClass('btn btn-sm btn-primary mr-2').text('Configurer').click(function() {
+                configureDomain(domain.name);
+            }));
+        }
+        
+        // Ajout du bouton de suppression avec une marge
+        actionsCell.append($('<button>').addClass('btn btn-sm btn-danger').text('Supprimer').click(function() {
+            deleteDomain(domain.name);
+        }));
+        
+        row.append(actionsCell);
+        $('#domainList').append(row);
     }
 
     function configureDomain(domain) {
