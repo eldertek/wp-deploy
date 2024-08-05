@@ -84,6 +84,8 @@
             if (data.status === 'success') {
                 addDomainToList(data.domain);
                 $('#domain').val('');
+            } else if (data.status === 'error' && data.message === 'Domaine déjà existant') {
+                alert('Le domaine est déjà dans la liste.');
             } else {
                 alert('Erreur lors de l\'ajout du domaine: ' + data.message);
             }
@@ -97,30 +99,18 @@
         var actionsCell = $('<td>');
         
         if (domain.status !== 'Configuré') {
-            actionsCell.append($('<button>').addClass('btn btn-sm btn-primary').text('Configurer').click(function() {
+            actionsCell.append($('<button>').addClass('btn btn-sm btn-primary mr-2').text('Configurer').click(function() {
                 configureDomain(domain.name);
             }));
         }
         
-        // Ajout du bouton de suppression
+        // Ajout du bouton de suppression avec une marge
         actionsCell.append($('<button>').addClass('btn btn-sm btn-danger').text('Supprimer').click(function() {
             deleteDomain(domain.name);
         }));
         
         row.append(actionsCell);
         $('#domainList').append(row);
-    }
-
-    function deleteDomain(domainName) {
-        if (confirm('Êtes-vous sûr de vouloir supprimer ce domaine ?')) {
-            $.post('{{ url_for("domains.delete_domain") }}', { domain: domainName }, function(data) {
-                if (data.status === 'success') {
-                    loadDomains(); // Recharge la liste des domaines
-                } else {
-                    alert('Erreur lors de la suppression du domaine: ' + data.message);
-                }
-            });
-        }
     }
 
     function configureDomain(domain) {

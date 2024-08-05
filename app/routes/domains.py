@@ -24,6 +24,10 @@ def add_domain():
     domain = request.form.get("domain")
     registrar = request.form.get("registrar")
     
+    domains = load_domains()
+    if any(d["name"] == domain for d in domains):
+        return jsonify({"status": "error", "message": "Domaine déjà existant"})
+    
     if registrar == 'internetbs':
         if is_domain_owned(domain):
             save_domain(domain, "En attente de configuration")
