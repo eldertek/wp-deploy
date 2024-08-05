@@ -98,6 +98,6 @@ def run_job(job_name):
     try:
         from app.utils.jobs import run_job
         run_job(job_name)
-        return jsonify({"status": "success", "message": f"Job '{job_name}' lancé avec succès."})
+        return jsonify({"status": "success", "message": f"Job '{job_name}' executé avec succès."})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
