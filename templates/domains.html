@@ -16,9 +16,12 @@
         <button type="button" class="btn btn-secondary" id="submitButtonOtherRegistrar">Autre registrar</button>
     </form>
 
+    <!-- Boutons de filtrage -->
+    <div id="filterButtons" class="mb-4"></div> <!-- Conteneur pour les boutons de filtrage -->
+
     <!-- Liste des domaines -->
     <h2>Domaines enregistrés</h2>
-    <table class="table" id="domainList">
+    <table class="table">
         <thead>
             <tr>
                 <th>Domaine</th>
@@ -26,7 +29,7 @@
                 <th>Actions</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody id="domainList">
             <!-- Les domaines seront ajoutés ici dynamiquement -->
         </tbody>
     </table>
@@ -35,14 +38,9 @@
 </div>
 {% endblock %}
 
-{% block extra_css %}
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
-{% endblock %}
-
 {% block scripts %}
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
-<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 <script>
     console.log('Script loaded');
 
@@ -60,14 +58,8 @@
     });
 
     $(document).ready(function() {
-        loadDomains(); // Charger les domaines
-
-        // Initialiser DataTable pour la table des domaines
-        $('#domainList').DataTable({
-            "language": {
-                url: '//cdn.datatables.net/plug-ins/2.0.8/i18n/fr-FR.json',
-            }
-        });
+        loadDomains();
+        createFilterButtons(); // Appel pour créer les boutons de filtrage
 
         $('#domainForm').on('submit', function(e) {
             e.preventDefault();
@@ -159,6 +151,28 @@
         setTimeout(function() {
             message.fadeOut(); // Optionnel : faire disparaître le message après un certain temps
         }, 3000);
+    }
+
+    function createFilterButtons() {
+        var uniqueStatuses = new Set(); // Utiliser un Set pour les statuts uniques
+        $('#domainList tr').each(function() {
+            var status = $(this).find('td:nth-child(2)').text(); // Récupérer le statut
+            uniqueStatuses.add(status);
+        });
+
+        uniqueStatuses.forEach(function(status) {
+            var button = $('<button>').addClass('btn btn-secondary mr-2').text(status).click(function() {
+                filterDomains(status);
+            });
+            $('#filterButtons').append(button);
+        });
+    }
+
+    function filterDomains(status) {
+        $('#domainList tr').each(function() {
+            var rowStatus = $(this).find('td:nth-child(2)').text();
+            $(this).toggle(rowStatus === status); // Afficher ou masquer la ligne
+        });
     }
 </script>
 {% endblock %}
