@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des domaines{% endblock %}
+
+{% block content %}
+<div class="card shadow-lg p-4 mb-4 w-100">
+    <h1 class="card-title">Gestion des domaines</h1>
+    
+    <!-- Formulaire d'ajout de domaine -->
+    <form id="domainForm" class="mb-4">
+        <div class="form-group">
+            <label for="domain">Nom de domaine</label>
+            <input type="text" class="form-control" id="domain" name="domain" placeholder="example.com" required>
+        </div>
+        <button type="submit" class="btn btn-primary" id="submitButtonInternetBS">Achat via Internet.bs</button>
+        <button type="button" class="btn btn-secondary" id="submitButtonOtherRegistrar">Autre registrar</button>
+    </form>
+
+    <!-- Liste des domaines -->
+    <h2>Domaines enregistrés</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Domaine</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="domainList">
+            <!-- Les domaines seront ajoutés ici dynamiquement -->
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
+<script>
+    $(document).ready(function() {
+        loadDomains();
+
+        $('#domainForm').on('submit', function(e) {
+            e.preventDefault();
+            var domain = $('#domain').val();
+            addDomain(domain, 'internetbs');
+        });
+
+        $('#submitButtonOtherRegistrar').on('click', function() {
+            var domain = $('#domain').val();
+            addDomain(domain, 'other');
+        });
+    });
+
+    function loadDomains() {
+        $.get('{{ url_for("domains.get_domains") }}', function(data) {
+            $('#domainList').empty();
+            data.domains.forEach(function(domain) {
+                addDomainToList(domain);
+            });
+        });
+    }
+
+    function addDomain(domain, registrar) {
+        $.post('{{ url_for("domains.add_domain") }}', {
+            domain: domain,
+            registrar: registrar
+        }, function(data) {
+            if (data.status === 'success') {
+                addDomainToList(data.domain);
+                $('#domain').val('');
+            } else {
+                alert('Erreur lors de l\'ajout du domaine: ' + data.message);
+            }
+        });
+    }
+
+    function addDomainToList(domain) {
+        var row = $('<tr>');
+        row.append($('<td>').text(domain.name));
+        row.append($('<td>').text(domain.status));
+        var actionsCell = $('<td>');
+        if (domain.status !== 'Configuré') {
+            actionsCell.append($('<button>').addClass('btn btn-sm btn-primary').text('Configurer').click(function() {
+                configureDomain(domain.name);
+            }));
+        }
+        row.append(actionsCell);
+        $('#domainList').append(row);
+    }
+
+    function configureDomain(domain) {
+        $.post('{{ url_for("domains.configure_domain") }}', {
+            domain: domain
+        }, function(data) {
+            if (data.status === 'success') {
+                loadDomains();
+            } else {
+                alert('Erreur lors de la configuration du domaine: ' + data.message);
+            }
+        });
+    }
+</script>
+{% endblock %}

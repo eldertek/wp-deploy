@@ -1,0 +1,78 @@
+from flask import Blueprint, render_template, request, jsonify
+from flask_login import login_required
+from app.utils.domain import is_domain_owned, is_domain_available, purchase_domain, configure_dns, check_dns
+from app.utils.settings import load_settings, save_settings
+import json
+import os
+
+domains_bp = Blueprint('domains', __name__)
+
+@domains_bp.route("/domains")
+@login_required
+def domains():
+    return render_template("domains.html")
+
+@domains_bp.route("/domains/get")
+@login_required
+def get_domains():
+    domains = load_domains()
+    return jsonify({"domains": domains})
+
+@domains_bp.route("/domains/add", methods=["POST"])
+@login_required
+def add_domain():
+    domain = request.form.get("domain")
+    registrar = request.form.get("registrar")
+    
+    if registrar == 'internetbs':
+        if is_domain_owned(domain):
+            return jsonify({"status": "error", "message": "Le domaine vous appartient déjà."})
+        
+        available, message = is_domain_available(domain)
+        if not available:
+            return jsonify({"status": "error", "message": message})
+        
+        settings = load_settings()
+        if purchase_domain(domain, settings):
+            save_domain(domain, "En attente de configuration")
+            return jsonify({"status": "success", "domain": {"name": domain, "status": "En attente de configuration"}})
+        else:
+            return jsonify({"status": "error", "message": "Erreur lors de l'achat du domaine."})
+    else:
+        save_domain(domain, "En attente de configuration")
+        return jsonify({"status": "success", "domain": {"name": domain, "status": "En attente de configuration"}})
+
+@domains_bp.route("/domains/configure", methods=["POST"])
+@login_required
+def configure_domain():
+    domain = request.form.get("domain")
+    
+    if configure_dns(domain):
+        if check_dns(domain):
+            update_domain_status(domain, "Configuré")
+            return jsonify({"status": "success"})
+        else:
+            return jsonify({"status": "error", "message": "La configuration DNS n'a pas pu être vérifiée."})
+    else:
+        return jsonify({"status": "error", "message": "Erreur lors de la configuration DNS."})
+
+def load_domains():
+    if os.path.exists('data/domains.json'):
+        with open('data/domains.json', 'r') as f:
+            return json.load(f)
+    return []
+
+def save_domain(domain, status):
+    domains = load_domains()
+    domains.append({"name": domain, "status": status})
+    with open('data/domains.json', 'w') as f:
+        json.dump(domains, f)
+
+def update_domain_status(domain, status):
+    domains = load_domains()
+    for d in domains:
+        if d["name"] == domain:
+            d["status"] = status
+            break
+    with open('data/domains.json', 'w') as f:
+        json.dump(domains, f)
