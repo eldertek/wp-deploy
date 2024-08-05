@@ -16,21 +16,7 @@ def domains():
 @login_required
 def get_domains():
     domains = load_domains()
-    # Filtrer les domaines par statut
-    categorized_domains = {
-        "non_configure": [],
-        "configure": [],
-        "installe": []
-    }
-    for domain in domains:
-        if domain["status"] == "En attente de configuration":
-            categorized_domains["non_configure"].append(domain)
-        elif domain["status"] == "Configuré":
-            categorized_domains["configure"].append(domain)
-        elif domain["status"] == "Installé":
-            categorized_domains["installe"].append(domain)
-    
-    return jsonify(categorized_domains)
+    return jsonify({"domains": domains})
 
 @domains_bp.route("/domains/add", methods=["POST"])
 @login_required
