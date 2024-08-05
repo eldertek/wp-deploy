@@ -54,10 +54,15 @@ def configure_dns(domain_name):
             "value": "2001:41d0:304:200::5ec6",
         },
         # Github Pages
-        {"name": f"{domain_name}", "type": "A", "value": "185.199.108.153"},
-        {"name": f"{domain_name}", "type": "AAAA", "value": "2606:50c0:8000::153"},
+        {"name": domain_name, "type": "A", "value": "185.199.108.153"},
+        {"name": domain_name, "type": "AAAA", "value": "2606:50c0:8000::153"},
+        # NameServers
+        {"name": domain_name, "type": "NS", "value": "ns-canada.topdns.com."},
+        {"name": domain_name, "type": "NS", "value": "ns-uk.topdns.com."},
+        {"name": domain_name, "type": "NS", "value": "ns-usa.topdns.com."},
     ]
 
+    # Suppression et ajout des enregistrements DNS
     for record in dns_records:
         try:
             dns_client.remove_record(record["name"], record["type"])
