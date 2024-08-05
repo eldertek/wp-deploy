@@ -16,9 +16,6 @@
         <button type="button" class="btn btn-secondary" id="submitButtonOtherRegistrar">Autre registrar</button>
     </form>
 
-    <!-- Boutons de filtrage -->
-    <div id="filterButtons" class="mb-4"></div> <!-- Conteneur pour les boutons de filtrage -->
-
     <!-- Liste des domaines -->
     <h2>Domaines enregistrés</h2>
     <table class="table">
@@ -59,7 +56,6 @@
 
     $(document).ready(function() {
         loadDomains();
-        createFilterButtons(); // Appel pour créer les boutons de filtrage
 
         $('#domainForm').on('submit', function(e) {
             e.preventDefault();
@@ -151,28 +147,6 @@
         setTimeout(function() {
             message.fadeOut(); // Optionnel : faire disparaître le message après un certain temps
         }, 3000);
-    }
-
-    function createFilterButtons() {
-        var uniqueStatuses = new Set(); // Utiliser un Set pour les statuts uniques
-        $('#domainList tr').each(function() {
-            var status = $(this).find('td:nth-child(2)').text(); // Récupérer le statut
-            uniqueStatuses.add(status);
-        });
-
-        uniqueStatuses.forEach(function(status) {
-            var button = $('<button>').addClass('btn btn-secondary mr-2').text(status).click(function() {
-                filterDomains(status);
-            });
-            $('#filterButtons').append(button);
-        });
-    }
-
-    function filterDomains(status) {
-        $('#domainList tr').each(function() {
-            var rowStatus = $(this).find('td:nth-child(2)').text();
-            $(this).toggle(rowStatus === status); // Afficher ou masquer la ligne
-        });
     }
 </script>
 {% endblock %}
