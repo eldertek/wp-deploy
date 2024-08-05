@@ -69,7 +69,7 @@ def configure_dns(domain_name):
         except Exception:
             pass
         try:
-            result = dns_client.add_record(record["name"], record["type"], record["value"])
+            dns_client.add_record(record["name"], record["type"], record["value"])
             socketio.emit(
                 "message",
                 f'Enregistrement DNS {record["type"]} pour {record["name"]} configuré à {record["value"]}.',
