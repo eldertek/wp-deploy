@@ -37,6 +37,21 @@
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
 <script>
+    console.log('Script loaded');
+
+    var socket = io.connect('https://' + document.domain + ':' + location.port);
+    socket.on('message', function (msg) {
+        addMessage(msg, 'info');
+    });
+
+    socket.on('error', function (msg) {
+        addMessage(msg, 'danger');
+    });
+
+    socket.on('console', function (msg) {
+        console.log('Received console message:', msg);
+    });
+
     $(document).ready(function() {
         loadDomains();
 
@@ -80,13 +95,32 @@
         row.append($('<td>').text(domain.name));
         row.append($('<td>').text(domain.status));
         var actionsCell = $('<td>');
+        
         if (domain.status !== 'Configuré') {
             actionsCell.append($('<button>').addClass('btn btn-sm btn-primary').text('Configurer').click(function() {
                 configureDomain(domain.name);
             }));
         }
+        
+        // Ajout du bouton de suppression
+        actionsCell.append($('<button>').addClass('btn btn-sm btn-danger').text('Supprimer').click(function() {
+            deleteDomain(domain.name);
+        }));
+        
         row.append(actionsCell);
         $('#domainList').append(row);
+    }
+
+    function deleteDomain(domainName) {
+        if (confirm('Êtes-vous sûr de vouloir supprimer ce domaine ?')) {
+            $.post('{{ url_for("domains.delete_domain") }}', { domain: domainName }, function(data) {
+                if (data.status === 'success') {
+                    loadDomains(); // Recharge la liste des domaines
+                } else {
+                    alert('Erreur lors de la suppression du domaine: ' + data.message);
+                }
+            });
+        }
     }
 
     function configureDomain(domain) {

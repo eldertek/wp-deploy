@@ -26,7 +26,8 @@ def add_domain():
     
     if registrar == 'internetbs':
         if is_domain_owned(domain):
-            return jsonify({"status": "error", "message": "Le domaine vous appartient déjà."})
+            save_domain(domain, "En attente de configuration")
+            return jsonify({"status": "success", "domain": {"name": domain, "status": "En attente de configuration"}})
         
         available, message = is_domain_available(domain)
         if not available:
@@ -55,6 +56,18 @@ def configure_domain():
             return jsonify({"status": "error", "message": "La configuration DNS n'a pas pu être vérifiée."})
     else:
         return jsonify({"status": "error", "message": "Erreur lors de la configuration DNS."})
+
+@domains_bp.route("/domains/delete", methods=["POST"])
+@login_required
+def delete_domain():
+    domain = request.form.get("domain")
+    domains = load_domains()
+    domains = [d for d in domains if d["name"] != domain]
+    
+    with open('data/domains.json', 'w') as f:
+        json.dump(domains, f)
+    
+    return jsonify({"status": "success"})
 
 def load_domains():
     if os.path.exists('data/domains.json'):
