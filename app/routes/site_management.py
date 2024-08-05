@@ -91,3 +91,15 @@ def jobs():
             "start_time": job.next_run_time.strftime("%Y-%m-%d %H:%M:%S") if job.next_run_time else "N/A",
         })
     return render_template("jobs.html", jobs=jobs)
+
+@site_management_bp.route("/run_job/<job_name>", methods=["POST"])
+@login_required
+def run_job(job_name):
+    try:
+        job = scheduler.get_job(job_name)
+        if job:
+            job.func(*job.args, **job.kwargs)
+            return jsonify({"status": "success", "message": f"Job '{job_name}' lancé avec succès."})
+        return jsonify({"status": "error", "message": "Job non trouvé."}), 404
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500

@@ -11,6 +11,7 @@
                 <tr>
                     <th>Nom du travail</th>
                     <th>Heure de début</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -18,6 +19,11 @@
                 <tr>
                     <td>{{ job.name }}</td>
                     <td>{{ job.start_time }}</td>
+                    <td>
+                        <form action="{{ url_for('site_management.run_job', job_name=job.name) }}" method="post" style="display:inline;">
+                            <button type="submit" class="btn btn-primary">Lancer</button>
+                        </form>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
