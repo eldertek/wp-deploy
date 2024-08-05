@@ -28,6 +28,21 @@ def update_indexed_articles():
 def update_sites_basic_data():
     update_sites_data(indexed=False)
 
+def run_job(job_name):
+    job = scheduler.get_job(job_name)
+    if job:
+        job.func(*job.args, **job.kwargs)  # Exécutez la fonction du job
+    else:
+        # Si le job n'est pas trouvé, essayez de l'exécuter manuellement
+        if job_name == "update_indexed_articles":
+            update_indexed_articles()
+        elif job_name == "deploy_all_websites":
+            deploy_all_websites()
+        elif job_name == "update_sites_basic_data":
+            update_sites_basic_data()
+        else:
+            raise ValueError("Job non reconnu.")
+
 # Initialize the scheduler
 scheduler = create_scheduler()
 
