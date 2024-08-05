@@ -41,7 +41,7 @@
 <script>
     console.log('Script loaded');
 
-    var socket = io.connect('https://' + document.domain + ':' + location.port + '/domains');
+    var socket = io.connect('https://' + document.domain + ':' + location.port);
     socket.on('message', function (msg) {
         addMessage(msg, 'info');
     });
