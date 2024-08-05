@@ -100,6 +100,7 @@ def run_job(job_name):
         if job:
             job.func(*job.args, **job.kwargs)
             return jsonify({"status": "success", "message": f"Job '{job_name}' lancé avec succès."})
-        return jsonify({"status": "error", "message": f"Job '{job_name}' non trouvé."}), 404
+        else:
+            return jsonify({"status": "error", "message": f"Job '{job_name}' non trouvé."}), 404
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
