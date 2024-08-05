@@ -20,15 +20,14 @@
                     <td>{{ job.name }}</td>
                     <td>{{ job.start_time }}</td>
                     <td>
-                        <form action="{{ url_for('site_management.run_job', job_name=job.name) }}" method="post" style="display:inline;">
-                            <button type="submit" class="btn btn-primary">Lancer</button>
-                        </form>
+                        <button class="btn btn-primary run-job" data-job-name="{{ job.name }}">Lancer</button>
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+    <div id="messages"></div> <!-- Container for messages -->
 </div>
 {% endblock %}
 
@@ -46,6 +45,24 @@
                 url: '//cdn.datatables.net/plug-ins/2.0.8/i18n/fr-FR.json',
             }
         });
+
+        // Handle job run button click
+        $('.run-job').on('click', function() {
+            const jobName = $(this).data('job-name');
+            $('#messages').empty(); // Clear existing messages
+            $.post(`{{ url_for('site_management.run_job', job_name='') }}${jobName}`, function(data) {
+                addMessage(data.message, data.status);
+            }).fail(function(jqXHR) {
+                addMessage(jqXHR.responseJSON.message, 'error');
+            });
+        });
+
+        function addMessage(message, type) {
+            var messageDiv = document.createElement('div');
+            messageDiv.className = `alert alert-${type} mt-4`;
+            messageDiv.innerText = message;
+            $('#messages').prepend(messageDiv);
+        }
     });
 </script>
 {% endblock %}
