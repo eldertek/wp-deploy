@@ -133,7 +133,7 @@ def install_wordpress(domain_name):
 
         # Install plugins and perform other tasks
         plugins = [
-            "simply-static"
+            "simply-static",
             "./vendor/aio.zip",
             "./vendor/aio_unlimited.zip",
             "./vendor/ssp.zip",
