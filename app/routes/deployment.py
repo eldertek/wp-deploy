@@ -11,6 +11,20 @@ import json
 
 deployment_bp = Blueprint('deployment', __name__)
 
+def handle_deployment_route(domain_name, deployment_function):
+    if not domain_name:
+        return jsonify({"status": "error", "message": "Nom de domaine manquant"}), 400
+    start_time = datetime.datetime.now()
+    try:
+        success = deployment_function(domain_name)
+        duration = (datetime.datetime.now() - start_time).total_seconds()
+        log_deployment(domain_name, success, duration)
+        if success:
+            return jsonify({"status": "success"})
+        return jsonify({"status": "error"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 @deployment_bp.route("/deploy_all", methods=["POST"])
 @login_required
 def deploy_all():
@@ -35,18 +49,7 @@ def deploy_all():
 def deploy_site():
     socketio.emit("message", "Déploiement en cours...")
     domain = request.json.get('domain')
-    start_time = datetime.datetime.now()
-    try:
-        success = deploy_static(domain)
-        duration = (datetime.datetime.now() - start_time).total_seconds()
-        log_deployment(domain, success, duration)
-        if success:
-            socketio.emit("message", f"Le site {domain} a été déployé avec succès.")
-        else:
-            socketio.emit("error", f"Erreur lors du déploiement du site {domain}.")
-    except Exception as e:
-        socketio.emit("error", f"Erreur lors du déploiement du site {domain} : {str(e)}")
-    return redirect(url_for("site_management.index"))
+    return handle_deployment_route(domain, deploy_static)
 
 @deployment_bp.route("/deployments")
 @login_required
@@ -66,84 +69,37 @@ def deployments():
 @login_required
 def configure_dns_route():
     domain_name = request.form.get("domain")
-    if not domain_name:
-        return jsonify({"status": "error", "message": "Nom de domaine manquant"}), 400
-    try:
-        if configure_dns(domain_name):
-            return jsonify({"status": "configured"})
-        return jsonify({"status": "error"})
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+    return handle_deployment_route(domain_name, configure_dns)
 
 @deployment_bp.route("/create_nginx_config", methods=["POST"])
 @login_required
 def create_nginx_config_route():
     domain_name = request.form.get("domain")
-    if not domain_name:
-        return jsonify({"status": "error", "message": "Nom de domaine manquant"}), 400
-    try:
-        if create_nginx_config(domain_name):
-            return jsonify({"status": "created"})
-        return jsonify({"status": "error"})
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+    return handle_deployment_route(domain_name, create_nginx_config)
 
 @deployment_bp.route("/setup_ssl", methods=["POST"])
 @login_required
 def setup_ssl_route():
     domain_name = request.form.get("domain")
-    if not domain_name:
-        return jsonify({"status": "error", "message": "Nom de domaine manquant"}), 400
-    try:
-        if setup_ssl(domain_name):
-            return jsonify({"status": "setup"})
-        return jsonify({"status": "error"})
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+    return handle_deployment_route(domain_name, setup_ssl)
 
 @deployment_bp.route("/install_wordpress", methods=["POST"])
 @login_required
 def install_wordpress_route():
     domain_name = request.form.get("domain")
-    if not domain_name:
-        return jsonify({"status": "error", "message": "Nom de domaine manquant"}), 400
-    try:
-        success = install_wordpress(domain_name)
-        if success:
-            return jsonify({"status": "installed"})
-        return jsonify({"status": "error"})
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+    return handle_deployment_route(domain_name, install_wordpress)
 
 @deployment_bp.route("/initialize_git_repo", methods=["POST"])
 @login_required
 def initialize_git_repo_route():
     domain_name = request.form.get("domain")
-    if not domain_name:
-        return jsonify({"status": "error", "message": "Nom de domaine manquant"}), 400
-    try:
-        if initialize_git_repo(domain_name):
-            return jsonify({"status": "initialized"})
-        return jsonify({"status": "error"})
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+    return handle_deployment_route(domain_name, initialize_git_repo)
 
 @deployment_bp.route("/deploy_static", methods=["POST"])
 @login_required
 def deploy_static_route():
     domain_name = request.form.get("domain")
-    if not domain_name:
-        return jsonify({"status": "error", "message": "Nom de domaine manquant"}), 400
-    start_time = datetime.datetime.now()
-    try:
-        success = deploy_static(domain_name)
-        duration = (datetime.datetime.now() - start_time).total_seconds()
-        log_deployment(domain_name, success, duration)
-        if success:
-            return jsonify({"status": "deployed"})
-        return jsonify({"status": "error"})
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+    return handle_deployment_route(domain_name, deploy_static)
 
 @deployment_bp.route("/check_dns", methods=["POST"])
 @login_required
