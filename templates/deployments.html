@@ -11,7 +11,7 @@
                 <tr>
                     <th>Domaine</th>
                     <th>Succès</th>
-                    <th>Heure</th>
+                    <th>Date</th>
                     <th>Durée (secondes)</th>
                 </tr>
             </thead>
@@ -37,9 +37,18 @@
 {% block scripts %}
 <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 <script>
+    $.fn.dataTable.ext.type.order['date-euro'] = function(data) {
+        var dateParts = data.split(' ')[0].split('/');
+        var timeParts = data.split(' ')[1].split(':');
+        return new Date(dateParts[2], dateParts[1] - 1, dateParts[0], timeParts[0], timeParts[1], timeParts[2]).getTime();
+    };
+
     $(document).ready(function() {
         $('#deploymentsTable').DataTable({
-            "order": [[2, "desc"]],
+            "columnDefs": [
+                { "type": "date-euro", "targets": 2 }
+            ],
+            "order": [[2, "asc"]],
             "language": {
                 url: '//cdn.datatables.net/plug-ins/2.0.8/i18n/fr-FR.json',
             }
