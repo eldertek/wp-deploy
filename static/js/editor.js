@@ -2,7 +2,7 @@ tinymce.init({
     selector: '#content',
     language: 'fr_FR',
     license_key: 'gpl',
-    language_url: "{{ url_for('static', filename='tinymce/langs/fr_FR.js') }}",
+    language_url: languageUrl, // Use the variable defined in the HTML
     setup: function(editor) {
         editor.on('change', function() {
             tinymce.triggerSave();

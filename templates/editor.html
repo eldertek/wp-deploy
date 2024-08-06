@@ -34,5 +34,8 @@
 
 {% block scripts %}
     <script src="{{ url_for('static', filename='tinymce/tinymce.min.js') }}"></script>
+    <script>
+        const languageUrl = "{{ url_for('static', filename='tinymce/langs/fr_FR.js') }}";
+    </script>
     <script src="{{ url_for('static', filename='js/editor.js') }}"></script>
 {% endblock %}
