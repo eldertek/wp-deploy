@@ -132,13 +132,14 @@ def install_wordpress(domain_name):
             raise Exception("Échec de l'installation de WordPress")
 
         # Install plugins and perform other tasks
-        plugins = [
-            "simply-static",
-            "./vendor/aio.zip",
-            "./vendor/aio_unlimited.zip",
-            "./vendor/ssp.zip",
-            "./vendor/otomatic.zip"
-        ]
+        plugins = {
+            "simply-static": "simply-static",
+            "aio": "all-in-one-wp-migration",
+            "aio_unlimited": "all-in-one-wp-migration-unlimited-extension",
+            "./vendor/ssp.zip": "simply-static-pro",
+            "./vendor/otomatic.zip": "otamic-ai"
+        }
+
         for plugin in plugins:
             if not run_command(f"wp plugin install {plugin} --path={wp_path}"):
                 raise Exception(f"Échec de l'installation du plugin {plugin}")
