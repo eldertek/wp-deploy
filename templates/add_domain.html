@@ -46,7 +46,7 @@
 
     document.getElementById('domainForm').addEventListener('submit', function (event) {
         event.preventDefault();
-        $('#messages').empty(); // Clear existing messages
+        $('#socket-messages').empty(); // Clear existing messages
         var domain = $('#domain').val();
         console.log('Form submitted with domain:', domain);
         document.getElementById('submitButtonInstall').disabled = true;
@@ -125,7 +125,7 @@
     }
 
     function addMessage(message, type) {
-        var messages = document.getElementById('messages');
+        var messages = document.getElementById('socket-messages');
         var messageDiv = document.createElement('div');
         messageDiv.className = `alert alert-${type} mt-4`;
         messageDiv.innerText = message;
@@ -138,7 +138,7 @@
     }
 
     document.getElementById('submitButtonInstall').addEventListener('click', function () {
-        document.getElementById('messages').innerHTML = '';
+        document.getElementById('socket-messages').innerHTML = '';
     });
 </script>
 {% endblock %}
