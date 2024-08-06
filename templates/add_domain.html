@@ -82,13 +82,12 @@
                 currentStepIndex++;
                 executeNextStep(domain);
             } else {
-                // Display error message from data.message for checkDNS
                 if (step.name === 'checkDNS') {
-                    addMessage(data.message, 'danger'); // Show error message from data.message
-                    hasErrorOccurred = true; // Set error flag
-                    document.getElementById('submitButtonInstall').disabled = false; // Re-enable button
+                    addMessage(data.message, 'danger');
+                    hasErrorOccurred = true;
+                    document.getElementById('submitButtonInstall').disabled = false;
                 } else {
-                    handleError(data.message, true, domain); // Handle other errors normally
+                    handleError(data.message, true, domain);
                 }
             }
         }).fail(function () {
