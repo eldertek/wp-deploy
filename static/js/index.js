@@ -4,7 +4,7 @@ $(document).on('click', '.force-update-btn', function() {
     $('#socket-messages').empty();
     $.ajax({
         type: 'POST',
-        url: '{{ url_for("deployment.deploy_site") }}',
+        url: deploySiteUrl,
         data: JSON.stringify({domain: domain}),
         contentType: 'application/json',
         success: function(response) {
