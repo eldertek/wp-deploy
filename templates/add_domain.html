@@ -27,7 +27,7 @@
 
     const steps = [
         { name: 'checkDNS', url: '{{ url_for("deployment.check_dns_route") }}', successStatus: 'valid'},
-        { name: 'createNginxConfig', url: '{{ url_for("deployment.create_nginx_config_route") }}', successStatus: 'created' },
+        { name: 'createNginxConfig', url: '{{ url_for("deployment.create_nginx_config_route") }}', successStatus: 'success' },
         { name: 'setupSSL', url: '{{ url_for("deployment.setup_ssl_route") }}', successStatus: 'setup' },
         { name: 'installWordPress', url: '{{ url_for("deployment.install_wordpress_route") }}', successStatus: 'installed' },
         { name: 'initializeGitRepo', url: '{{ url_for("deployment.initialize_git_repo_route") }}', successStatus: 'initialized' },
