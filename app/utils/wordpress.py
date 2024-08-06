@@ -247,7 +247,7 @@ def install_wordpress(domain_name):
     except Exception as e:
         socketio.emit(
             "error",
-            f"Erreur lors de l'installation de WordPress pour {domain_name}: {str(e)}",
+            f"Erreur lors de l'installation de WordPress pour {domain_name}",
         )
         return False
 
