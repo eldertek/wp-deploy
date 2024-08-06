@@ -8,7 +8,7 @@
     <form id="domainForm">
         <div class="form-group">
             <label for="domain">Nom de domaine</label>
-            <input type="text" class="form-control" id="domain" name="domain" required pattern="^[a-zA-Z0-9.\\-]+$" title="Nom de domaine invalide.">
+            <input type="text" class="form-control" id="domain" name="domain" required pattern="^[a-zA-Z0-9.\-]+$" title="Nom de domaine invalide.">
         </div>
         <button type="submit" class="btn btn-primary" id="submitButtonInstall">Installer</button>
     </form>
@@ -26,12 +26,12 @@
     console.log('Script loaded');
 
     const steps = [
-        { name: 'checkDNS', url: '{{ url_for("deployment.check_dns_route") }}', successStatus: 'valid', errorMessage: 'Le DNS pour le domaine n\'est pas valide.' },
-        { name: 'createNginxConfig', url: '{{ url_for("deployment.create_nginx_config_route") }}', successStatus: 'created', errorMessage: 'Erreur lors de la création de la configuration Nginx.' },
-        { name: 'setupSSL', url: '{{ url_for("deployment.setup_ssl_route") }}', successStatus: 'setup', errorMessage: 'Erreur lors de la configuration du SSL.' },
-        { name: 'installWordPress', url: '{{ url_for("deployment.install_wordpress_route") }}', successStatus: 'installed', errorMessage: 'Erreur lors de l\'installation de WordPress.' },
-        { name: 'initializeGitRepo', url: '{{ url_for("deployment.initialize_git_repo_route") }}', successStatus: 'initialized', errorMessage: 'Erreur lors de l\'initialisation du dépôt Git.' },
-        { name: 'deployStatic', url: '{{ url_for("deployment.deploy_static_route") }}', successStatus: 'deployed', errorMessage: 'Erreur lors du déploiement statique.' }
+        { name: 'checkDNS', url: '{{ url_for("deployment.check_dns_route") }}', successStatus: 'valid'},
+        { name: 'createNginxConfig', url: '{{ url_for("deployment.create_nginx_config_route") }}', successStatus: 'created' },
+        { name: 'setupSSL', url: '{{ url_for("deployment.setup_ssl_route") }}', successStatus: 'setup' },
+        { name: 'installWordPress', url: '{{ url_for("deployment.install_wordpress_route") }}', successStatus: 'installed' },
+        { name: 'initializeGitRepo', url: '{{ url_for("deployment.initialize_git_repo_route") }}', successStatus: 'initialized' },
+        { name: 'deployStatic', url: '{{ url_for("deployment.deploy_static_route") }}', successStatus: 'deployed' }
     ];
 
     let currentStepIndex = 0;
@@ -82,13 +82,13 @@
                 currentStepIndex++;
                 executeNextStep(domain);
             } else {
-                // Display error message without restarting the step for checkDNS
+                // Display error message from data.message for checkDNS
                 if (step.name === 'checkDNS') {
-                    addMessage(step.errorMessage, 'danger'); // Show error message in the UI
+                    addMessage(data.message, 'danger'); // Show error message from data.message
                     hasErrorOccurred = true; // Set error flag
                     document.getElementById('submitButtonInstall').disabled = false; // Re-enable button
                 } else {
-                    handleError(step.errorMessage, true, domain); // Handle other errors normally
+                    handleError(data.message, true, domain); // Handle other errors normally
                 }
             }
         }).fail(function () {
