@@ -24,18 +24,6 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script>
     console.log('Script loaded');
-    
-    const stepsInternetBS = [
-        { name: 'checkDomainOwnership', url: '{{ url_for("site_management.check_domain_ownership") }}', successStatus: 'owned', errorMessage: 'Erreur lors de la vérification de la possession du domaine.' },
-        { name: 'checkDomainAvailability', url: '{{ url_for("site_management.check_domain_availability") }}', successStatus: 'available', errorMessage: 'Erreur lors de la vérification de la disponibilité du domaine.' },
-        { name: 'purchaseDomain', url: '{{ url_for("site_management.purchase_domain_route") }}', successStatus: 'purchased', errorMessage: 'Erreur lors de l\'achat du domaine.' },
-        { name: 'configureDNS', url: '{{ url_for("deployment.configure_dns_route") }}', successStatus: 'configured', errorMessage: 'Erreur lors de la configuration du DNS.' },
-        { name: 'createNginxConfig', url: '{{ url_for("deployment.create_nginx_config_route") }}', successStatus: 'created', errorMessage: 'Erreur lors de la création de la configuration Nginx.' },
-        { name: 'setupSSL', url: '{{ url_for("deployment.setup_ssl_route") }}', successStatus: 'setup', errorMessage: 'Erreur lors de la configuration du SSL.' },
-        { name: 'installWordPress', url: '{{ url_for("deployment.install_wordpress_route") }}', successStatus: 'installed', errorMessage: 'Erreur lors de l\'installation de WordPress.' },
-        { name: 'initializeGitRepo', url: '{{ url_for("deployment.initialize_git_repo_route") }}', successStatus: 'initialized', errorMessage: 'Erreur lors de l\'initialisation du dépôt Git.' },
-        { name: 'deployStatic', url: '{{ url_for("deployment.deploy_static_route") }}', successStatus: 'deployed', errorMessage: 'Erreur lors du déploiement statique.' }
-    ];
 
     const stepsOtherRegistrar = [
         { name: 'checkDNS', url: '{{ url_for("deployment.check_dns_route") }}', successStatus: 'valid', errorMessage: 'Le DNS pour le domaine n\'est pas valide.' },
@@ -54,7 +42,6 @@
     let stepCounters = {};
 
     // Initialize step counters
-    stepsInternetBS.forEach(step => stepCounters[step.name] = 0);
     stepsOtherRegistrar.forEach(step => stepCounters[step.name] = 0);
 
     document.getElementById('domainForm').addEventListener('submit', function (event) {
@@ -64,7 +51,7 @@
         console.log('Form submitted with domain:', domain);
         document.getElementById('submitButtonInstall').disabled = true;
         document.getElementById('progressContainer').classList.remove('d-none'); // Show progress bar
-        currentStepIndex = 3; // Start from createNginxConfig
+        currentStepIndex = 0;
         hasErrorOccurred = false;
         tempMessages = [];
         steps = stepsInternetBS; // Use the same steps
