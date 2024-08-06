@@ -40,24 +40,24 @@
     });
     
     const stepsInternetBS = [
-        { name: 'checkDomainOwnership', func: checkDomainOwnership },
-        { name: 'checkDomainAvailability', func: checkDomainAvailability },
-        { name: 'purchaseDomain', func: purchaseDomain },
-        { name: 'configureDNS', func: configureDNS },
-        { name: 'createNginxConfig', func: createNginxConfig },
-        { name: 'setupSSL', func: setupSSL },
-        { name: 'installWordPress', func: installWordPress },
-        { name: 'initializeGitRepo', func: initializeGitRepo },
-        { name: 'deployStatic', func: deployStatic }
+        { name: 'checkDomainOwnership', url: '{{ url_for("site_management.check_domain_ownership") }}', successStatus: 'owned', errorMessage: 'Erreur lors de la vérification de la possession du domaine.' },
+        { name: 'checkDomainAvailability', url: '{{ url_for("site_management.check_domain_availability") }}', successStatus: 'available', errorMessage: 'Erreur lors de la vérification de la disponibilité du domaine.' },
+        { name: 'purchaseDomain', url: '{{ url_for("site_management.purchase_domain_route") }}', successStatus: 'purchased', errorMessage: 'Erreur lors de l\'achat du domaine.' },
+        { name: 'configureDNS', url: '{{ url_for("deployment.configure_dns_route") }}', successStatus: 'configured', errorMessage: 'Erreur lors de la configuration du DNS.' },
+        { name: 'createNginxConfig', url: '{{ url_for("deployment.create_nginx_config_route") }}', successStatus: 'created', errorMessage: 'Erreur lors de la création de la configuration Nginx.' },
+        { name: 'setupSSL', url: '{{ url_for("deployment.setup_ssl_route") }}', successStatus: 'setup', errorMessage: 'Erreur lors de la configuration du SSL.' },
+        { name: 'installWordPress', url: '{{ url_for("deployment.install_wordpress_route") }}', successStatus: 'installed', errorMessage: 'Erreur lors de l\'installation de WordPress.' },
+        { name: 'initializeGitRepo', url: '{{ url_for("deployment.initialize_git_repo_route") }}', successStatus: 'initialized', errorMessage: 'Erreur lors de l\'initialisation du dépôt Git.' },
+        { name: 'deployStatic', url: '{{ url_for("deployment.deploy_static_route") }}', successStatus: 'deployed', errorMessage: 'Erreur lors du déploiement statique.' }
     ];
 
     const stepsOtherRegistrar = [
-        { name: 'checkDNS', func: checkDNS },
-        { name: 'createNginxConfig', func: createNginxConfig },
-        { name: 'setupSSL', func: setupSSL },
-        { name: 'installWordPress', func: installWordPress },
-        { name: 'initializeGitRepo', func: initializeGitRepo },
-        { name: 'deployStatic', func: deployStatic }
+        { name: 'checkDNS', url: '{{ url_for("deployment.check_dns_route") }}', successStatus: 'valid', errorMessage: 'Le DNS pour le domaine n\'est pas valide.' },
+        { name: 'createNginxConfig', url: '{{ url_for("deployment.create_nginx_config_route") }}', successStatus: 'created', errorMessage: 'Erreur lors de la création de la configuration Nginx.' },
+        { name: 'setupSSL', url: '{{ url_for("deployment.setup_ssl_route") }}', successStatus: 'setup', errorMessage: 'Erreur lors de la configuration du SSL.' },
+        { name: 'installWordPress', url: '{{ url_for("deployment.install_wordpress_route") }}', successStatus: 'installed', errorMessage: 'Erreur lors de l\'installation de WordPress.' },
+        { name: 'initializeGitRepo', url: '{{ url_for("deployment.initialize_git_repo_route") }}', successStatus: 'initialized', errorMessage: 'Erreur lors de l\'initialisation du dépôt Git.' },
+        { name: 'deployStatic', url: '{{ url_for("deployment.deploy_static_route") }}', successStatus: 'deployed', errorMessage: 'Erreur lors du déploiement statique.' }
     ];
 
     let currentStepIndex = 0;
@@ -104,21 +104,32 @@
         }
     }
 
+    function executeStep(domain, step) {
+        $.post(step.url, { domain: domain }, function (data) {
+            console.log(`${step.name} result:`, data);
+            if (data.status === step.successStatus) {
+                currentStepIndex++;
+                executeNextStep(domain);
+            } else {
+                handleError(step.errorMessage, true, domain);
+            }
+        }).fail(function () {
+            handleError(step.errorMessage, true, domain);
+        });
+    }
+
     function executeNextStep(domain) {
-        console.log("executeNextStep", currentStepIndex, hasErrorOccurred);
         if (currentStepIndex < steps.length && !hasErrorOccurred) {
             const currentStep = steps[currentStepIndex];
             stepCounters[currentStep.name]++;
-            
             if (stepCounters[currentStep.name] > 10) {
                 handleError(`Le processus a été arrêté car l'étape ${currentStep.name} a été répétée plus de 10 fois.`, false, domain);
                 return;
             }
-
             console.log(`Executing step: (${currentStepIndex}) ${currentStep.name}`);
             updateProgressBar();
             displayTempMessages();
-            currentStep.func(domain);
+            executeStep(domain, currentStep);
         } else if (!hasErrorOccurred) {
             console.log('All steps completed');
             updateProgressBar();
@@ -126,153 +137,6 @@
             displayTempMessages();
             document.getElementById('submitButtonInstall').disabled = false;
         }
-    }
-
-    function checkDNS(domain) {
-        $.post('{{ url_for("deployment.check_dns_route") }}', { domain: domain }, function (data) {
-            console.log('DNS check result:', data);
-            if (data.status === 'valid') {
-                currentStepIndex++;
-                displayTempMessages(); // Display messages after each step
-                executeNextStep(domain);
-            } else {
-                handleError(`Le DNS pour le domaine ${domain} n'est pas valide.`, true, domain);
-            }
-        }).fail(function () {
-            handleError('Erreur lors de la vérification du DNS.', true, domain);
-        });
-    }
-
-    function checkDomainOwnership(domain) {
-        $.post('{{ url_for("site_management.check_domain_ownership") }}', { domain: domain }, function (data) {
-            console.log('Domain ownership check result:', data);
-            if (data.status === 'owned') {
-                addMessage(`Le domaine ${domain} vous appartient déjà. Configuration en cours...`, 'info');
-                currentStepIndex = steps.findIndex(step => step.name === 'configureDNS');
-            } else {
-                addMessage(`Le domaine ${domain} n'est pas encore enregistré. Vérification de la disponibilité...`, 'info');
-            }
-            currentStepIndex++;
-            executeNextStep(domain);
-        }).fail(function () {
-            handleError('Erreur lors de la vérification de la possession du domaine.', true, domain);
-        });
-    }
-
-    function checkDomainAvailability(domain) {
-        $.post('{{ url_for("site_management.check_domain_availability") }}', { domain: domain }, function (data) {
-            console.log('Domain availability check result:', data);
-            if (data.status === 'available') {
-                currentStepIndex++;
-                executeNextStep(domain);
-            } else {
-                handleError(`Le domaine ${domain} n'est pas disponible.`, true, domain);
-            }
-        }).fail(function () {
-            handleError('Erreur lors de la vérification de la disponibilité du domaine.', true, domain);
-        });
-    }
-
-    function purchaseDomain(domain) {
-        $.post('{{ url_for("site_management.purchase_domain_route") }}', { domain: domain }, function (data) {
-            console.log('Domain purchase result:', data);
-            if (data.status === 'purchased') {
-                currentStepIndex++;
-                executeNextStep(domain);
-            } else {
-                handleError(`Erreur lors de l'achat du domaine ${domain}.`, true, domain);
-            }
-        }).fail(function () {
-            handleError(`Erreur lors de l'achat du domaine ${domain}.`, true, domain);
-        });
-    }
-
-    function configureDNS(domain) {
-        $.post('{{ url_for("deployment.configure_dns_route") }}', { domain: domain }, function (data) {
-            console.log('DNS configuration result:', data);
-            if (data.status === 'configured') {
-                currentStepIndex++;
-                executeNextStep(domain);
-            } else {
-                handleError(`Erreur lors de la configuration du DNS pour ${domain}.`, true, domain);
-            }
-        }).fail(function () {
-            handleError(`Erreur lors de la configuration du DNS pour ${domain}.`, true, domain);
-        });
-    }
-
-    function createNginxConfig(domain) {
-        $.post('{{ url_for("deployment.create_nginx_config_route") }}', { domain: domain }, function (data) {
-            console.log('Nginx config creation result:', data);
-            if (data.status === 'created') {
-                currentStepIndex++;
-                executeNextStep(domain);
-            } else {
-                handleError(`Erreur lors de la création de la configuration Nginx pour ${domain}.`);
-            }
-        }).fail(function () {
-            handleError(`Erreur lors de la création de la configuration Nginx pour ${domain}.`);
-        });
-    }
-
-    function setupSSL(domain) {
-        if (stepCounters['setupSSL'] > 2) {
-            handleError(`Le processus a été arrêté car l'étape setupSSL a été répétée plus de 2 fois.`, false, domain);
-            return;
-        }
-        $.post('{{ url_for("deployment.setup_ssl_route") }}', { domain: domain }, function (data) {
-            console.log('SSL setup result:', data);
-            if (data.status === 'setup') {
-                currentStepIndex++;
-                executeNextStep(domain);
-            } else {
-                handleError(`Erreur lors de la configuration du SSL pour ${domain}.`, true, domain);
-            }
-        }).fail(function () {
-            handleError(`Erreur lors de la configuration du SSL pour ${domain}.`, true, domain);
-        });
-    }
-
-    function installWordPress(domain) {
-        $.post('{{ url_for("deployment.install_wordpress_route") }}', { domain: domain }, function (data) {
-            console.log('WordPress installation result:', data);
-            if (data.status === 'installed') {
-                currentStepIndex++;
-                executeNextStep(domain);
-            } else {
-                handleError(`Erreur lors de l'installation de WordPress pour ${domain}.`, true, domain);
-            }
-        }).fail(function () {
-            handleError(`Erreur lors de l'installation de WordPress pour ${domain}.`, true, domain);
-        });
-    }
-
-    function initializeGitRepo(domain) {
-        $.post('{{ url_for("deployment.initialize_git_repo_route") }}', { domain: domain }, function (data) {
-            console.log('Git repository initialization result:', data);
-            if (data.status === 'initialized') {
-                currentStepIndex++;
-                executeNextStep(domain);
-            } else {
-                handleError(`Erreur lors de l'initialisation du dépôt Git pour ${domain}.`, true, domain);
-            }
-        }).fail(function () {
-            handleError(`Erreur lors de l'initialisation du dépôt Git pour ${domain}.`, true, domain);
-        });
-    }
-
-    function deployStatic(domain) {
-        $.post('{{ url_for("deployment.deploy_static_route") }}', { domain: domain }, function (data) {
-            console.log('Static deployment result:', data);
-            if (data.status === 'deployed') {
-                currentStepIndex++;
-                executeNextStep(domain);
-            } else {
-                handleError(`Erreur lors du déploiement statique pour ${domain}.`, true, domain);
-            }
-        }).fail(function () {
-            handleError(`Erreur lors du déploiement statique pour ${domain}.`, true, domain);
-        });
     }
 
     function handleError(errorMessage, restart, domain) {
@@ -288,17 +152,15 @@
     }
 
     function addMessage(message, type) {
-        tempMessages.push({ message, type });
+        var messages = document.getElementById('messages');
+        var messageDiv = document.createElement('div');
+        messageDiv.className = `alert alert-${type} mt-4`;
+        messageDiv.innerText = message;
+        messages.insertBefore(messageDiv, messages.firstChild);
     }
 
     function displayTempMessages() {
-        var messages = document.getElementById('messages');
-        tempMessages.forEach(msg => {
-            var messageDiv = document.createElement('div');
-            messageDiv.className = `alert alert-${msg.type} mt-4`;
-            messageDiv.innerText = msg.message;
-            messages.insertBefore(messageDiv, messages.firstChild);
-        });
+        tempMessages.forEach(msg => addMessage(msg.message, msg.type));
         tempMessages = [];
     }
 

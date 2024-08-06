@@ -59,6 +59,7 @@ def update_admin_password(username, new_password):
         socketio.emit("error", f"Erreur lors de la mise à jour du mot de passe: {str(e)}")
         return False
 
+@lru_cache(maxsize=32)
 def load_sites_data():
     data_path = "data/sites_data.json"
     if os.path.exists(data_path):
