@@ -96,8 +96,9 @@ def install_wordpress(domain_name):
         
         # Ensure wp_path is clean
         if os.path.exists(wp_path):
-            run_command(f"rm -rf {wp_path}/*", elevated=True)
-            run_command(f"rm -rf {wp_path}", elevated=True)
+            # Use find to delete all contents, including non-empty directories
+            run_command(f"find {wp_path} -mindepth 1 -delete", elevated=True)
+            run_command(f"rmdir {wp_path}", elevated=True)  # Remove the wp_path directory itself
         
         run_command(f"mkdir -p {wp_path}", elevated=True)
         run_command(f"chown www-data:www-data {wp_path}", elevated=True)
