@@ -140,8 +140,10 @@ def install_wordpress(domain_name):
             "./vendor/otomatic.zip"
         ]
         for plugin in plugins:
-            if not run_command(f"wp plugin install {plugin} --activate --path={wp_path}"):
+            if not run_command(f"wp plugin install {plugin} --path={wp_path}"):
                 raise Exception(f"Échec de l'installation du plugin {plugin}")
+            if not run_command(f"wp plugin activate {plugin} --path={wp_path}"):
+                raise Exception(f"Échec de l'activation du plugin {plugin}")
 
         # Copy wpocopo.wpress to wp-content/ai1wm-backups
         if not run_command(f"cp ../wpocopo.wpress {wp_path}/wp-content/ai1wm-backups/"):
