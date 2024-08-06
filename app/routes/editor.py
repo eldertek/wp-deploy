@@ -6,6 +6,17 @@ from werkzeug.utils import secure_filename
 
 editor_bp = Blueprint('editor', __name__)
 
+def save_featured_image(featured_image):
+    if featured_image and featured_image.filename:
+        filename = secure_filename(featured_image.filename)
+        upload_dir = "/tmp"
+        if not os.path.exists(upload_dir):
+            os.makedirs(upload_dir)
+        image_path = os.path.join(upload_dir, filename)
+        featured_image.save(image_path)
+        return image_path
+    return None
+
 @editor_bp.route("/editor", methods=["GET", "POST"])
 @login_required
 def editor():
@@ -24,22 +35,11 @@ def editor():
         
         if site in domains:
             try:
-                image_path = None
-                if featured_image and featured_image.filename:
-                    filename = secure_filename(featured_image.filename)
-                    upload_dir = f"/tmp"
-                    if not os.path.exists(upload_dir):
-                        os.makedirs(upload_dir)
-                    image_path = os.path.join(upload_dir, filename)
-                    featured_image.save(image_path)
-                
+                image_path = save_featured_image(featured_image)
                 publish_article(site, title, content, image_path)
                 return redirect(url_for("site_management.index"))
             except Exception as e:
-                flash(
-                    "Une erreur est survenue lors de la publication de l'article",
-                    "danger",
-                )
+                flash("Une erreur est survenue lors de la publication de l'article", "danger")
                 return redirect(url_for("editor.editor"))
         else:
             flash("Site invalide", "danger")

@@ -5,6 +5,7 @@ from app.utils.wordpress import generate_wp_login_link
 from app.utils.settings import load_settings, load_sites_data
 from app.utils.jobs import scheduler
 from functools import wraps
+import os
 
 site_management_bp = Blueprint('site_management', __name__)
 
@@ -15,6 +16,14 @@ def admin_required(f):
             abort(403)
         return f(*args, **kwargs)
     return decorated_function
+
+def get_domains():
+    return [
+        domain
+        for domain in os.listdir("/var/www/")
+        if os.path.isdir(os.path.join("/var/www/", domain))
+        and not domain.startswith(".")
+    ]
 
 @site_management_bp.route("/")
 @login_required
