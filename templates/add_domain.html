@@ -25,7 +25,7 @@
 <script>
     console.log('Script loaded');
 
-    const stepsOtherRegistrar = [
+    const steps = [
         { name: 'checkDNS', url: '{{ url_for("deployment.check_dns_route") }}', successStatus: 'valid', errorMessage: 'Le DNS pour le domaine n\'est pas valide.' },
         { name: 'createNginxConfig', url: '{{ url_for("deployment.create_nginx_config_route") }}', successStatus: 'created', errorMessage: 'Erreur lors de la création de la configuration Nginx.' },
         { name: 'setupSSL', url: '{{ url_for("deployment.setup_ssl_route") }}', successStatus: 'setup', errorMessage: 'Erreur lors de la configuration du SSL.' },
@@ -36,7 +36,6 @@
 
     let currentStepIndex = 0;
     let hasErrorOccurred = false;
-    let steps = [];
     let tempMessages = [];
 
     let stepCounters = {};
@@ -54,7 +53,6 @@
         currentStepIndex = 0;
         hasErrorOccurred = false;
         tempMessages = [];
-        steps = stepsInternetBS; // Use the same steps
         executeNextStep(domain);
     });
 
