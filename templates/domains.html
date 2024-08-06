@@ -129,10 +129,14 @@
         var messageContainer = $('#messages'); // Assurez-vous d'avoir un conteneur pour les messages
         var alertClass = type === 'info' ? 'alert alert-info' : 'alert alert-danger';
         var message = $('<div>').addClass(alertClass).text(msg);
-        messageContainer.append(message);
-        setTimeout(function() {
-            message.fadeOut(); // Optionnel : faire disparaître le message après un certain temps
-        }, 3000);
+        
+        // Check if messageContainer exists before appending
+        if (messageContainer.length) {
+            messageContainer.append(message);
+            setTimeout(function() {
+                message.fadeOut(); // Optionnel : faire disparaître le message après un certain temps
+            }, 3000);
+        }
     }
 </script>
 {% endblock %}
