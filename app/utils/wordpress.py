@@ -133,6 +133,7 @@ def install_wordpress(domain_name):
 
         # Install plugins and perform other tasks
         plugins = [
+            "simply-static"
             "./vendor/aio.zip",
             "./vendor/aio_unlimited.zip",
             "./vendor/ssp.zip",
@@ -226,24 +227,6 @@ def install_wordpress(domain_name):
         else:
             socketio.emit("console", f"Échec de la désactivation du mode maintenance: {result}")
             raise Exception("Échec de la désactivation du mode maintenance")
-
-        # Install Simply Static
-        if not run_command(
-            f"wp plugin install simply-static --activate --path={wp_path} --url=https://bo.{domain_name}"
-        ):
-            raise Exception("Échec de l'installation du plugin Simply Static")
-        
-        # Install SSP
-        if not run_command(
-            f"wp plugin install ./vendor/ssp.zip --activate --path={wp_path} --url=https://bo.{domain_name}"
-        ):
-            raise Exception("Échec de l'installation du plugin Simply Static Pro")
-        
-        # Installl otomatic
-        if not run_command(
-            f"wp plugin install ./vendor/otomatic.zip --activate --path={wp_path} --url=https://bo.{domain_name}"
-        ):
-            raise Exception("Échec de l'installation du plugin Otomatic")
         
         return True
     except Exception as e:
