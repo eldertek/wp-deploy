@@ -29,6 +29,8 @@ def deploy_static(domain_name):
         try:
             result = run_command(f"wp plugin activate simply-static --path={wp_path}", return_output=True)
             socketio.emit("console", f"Activation de Simply Static: {result}")
+            result = run_command(f"wp plugin activate simply-static-pro --path={wp_path}", return_output=True)
+            socketio.emit("console", f"Activation de Simply Static Pro: {result}")
         except Exception:
             pass  # Ignore any exception during plugin activation
 
