@@ -25,6 +25,13 @@ def deploy_static(domain_name):
             else:
                 raise Exception("Failed to update Elementor data")
 
+        # Try to activate Simply Static plugin
+        try:
+            result = run_command(f"wp plugin activate simply-static --path={wp_path}", return_output=True)
+            socketio.emit("console", f"Activation de Simply Static: {result}")
+        except Exception:
+            pass  # Ignore any exception during plugin activation
+
         # Run Simply Static export
         if not run_command(f"wp simply-static run --path={wp_path}"):
             raise Exception("Failed to run Simply Static export")
