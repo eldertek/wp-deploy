@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, jsonify
 from flask_login import login_required
+from app.routes.domains import load_domains
 from app.utils.deployment import deploy_static, log_deployment, format_deployment_log
 from app.utils.domain import configure_dns, check_dns
 from app.utils.wordpress import create_nginx_config, setup_ssl, install_wordpress
@@ -109,6 +110,13 @@ def check_dns_route():
     if not domain_name or not re.match(r'^[a-zA-Z0-9.-]+$', domain_name):  # Added regex validation for domain
         return jsonify({"status": "error", "message": "Nom de domaine invalide"}), 400
     try:
+        # Check if the domain is configured
+        if not any(d["name"] == domain_name and d["status"] == "Configuré" for d in load_domains()):
+            return jsonify({
+                "status": "popup-error",
+                "message": "Le domaine doit être configuré avant de pouvoir installer un domaine sur lui. La configuration peut nécessiter plusieurs heures durant la propagation DNS."
+            })
+        
         if check_dns(domain_name):
             socketio.emit("message", f"Le DNS pour {domain_name} est correctement configuré.")
             return jsonify({"status": "valid"})
