@@ -134,17 +134,17 @@ def install_wordpress(domain_name):
         # Install plugins and perform other tasks
         plugins = {
             "simply-static": "simply-static",
-            "aio": "all-in-one-wp-migration",
-            "aio_unlimited": "all-in-one-wp-migration-unlimited-extension",
+            "./vendor/aio.zip": "all-in-one-wp-migration",
+            "./vendor/aio_unlimited.zip": "all-in-one-wp-migration-unlimited-extension",
             "./vendor/ssp.zip": "simply-static-pro",
             "./vendor/otomatic.zip": "otamic-ai"
         }
 
-        for plugin in plugins:
-            if not run_command(f"wp plugin install {plugin} --path={wp_path}"):
-                raise Exception(f"Échec de l'installation du plugin {plugin}")
-            if not run_command(f"wp plugin activate {plugin} --path={wp_path}"):
-                raise Exception(f"Échec de l'activation du plugin {plugin}")
+        for plugin_file, plugin_name in plugins.items():
+            if not run_command(f"wp plugin install {plugin_file} --path={wp_path}"):
+                raise Exception(f"Échec de l'installation du plugin {plugin_name}")
+            if not run_command(f"wp plugin activate {plugin_name} --path={wp_path}"):
+                raise Exception(f"Échec de l'activation du plugin {plugin_name}")
 
         # Copy wpocopo.wpress to wp-content/ai1wm-backups
         if not run_command(f"cp ../wpocopo.wpress {wp_path}/wp-content/ai1wm-backups/"):
