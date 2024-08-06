@@ -93,27 +93,19 @@ def install_wordpress(domain_name):
     try:
         settings = load_settings()
         wp_path = f"/var/www/{domain_name}"
+        
+        # Ensure wp_path is clean
         if os.path.exists(wp_path):
-            if not run_command(f"rm -rf {wp_path}/*", elevated=True):
-                raise Exception("Échec de la suppression du contenu du répertoire WordPress existant")
-            if not run_command(f"rm -rf {wp_path}", elevated=True):
-                raise Exception("Échec de la suppression du répertoire WordPress existant")
-       
-        if not run_command(f"mkdir -p {wp_path}", elevated=True):
-            raise Exception("Échec de la création du répertoire WordPress")
-        if not run_command(f"chown www-data:www-data {wp_path}", elevated=True):
-            raise Exception("Échec du changement de propriétaire du répertoire WordPress")
+            run_command(f"rm -rf {wp_path}/*", elevated=True)
+            run_command(f"rm -rf {wp_path}", elevated=True)
+        
+        run_command(f"mkdir -p {wp_path}", elevated=True)
+        run_command(f"chown www-data:www-data {wp_path}", elevated=True)
 
         # Generate random names for the database and user
-        unique_db_name = "".join(
-            random.choices(string.ascii_letters + string.digits, k=16)
-        )
-        unique_db_user = "".join(
-            random.choices(string.ascii_letters + string.digits, k=16)
-        )
-        unique_db_password = "".join(
-            random.choices(string.ascii_letters + string.digits, k=16)
-        )
+        unique_db_name = "".join(random.choices(string.ascii_letters + string.digits, k=16))
+        unique_db_user = "".join(random.choices(string.ascii_letters + string.digits, k=16))
+        unique_db_password = "".join(random.choices(string.ascii_letters + string.digits, k=16))
         registrant_email = settings["registrant"]["email"]
         wordpress_admin_email = settings.get("wordpress_admin_email", "admin@example.com")
 
@@ -121,45 +113,37 @@ def install_wordpress(domain_name):
         if not run_command(f"wp core download --path={wp_path} --locale=fr_FR"):
             raise Exception("Échec du téléchargement de WordPress")
 
-        # Create the database
-        if not run_command(
-            f"mysql -u root -e 'CREATE DATABASE {unique_db_name};'", elevated=True
-        ):
-            raise Exception("Échec de la création de la base de données")
-
-        # Create a unique user for WordPress
-        if not run_command(
+        # Create the database and user
+        commands = [
+            f"mysql -u root -e 'CREATE DATABASE {unique_db_name};'",
             f"mysql -u root -e 'CREATE USER wp_{unique_db_user}@localhost IDENTIFIED BY \"{unique_db_password}\";'",
-            elevated=True,
-        ):
-            raise Exception("Échec de la création de l'utilisateur de la base de données")
-        if not run_command(
             f"mysql -u root -e 'GRANT ALL PRIVILEGES ON {unique_db_name}.* TO wp_{unique_db_user}@localhost;'",
-            elevated=True,
-        ):
-            raise Exception("Échec de l'octroi des privilèges à l'utilisateur de la base de données")
-        if not run_command(f"mysql -u root -e 'FLUSH PRIVILEGES;'", elevated=True):
-            raise Exception("Échec de l'actualisation des privilèges")
+            f"mysql -u root -e 'FLUSH PRIVILEGES;'"
+        ]
+        for command in commands:
+            if not run_command(command, elevated=True):
+                raise Exception(f"Échec de l'exécution de la commande: {command}")
 
         # Create wp-config.php
-        if not run_command(
-            f"wp config create --path={wp_path} --dbname={unique_db_name} --dbuser=wp_{unique_db_user} --dbpass={unique_db_password} --dbhost=localhost --skip-check"
-        ):
+        if not run_command(f"wp config create --path={wp_path} --dbname={unique_db_name} --dbuser=wp_{unique_db_user} --dbpass={unique_db_password} --dbhost=localhost --skip-check"):
             raise Exception("Échec de la création de wp-config.php")
 
         # Install WordPress
-        if not run_command(
-            f"wp core install --path={wp_path} --url=https://bo.{domain_name} --title='{domain_name}' --admin_user=admin --admin_password={unique_db_password} --admin_email={registrant_email} --locale=fr_FR"
-        ):
+        if not run_command(f"wp core install --path={wp_path} --url=https://bo.{domain_name} --title='{domain_name}' --admin_user=admin --admin_password={unique_db_password} --admin_email={registrant_email} --locale=fr_FR"):
             raise Exception("Échec de l'installation de WordPress")
 
-        # Install All in One Migration
-        if not run_command(f"wp plugin install ./vendor/aio.zip --activate --path={wp_path}"):
-            raise Exception("Échec de l'installation du plugin All in One Migration")
-        if not run_command(f"wp plugin install ./vendor/aio_unlimited.zip --activate --path={wp_path}"):
-            raise Exception("Échec de l'installation du plugin All in One Migration Unlimited")
+        # Install plugins and perform other tasks
+        plugins = [
+            "./vendor/aio.zip",
+            "./vendor/aio_unlimited.zip",
+            "./vendor/ssp.zip",
+            "./vendor/otomatic.zip"
+        ]
+        for plugin in plugins:
+            if not run_command(f"wp plugin install {plugin} --activate --path={wp_path}"):
+                raise Exception(f"Échec de l'installation du plugin {plugin}")
 
-        # Copy vendor/wpocopo.wpress to wp-content/ai1wm-backups
+        # Copy wpocopo.wpress to wp-content/ai1wm-backups
         if not run_command(f"cp ../wpocopo.wpress {wp_path}/wp-content/ai1wm-backups/"):
             raise Exception("Échec de la copie de wpocopo.wpress")
 
