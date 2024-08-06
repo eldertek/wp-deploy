@@ -37,27 +37,9 @@
 {% block scripts %}
 <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 <script>
-    $.fn.dataTable.ext.type.order['date-custom'] = function(data) {
-        var parts = data.split(' ');
-        var dateParts = parts[0].split('/');
-        var timeParts = parts[1].split(':');
-        // Retourne un tableau avec l'année, le mois, le jour et l'heure pour le tri
-        return [
-            -parseInt(dateParts[2]), // Année (négatif pour trier de la plus récente à la plus ancienne)
-            -parseInt(dateParts[1]), // Mois (négatif)
-            -parseInt(dateParts[0]), // Jour (négatif)
-            -parseInt(timeParts[0]),  // Heure (négatif)
-            -parseInt(timeParts[1]),  // Minute (négatif)
-            -parseInt(timeParts[2])   // Seconde (négatif)
-        ];
-    };
-
     $(document).ready(function() {
         $('#deploymentsTable').DataTable({
-            "columnDefs": [
-                { "type": "date-custom", "targets": 2 } // Appliquer le type de tri personnalisé à la colonne de date
-            ],
-            "order": [[2, "asc"]], // Trier par la colonne de date personnalisée
+            "order": [[2, "asc"]],
             "language": {
                 url: '//cdn.datatables.net/plug-ins/2.0.8/i18n/fr-FR.json',
             }
