@@ -37,22 +37,8 @@
 
 {% block scripts %}
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
 <script>
     console.log('Script loaded');
-
-    var socket = io.connect('https://' + document.domain + ':' + location.port);
-    socket.on('message', function (msg) {
-        addMessage(msg, 'info');
-    });
-
-    socket.on('error', function (msg) {
-        addMessage(msg, 'danger');
-    });
-
-    socket.on('console', function (msg) {
-        console.log('Received console message:', msg);
-    });
 
     $(document).ready(function() {
         loadDomains();
