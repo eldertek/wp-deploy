@@ -28,6 +28,13 @@ def add_domain():
     if any(d["name"] == domain for d in domains):
         return jsonify({"status": "error", "message": "Domaine déjà existant"})
     
+    # Vérification si le domaine est configuré
+    if not any(d["name"] == domain and d["status"] == "Configuré" for d in domains):
+        return jsonify({
+            "status": "popup-error",
+            "message": "Le domaine doit être configuré avant de pouvoir installer un domaine sur lui. La configuration peut nécessiter plusieurs heures durant la propagation DNS."
+        })
+    
     if registrar == 'internetbs':
         if is_domain_owned(domain):
             save_domain(domain, "En attente de configuration")
