@@ -41,7 +41,7 @@
     let stepCounters = {};
 
     // Initialize step counters
-    stepsOtherRegistrar.forEach(step => stepCounters[step.name] = 0);
+    steps.forEach(step => stepCounters[step.name] = 0);
 
     document.getElementById('domainForm').addEventListener('submit', function (event) {
         event.preventDefault();
