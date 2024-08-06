@@ -82,7 +82,14 @@
                 currentStepIndex++;
                 executeNextStep(domain);
             } else {
-                handleError(step.errorMessage, true, domain);
+                // Display error message without restarting the step for checkDNS
+                if (step.name === 'checkDNS') {
+                    addMessage(step.errorMessage, 'danger'); // Show error message in the UI
+                    hasErrorOccurred = true; // Set error flag
+                    document.getElementById('submitButtonInstall').disabled = false; // Re-enable button
+                } else {
+                    handleError(step.errorMessage, true, domain); // Handle other errors normally
+                }
             }
         }).fail(function () {
             handleError(step.errorMessage, true, domain);
