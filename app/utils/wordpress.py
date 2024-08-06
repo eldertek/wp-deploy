@@ -135,7 +135,7 @@ def install_wordpress(domain_name):
         plugins = {
             "simply-static": "simply-static",
             "./vendor/aio.zip": "all-in-one-wp-migration",
-            "./vendor/aio_unlimited.zip": "all-in-one-wp-migration-unlimited-extension",
+            "./vendor/aio_unlimited.zip": "aio_unlimited",
             "./vendor/ssp.zip": "simply-static-pro",
             "./vendor/otomatic.zip": "otamic-ai"
         }
