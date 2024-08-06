@@ -24,7 +24,7 @@ document.getElementById('articleForm').addEventListener('submit', function(event
 
     $.ajax({
         type: 'POST',
-        url: '{{ url_for("editor.editor") }}',
+        url: editorUrl,
         data: formData,
         processData: false,
         contentType: false,
