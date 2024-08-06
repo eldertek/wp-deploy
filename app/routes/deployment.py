@@ -113,7 +113,7 @@ def check_dns_route():
         # Check if the domain is configured
         if not any(d["name"] == domain_name and d["status"] == "Configuré" for d in load_domains()):
             return jsonify({
-                "status": "popup-error",
+                "status": "error",
                 "message": "Le domaine doit être configuré avant de pouvoir installer un domaine sur lui. La configuration peut nécessiter plusieurs heures durant la propagation DNS."
             })
         
