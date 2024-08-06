@@ -114,7 +114,7 @@
         if (restart) {
             console.log('Restarting step:', currentStepIndex);
             tempMessages = [];
-            steps[currentStepIndex].func(domain);
+            executeStep(domain, steps[currentStepIndex]);
         } else {
             addMessage(errorMessage, 'danger');
             hasErrorOccurred = true;
