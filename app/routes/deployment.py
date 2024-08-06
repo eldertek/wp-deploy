@@ -8,12 +8,13 @@ from app import socketio
 import datetime
 import os
 import json
+import re
 
 deployment_bp = Blueprint('deployment', __name__)
 
 def handle_deployment_route(domain_name, deployment_function):
-    if not domain_name:
-        return jsonify({"status": "error", "message": "Nom de domaine manquant"}), 400
+    if not domain_name or not re.match(r'^[a-zA-Z0-9.-]+$', domain_name):  # Added regex validation for domain
+        return jsonify({"status": "error", "message": "Nom de domaine invalide"}), 400
     start_time = datetime.datetime.now()
     try:
         success = deployment_function(domain_name)
@@ -105,8 +106,8 @@ def deploy_static_route():
 @login_required
 def check_dns_route():
     domain_name = request.form.get("domain")
-    if not domain_name:
-        return jsonify({"status": "error", "message": "Nom de domaine manquant"}), 400
+    if not domain_name or not re.match(r'^[a-zA-Z0-9.-]+$', domain_name):  # Added regex validation for domain
+        return jsonify({"status": "error", "message": "Nom de domaine invalide"}), 400
     try:
         if check_dns(domain_name):
             socketio.emit("message", f"Le DNS pour {domain_name} est correctement configuré.")

@@ -30,4 +30,10 @@ $(document).ready(function() {
             console.error('Element with ID "socket-messages" not found.');
         }
     });
+    
+    // Added error handling for socket connection
+    socket.on('connect_error', function(err) {
+        console.error('Socket connection error:', err);
+        addMessage('Erreur de connexion au serveur.', 'danger'); // Display error message
+    });
 });
