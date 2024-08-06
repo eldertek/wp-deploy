@@ -224,6 +224,7 @@ def install_wordpress(domain_name):
         if not result or "Maintenance mode already deactivated." in result:
             socketio.emit("console", "Maintenance mode already deactivated or failed to deactivate.")
         else:
+            socketio.emit("console", f"Échec de la désactivation du mode maintenance: {result}")
             raise Exception("Échec de la désactivation du mode maintenance")
 
         # Install Simply Static
