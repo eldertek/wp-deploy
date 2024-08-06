@@ -46,40 +46,41 @@ def purchase_domain(domain_name, contacts):
 
 def configure_dns(domain_name):
     dns_records = [
-        # Backoffice
         {"name": f"bo.{domain_name}", "type": "A", "value": "51.210.255.66"},
-        {
-            "name": f"bo.{domain_name}",
-            "type": "AAAA",
-            "value": "2001:41d0:304:200::5ec6",
-        },
-        # Github Pages
+        {"name": f"bo.{domain_name}", "type": "AAAA", "value": "2001:41d0:304:200::5ec6"},
         {"name": domain_name, "type": "A", "value": "185.199.108.153"},
         {"name": domain_name, "type": "AAAA", "value": "2606:50c0:8000::153"},
-        # NameServers
         {"name": domain_name, "type": "NS", "value": "ns-canada.topdns.com."},
         {"name": domain_name, "type": "NS", "value": "ns-uk.topdns.com."},
         {"name": domain_name, "type": "NS", "value": "ns-usa.topdns.com."},
     ]
 
-    # Suppression et ajout des enregistrements DNS
-    for record in dns_records:
-        try:
-            dns_client.remove_record(record["name"], record["type"])
-        except Exception:
-            pass
-        try:
-            dns_client.add_record(record["name"], record["type"], record["value"])
-            socketio.emit(
-                "message",
-                f'Enregistrement DNS {record["type"]} pour {record["name"]} configuré à {record["value"]}.',
-            )
-        except Exception as e:
-            socketio.emit(
-                "error",
-                f'Erreur lors de la configuration DNS {record["type"]} pour {record["name"]}: {str(e)}',
-            )
-            return None
+    try:
+        existing_records = dns_client.list_records(domain_name)  # Récupérer les enregistrements existants
+        existing_records_dict = {(record['name'], record['type']): record for record in existing_records}
+
+        for record in dns_records:
+            key = (record["name"], record["type"])
+            if key in existing_records_dict:
+                # Si l'enregistrement existe déjà, le mettre à jour
+                dns_client.update_record(record["name"], record["type"], record["value"])
+                socketio.emit(
+                    "message",
+                    f'Enregistrement DNS {record["type"]} pour {record["name"]} mis à jour à {record["value"]}.',
+                )
+            else:
+                # Sinon, ajouter un nouvel enregistrement
+                dns_client.add_record(record["name"], record["type"], record["value"])
+                socketio.emit(
+                    "message",
+                    f'Enregistrement DNS {record["type"]} pour {record["name"]} configuré à {record["value"]}.',
+                )
+    except Exception as e:
+        socketio.emit(
+            "error",
+            f'Erreur lors de la configuration DNS pour {domain_name}: {str(e)}',
+        )
+        return None
     return True
 
 def check_dns(domain_name):
@@ -93,42 +94,7 @@ def check_dns(domain_name):
     try:
         for record in expected_records:
             answers = dns.resolver.resolve(record["name"], record["type"])
-            found = False
-            for rdata in answers:
-                if rdata.to_text() == record["value"]:
-                    found = True
-                    break
-            if not found:
-                socketio.emit(
-                    "error",
-                    f'Enregistrement DNS {record["type"]} pour {record["name"]} avec valeur {record["value"]} est manquant ou incorrect.'
-                )
-                return False
-        return True
-    except Exception as e:
-        error_message = f"Erreur lors de la vérification DNS pour {domain_name}: {str(e)}"
-        if "The DNS query name does not exist" in str(e):
-            error_message = f"Le domaine {domain_name} ou l'un de ses sous-domaines n'existe pas."
-        socketio.emit("error", error_message)
-        return False
-    
-def check_dns(domain_name):
-    expected_records = [
-        {"name": f"bo.{domain_name}", "type": "A", "value": "51.210.255.66"},
-        {"name": f"bo.{domain_name}", "type": "AAAA", "value": "2001:41d0:304:200::5ec6"},
-        {"name": f"{domain_name}", "type": "A", "value": "185.199.108.153"},
-        {"name": f"{domain_name}", "type": "AAAA", "value": "2606:50c0:8000::153"},
-    ]
-
-    try:
-        for record in expected_records:
-            answers = dns.resolver.resolve(record["name"], record["type"])
-            found = False
-            for rdata in answers:
-                if rdata.to_text() == record["value"]:
-                    found = True
-                    break
-            if not found:
+            if not any(rdata.to_text() == record["value"] for rdata in answers):
                 socketio.emit(
                     "error",
                     f'Enregistrement DNS {record["type"]} pour {record["name"]} avec valeur {record["value"]} est manquant ou incorrect.'
