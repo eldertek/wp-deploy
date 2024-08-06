@@ -245,10 +245,8 @@ def install_wordpress(domain_name):
         
         return True
     except Exception as e:
-        socketio.emit(
-            "error",
-            f"Erreur lors de l'installation de WordPress pour {domain_name}",
-        )
+        socketio.emit("error", f"Erreur lors de l'installation de WordPress pour {domain_name}")
+        socketio.emit("console", f"Erreur lors de l'installation de WordPress pour {domain_name}: {str(e)}")
         return False
 
 def generate_wp_login_link(domain_name):
