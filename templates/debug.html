@@ -20,6 +20,7 @@
         <button type="submit" class="btn btn-primary">Exécuter</button>
     </form>
     <div id="result" class="mt-3"></div>
+    <div id="socket-messages" class="mt-3"></div> <!-- Conteneur pour les messages de socket -->
 </div>
 
 <script>
@@ -38,6 +39,25 @@
         .catch(error => {
             document.getElementById('result').innerHTML = `<div class="alert alert-danger">Erreur: ${error}</div>`;
         });
+    });
+
+    // Socket.IO setup
+    var socket = io.connect('https://' + document.domain + ':' + location.port);
+    
+    socket.on('message', function(msg) {
+        var messages = document.getElementById('socket-messages');
+        var message = document.createElement('div');
+        message.className = 'alert alert-info mt-2';
+        message.innerText = msg;
+        messages.appendChild(message);
+    });
+
+    socket.on('error', function(msg) {
+        var messages = document.getElementById('socket-messages');
+        var message = document.createElement('div');
+        message.className = 'alert alert-danger mt-2';
+        message.innerText = msg;
+        messages.appendChild(message);
     });
 </script>
 {% endblock %}
