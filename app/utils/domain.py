@@ -63,7 +63,8 @@ def configure_dns(domain_name):
             key = (record["name"], record["type"])
             if key in existing_records_dict:
                 # Si l'enregistrement existe déjà, le mettre à jour
-                dns_client.update_record(record["name"], record["type"], record["value"])
+                existing_record = existing_records_dict[key]
+                dns_client.update_record(record["name"], record["type"], existing_record['value'], record["value"])
                 socketio.emit(
                     "message",
                     f'Enregistrement DNS {record["type"]} pour {record["name"]} mis à jour à {record["value"]}.',
