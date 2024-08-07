@@ -56,10 +56,7 @@
 
     function loadDomains() {
         $.get('{{ url_for("domains.get_domains") }}', function(data) {
-            $('#domainList').empty();
-            data.domains.forEach(function(domain) {
-                addDomainToList(domain);
-            });
+            addDomainToList(data.domains);
         });
     }
 
@@ -79,29 +76,49 @@
         });
     }
 
-    function addDomainToList(domain) {
-        var row = $('<tr>');
-        row.append($('<td>').text(domain.name));
-        row.append($('<td>').text(domain.status));
-        var actionsCell = $('<td>');
-        
-        if (domain.status === 'En attente de vérification') {
-            actionsCell.append($('<button>').addClass('btn btn-sm btn-warning mr-2').text('Vérifier').click(function() {
-                configureDomain(domain.name);
-            }));
-        } else if (domain.status !== 'Configuré') {
-            actionsCell.append($('<button>').addClass('btn btn-sm btn-primary mr-2').text('Configurer').click(function() {
-                configureDomain(domain.name);
-            }));
+    function addDomainToList(domains) {
+        // Clear existing rows
+        $('#domainList').empty();
+
+        // Group domains by status
+        const groupedDomains = {};
+        domains.forEach(domain => {
+            if (!groupedDomains[domain.status]) {
+                groupedDomains[domain.status] = [];
+            }
+            groupedDomains[domain.status].push(domain);
+        });
+
+        // Create rows for each status group
+        for (const status in groupedDomains) {
+            // Add a header row for the status
+            $('#domainList').append($('<tr>').append($('<td colspan="3" class="font-weight-bold">').text(status)));
+
+            // Add each domain under the status
+            groupedDomains[status].forEach(domain => {
+                var row = $('<tr>');
+                row.append($('<td>').text(domain.name));
+                row.append($('<td>').text(domain.status));
+                var actionsCell = $('<td>');
+
+                if (domain.status === 'En attente de vérification') {
+                    actionsCell.append($('<button>').addClass('btn btn-sm btn-warning mr-2').text('Vérifier').click(function() {
+                        configureDomain(domain.name);
+                    }));
+                } else if (domain.status !== 'Configuré') {
+                    actionsCell.append($('<button>').addClass('btn btn-sm btn-primary mr-2').text('Configurer').click(function() {
+                        configureDomain(domain.name);
+                    }));
+                }
+
+                actionsCell.append($('<button>').addClass('btn btn-sm btn-danger').text('Supprimer').click(function() {
+                    deleteDomain(domain.name);
+                }));
+
+                row.append(actionsCell);
+                $('#domainList').append(row);
+            });
         }
-        
-        // Ajout du bouton de suppression avec une marge
-        actionsCell.append($('<button>').addClass('btn btn-sm btn-danger').text('Supprimer').click(function() {
-            deleteDomain(domain.name);
-        }));
-        
-        row.append(actionsCell);
-        $('#domainList').append(row);
     }
 
     function configureDomain(domain) {
