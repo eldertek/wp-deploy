@@ -31,7 +31,8 @@ def add_domain():
     if registrar == 'internetbs':
         if is_domain_owned(domain):
             save_domain(domain, "En attente de configuration")
-            return jsonify({"status": "success", "domain": {"name": domain, "status": "En attente de configuration"}})
+            domains = load_domains()  # Reload domains after saving
+            return jsonify({"status": "success", "domains": domains})  # Return the updated list of domains
         
         available, message = is_domain_available(domain)
         if not available:
@@ -40,12 +41,14 @@ def add_domain():
         settings = load_settings()
         if purchase_domain(domain, settings):
             save_domain(domain, "En attente de configuration")
-            return jsonify({"status": "success", "domain": {"name": domain, "status": "En attente de configuration"}})
+            domains = load_domains()  # Reload domains after saving
+            return jsonify({"status": "success", "domains": domains})  # Return the updated list of domains
         else:
             return jsonify({"status": "error", "message": "Erreur lors de l'achat du domaine."})
     else:
         save_domain(domain, "En attente de configuration")
-        return jsonify({"status": "success", "domain": {"name": domain, "status": "En attente de configuration"}})
+        domains = load_domains()  # Reload domains after saving
+        return jsonify({"status": "success", "domains": domains})  # Return the updated list of domains
 
 @domains_bp.route("/domains/configure", methods=["POST"])
 @login_required
