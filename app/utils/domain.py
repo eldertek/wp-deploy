@@ -78,12 +78,11 @@ def configure_dns(domain_name):
         # Create new DNS records
         for record in dns_records:
             key = (record["name"], record["type"])
-            if key not in existing_records_dict:
-                dns_client.add_record(record["name"], record["type"], record["value"])
-                socketio.emit(
-                    "message",
-                    f'Enregistrement DNS {record["type"]} pour {record["name"]} configuré à {record["value"]}.',
-                )
+            dns_client.add_record(record["name"], record["type"], record["value"])
+            socketio.emit(
+                "message",
+                f'Enregistrement DNS {record["type"]} pour {record["name"]} configuré à {record["value"]}.',
+            )
     except Exception as e:
         socketio.emit(
             "error",
