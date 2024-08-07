@@ -35,7 +35,7 @@ def deploy_all():
         for domain in os.listdir("/var/www/")
         if os.path.isdir(os.path.join("/var/www/", domain))
         and not domain.startswith(".")
-        and not domain.endswith("-static")
+        and not domain.endswith("-static")  # Exclude domains ending with -static
     ]
     for domain in domains:
         try:
@@ -51,6 +51,8 @@ def deploy_all():
 def deploy_site():
     socketio.emit("message", "Déploiement en cours...")
     domain = request.json.get('domain')
+    if domain.endswith("-static"):  # Exclude domains ending with -static
+        return jsonify({"status": "error", "message": "Nom de domaine invalide"}), 400
     return handle_deployment_route(domain, deploy_static)
 
 @deployment_bp.route("/deployments")
