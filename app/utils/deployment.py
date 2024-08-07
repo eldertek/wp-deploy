@@ -97,7 +97,7 @@ def log_deployment(domain_name, success, duration):
     log_entry = {
         "domain": domain_name,
         "success": success,
-        "time": datetime.datetime.now().isoformat(),
+        "time": int(datetime.datetime.now().timestamp()),
         "duration": round(duration, 2),
     }
     log_path = "data/deployments.json"
@@ -115,7 +115,7 @@ def log_deployment(domain_name, success, duration):
     )  # Ensure ownership
 
 def format_deployment_log(deployment):
-    deployment["time"] = datetime.datetime.fromisoformat(deployment["time"]).strftime(
+    deployment["time"] = datetime.datetime.fromtimestamp(deployment["time"]).strftime(
         "%d/%m/%Y %H:%M:%S"
     )
     deployment["duration"] = f"{deployment['duration']:.2f}"
