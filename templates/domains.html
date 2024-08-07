@@ -157,25 +157,8 @@
             if (data.status === 'success') {
                 $('#domain').val(''); // Clear the input field
                 loadDomains(); // Reload the domain list
-                addMessage('Domaine ajouté avec succès', 'info');
-            } else {
-                addMessage("Erreur lors de l'ajout du domaine: " + data.message, 'danger');
             }
-        }).fail(function() {
-            addMessage('Erreur de communication avec le serveur', 'danger');
-        });
-    }
-
-    function addMessage(msg, type) {
-        var messageContainer = $('#socket-messages');
-        var alertClass = type === 'info' ? 'alert-info' : 'alert-danger';
-        var message = $('<div>').addClass('alert ' + alertClass + ' alert-dismissible fade show').text(msg);
-        message.append('<button type="button" class="close" data-dismiss="alert">&times;</button>');
-        
-        messageContainer.append(message);
-        setTimeout(function() {
-            message.remove();
-        }, 5000);
+        })
     }
 </script>
 {% endblock %}
