@@ -60,8 +60,26 @@
         $.get('{{ url_for("domains.get_domains") }}', function(data) {
             var groupedDomains = groupDomainsByStatus(data.domains);
             $('#domainList').empty();
+            
+            // Définir l'ordre des statuts
+            var statusOrder = [
+                'En attente de vérification',
+                'En attente de configuration',
+                'Configuré'
+            ];
+            
+            // Ajouter les groupes dans l'ordre spécifié
+            statusOrder.forEach(function(status) {
+                if (groupedDomains[status]) {
+                    addStatusGroup(status, groupedDomains[status]);
+                }
+            });
+            
+            // Ajouter les autres statuts non spécifiés, s'il y en a
             Object.keys(groupedDomains).forEach(function(status) {
-                addStatusGroup(status, groupedDomains[status]);
+                if (!statusOrder.includes(status)) {
+                    addStatusGroup(status, groupedDomains[status]);
+                }
             });
         });
     }
@@ -131,18 +149,33 @@
         }
     }
 
+    function addDomain(domain, registrar) {
+        $.post('{{ url_for("domains.add_domain") }}', {
+            domain: domain,
+            registrar: registrar
+        }, function(data) {
+            if (data.status === 'success') {
+                $('#domain').val(''); // Clear the input field
+                loadDomains(); // Reload the domain list
+                addMessage('Domaine ajouté avec succès', 'info');
+            } else {
+                addMessage("Erreur lors de l'ajout du domaine: " + data.message, 'danger');
+            }
+        }).fail(function() {
+            addMessage('Erreur de communication avec le serveur', 'danger');
+        });
+    }
+
     function addMessage(msg, type) {
-        var messageContainer = $('#messages'); // Assurez-vous d'avoir un conteneur pour les messages
-        var alertClass = type === 'info' ? 'alert alert-info' : 'alert alert-danger';
-        var message = $('<div>').addClass(alertClass).text(msg);
+        var messageContainer = $('#socket-messages');
+        var alertClass = type === 'info' ? 'alert-info' : 'alert-danger';
+        var message = $('<div>').addClass('alert ' + alertClass + ' alert-dismissible fade show').text(msg);
+        message.append('<button type="button" class="close" data-dismiss="alert">&times;</button>');
         
-        // Check if messageContainer exists before appending
-        if (messageContainer.length) {
-            messageContainer.append(message);
-            setTimeout(function() {
-                message.fadeOut(); // Optionnel : faire disparaître le message après un certain temps
-            }, 3000);
-        }
+        messageContainer.append(message);
+        setTimeout(function() {
+            message.alert('close');
+        }, 5000);
     }
 </script>
 {% endblock %}
