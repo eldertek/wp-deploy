@@ -88,6 +88,8 @@ def deploy_static(domain_name):
                 # Clear the static path
                 if not run_command(f"rm -rf {static_path}"):
                     raise Exception("Failed to clear static path")
+
+                socketio.emit("success", f"Déploiement réussi pour {domain_name}.")
             else:
                 socketio.emit("error", f"Aucun fichier ZIP trouvé dans {static_path}.")
                 return False
