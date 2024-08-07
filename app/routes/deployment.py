@@ -49,7 +49,6 @@ def deploy_all():
 @deployment_bp.route("/deploy_site", methods=["POST"])
 @login_required
 def deploy_site():
-    socketio.emit("message", "Déploiement en cours...")
     domain = request.json.get('domain')
     if domain.endswith("-static"):  # Exclude domains ending with -static
         return jsonify({"status": "error", "message": "Nom de domaine invalide"}), 400
