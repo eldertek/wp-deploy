@@ -1,7 +1,7 @@
-from flask import Blueprint, render_template, request, redirect, url_for, jsonify
+from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required
 from app.routes.domains import load_domains
-from app.utils.deployment import deploy_static, log_deployment, format_deployment_log
+from app.utils.deployment import deploy_static, log_deployment
 from app.utils.domain import configure_dns, check_dns
 from app.utils.wordpress import create_nginx_config, setup_ssl, install_wordpress
 from app import socketio
