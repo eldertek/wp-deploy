@@ -13,9 +13,9 @@ def debug():
         
         if action == "nginx":
             success = create_nginx_config(domain)
-            return jsonify({"status": "success" if success else "error", "message": "Action demandée au serveur."})
+            return jsonify({"status": "success" if success else "error", "message": "Action traitée par le serveur."})
         elif action == "ssl":
             success = setup_ssl(domain)
-            return jsonify({"status": "success" if success else "error", "message": "Action demandée au serveur."})
+            return jsonify({"status": "success" if success else "error", "message": "Action traitée par le serveur."})
         
     return render_template("debug.html")
