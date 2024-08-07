@@ -18,7 +18,7 @@
                 <option value="deploy">Déployer</option>
             </select>
         </div>
-        <button type="submit" class="btn btn-primary">Exécuter</button>
+        <button type="submit" class="btn btn-primary" id="executeButton">Exécuter</button>
     </form>
     <div id="result" class="mt-3"></div>
     <div id="socket-messages" class="mt-3"></div> <!-- Conteneur pour les messages de socket -->
@@ -28,7 +28,17 @@
     document.getElementById('debugForm').addEventListener('submit', function(event) {
         event.preventDefault();
         var formData = new FormData(this);
-        
+        var executeButton = document.getElementById('executeButton');
+        var actionSelect = document.getElementById('action');
+
+        // Disable buttons
+        executeButton.disabled = true;
+        actionSelect.disabled = true;
+
+        // Clear previous messages
+        document.getElementById('result').innerHTML = '';
+        document.getElementById('socket-messages').innerHTML = '';
+
         fetch("{{ url_for('debug.debug') }}", {
             method: "POST",
             body: formData
@@ -39,6 +49,11 @@
         })
         .catch(error => {
             document.getElementById('result').innerHTML = `<div class="alert alert-danger">Erreur: ${error}</div>`;
+        })
+        .finally(() => {
+            // Re-enable buttons
+            executeButton.disabled = false;
+            actionSelect.disabled = false;
         });
     });
 </script>
