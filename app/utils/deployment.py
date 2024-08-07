@@ -64,6 +64,10 @@ def deploy_static(domain_name):
                 if not run_command(f"unzip {os.path.join(static_path, first_zip)} -d {destination_path}"):
                     raise Exception("Failed to unzip file to destination path")
 
+                # Set ownership of the destination path to www-data
+                if not run_command(f"chown -R www-data:www-data {destination_path}", elevated=True):
+                    raise Exception("Failed to change ownership of destination path to www-data")
+
                 # Create Readme.md with deployment details
                 readme_content = f"# Deployment Info\n\nDomain: {domain_name}\n\nDate: {datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n"
                 with open(os.path.join(destination_path, "Readme.md"), "w") as readme_file:
