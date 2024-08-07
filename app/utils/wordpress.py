@@ -190,8 +190,6 @@ def install_wordpress(domain_name):
         ):
             raise Exception("Échec de la création de l'utilisateur administrateur simple")
 
-        socketio.emit("message", f"Utilisateur {simple_username} créé avec l'email {wordpress_admin_email} et le mot de passe {simple_password}.")
-
         # Update wp cli
         if not run_command(f"wp cli update --path={wp_path}", elevated=True):
             raise Exception("Échec de la mise à jour de wp cli")
@@ -226,8 +224,6 @@ def install_wordpress(domain_name):
             else:
                 raise Exception("Failed to update Elementor data")
 
-        socketio.emit("message", f"WordPress installé pour {domain_name}.")
-        
         # Disable noindex
         if not run_command(f"wp option update blog_public 1 --path={wp_path}"):
             raise Exception("Échec de la désactivation de noindex")
@@ -249,6 +245,9 @@ def install_wordpress(domain_name):
         else:
             socketio.emit("console", f"Échec de la désactivation du mode maintenance: {result}")
             raise Exception("Échec de la désactivation du mode maintenance")
+        
+        # Emit success message with user details
+        socketio.emit("message", f"WordPress installé pour {domain_name}. Utilisateur créé: {simple_username} avec l'email {wordpress_admin_email} et le mot de passe {simple_password}.")
         
         return True
     except Exception as e:
