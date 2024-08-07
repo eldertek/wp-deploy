@@ -13,18 +13,23 @@ def deploy_static(domain_name):
         static_path = f"{wp_path}/wp-content/uploads/simply-static/temp-files/"
         destination_path = f"/var/www/{domain_name}-static"
 
+        socketio.emit("console", f"Début du déploiement pour {domain_name}.")
+
         # Supprimer tous les fichiers dans le répertoire de destination
         if os.path.exists(destination_path):
+            socketio.emit("console", "Suppression des fichiers dans le répertoire de destination.")
             if not run_command(f"rm -rf {destination_path}/*", elevated=True):
                 raise Exception("Failed to clear static path")
 
         # Supprimer les fichiers temporaires
         if os.path.exists(static_path):
+            socketio.emit("console", "Suppression des fichiers temporaires.")
             if not run_command(f"rm -rf {static_path}", elevated=True):
                 raise Exception("Failed to remove static path")
 
         # Force Elementor data update
         try:
+            socketio.emit("console", "Mise à jour de la base de données Elementor.")
             run_command(f"wp elementor update db --path={wp_path}")
         except Exception as e:
             if "is not a registered wp command" in str(e):
@@ -34,27 +39,32 @@ def deploy_static(domain_name):
 
         # Try to activate Simply Static plugin
         try:
+            socketio.emit("console", "Activation du plugin Simply Static.")
             result = run_command(f"wp plugin activate simply-static --path={wp_path}", return_output=True)
             socketio.emit("console", f"Activation de Simply Static: {result}")
             result = run_command(f"wp plugin activate simply-static-pro --path={wp_path}", return_output=True)
             socketio.emit("console", f"Activation de Simply Static Pro: {result}")
         except Exception:
-            pass  # Ignore any exception during plugin activation
+            socketio.emit("console", "Erreur lors de l'activation des plugins, mais on continue.")
 
         # Run Simply Static export
+        socketio.emit("console", "Exécution de l'exportation Simply Static.")
         if not run_command(f"wp simply-static run --path={wp_path}"):
             raise Exception("Failed to run Simply Static export")
 
         # Check if the export was successful
         result = run_command(f"wp simply-static run --path={wp_path}", return_output=True)
         if "Success: Export Completed" in result:
+            socketio.emit("console", "Exportation réussie.")
             # Move the first zip file in static path to the destination and copy content if folder exists
             zip_files = [f for f in os.listdir(static_path) if f.endswith(".zip")]
             if zip_files:
                 first_zip = zip_files[0]
+                socketio.emit("console", f"Déplacement de {first_zip} vers le répertoire de destination.")
 
                 # Ensure the destination path exists and set permissions
                 if not os.path.exists(destination_path):
+                    socketio.emit("console", "Création du répertoire de destination.")
                     if not run_command(f"mkdir -p {destination_path}", elevated=True):
                         raise Exception("Failed to create destination path")
                     if not run_command(f"chown -R www-data:www-data {destination_path}", elevated=True):
@@ -72,6 +82,8 @@ def deploy_static(domain_name):
                 readme_content = f"# Deployment Info\n\nDomain: {domain_name}\n\nDate: {datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n"
                 with open(os.path.join(destination_path, "Readme.md"), "w") as readme_file:
                     readme_file.write(readme_content)
+
+                socketio.emit("console", "Création de Readme.md avec les détails du déploiement.")
 
                 # Clear the static path
                 if not run_command(f"rm -rf {static_path}"):
