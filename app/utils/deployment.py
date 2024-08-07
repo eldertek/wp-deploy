@@ -33,8 +33,12 @@ async def deploy_static_async(domain_name):
         # Supprimer les fichiers temporaires
         if os.path.exists(static_path):
             socketio.emit("console", "Suppression des fichiers temporaires.")
-            if not await run_command_async(f"rm -rf {static_path}", elevated=True):
-                raise Exception("Failed to remove static path")
+            try:
+                if not await run_command_async(f"rm -rf {static_path}", elevated=True):
+                    raise Exception("Failed to remove static path")
+            except Exception as e:
+                socketio.emit("error", f"Erreur lors de la suppression du chemin statique: {str(e)}")
+                raise  # Relancer l'exception pour le traitement ultérieur
 
         # Force Elementor data update
         try:
@@ -58,7 +62,7 @@ async def deploy_static_async(domain_name):
 
         # Run Simply Static export
         socketio.emit("console", "Exécution de l'exportation Simply Static.")
-        result = await run_command_async(f"wp simply-static run --path={wp_path}", return_output=True)
+        result = await run_command_async(f"wp simply-static run --path={wp_path}", return_output=True)  # Store result
         if "Success: Export Completed" in result:
             socketio.emit("console", "Exportation réussie.")
             # Move the first zip file in static path to the destination and copy content if folder exists
