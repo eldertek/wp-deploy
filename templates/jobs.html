@@ -50,7 +50,7 @@
         $('.run-job').on('click', function() {
             const jobName = $(this).data('job-name');
             $('#socket-messages').empty(); // Clear existing messages
-            addMessage(`Le travail "${jobName}" a été lancé. Veuillez patienter...`, 'info');
+            addMessage(`Le travail "${jobName}" a été lancé. Veuillez patienter... (cela peut prendre plusieurs minutes)`, 'info');
             $.post(`{{ url_for('site_management.run_job', job_name='') }}${jobName}`, function(data) {
                 addMessage(data.message, data.status);
             }).fail(function(jqXHR) {
