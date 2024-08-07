@@ -38,13 +38,14 @@
 <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 <script>
     $(document).ready(function() {
+        $.fn.dataTable.ext.type.order['date-fr-pre'] = function (date) {
+            return Date.parse(date);
+        };
+
         $('#deploymentsTable').DataTable({
-            "order": [[2, "desc"]], // Tri par la colonne de date (index 2)
+            "order": [[2, "desc"]],
             "columnDefs": [
-                {
-                    "targets": 2, // Cible la colonne de date
-                    "type": "date" // Indique que c'est une date
-                }
+                { "type": "date-fr", "targets": 2 }
             ],
             "language": {
                 url: '//cdn.datatables.net/plug-ins/2.0.8/i18n/fr-FR.json',
