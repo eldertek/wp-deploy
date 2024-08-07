@@ -1,4 +1,5 @@
 from apscheduler.schedulers.background import BackgroundScheduler
+from concurrent.futures import ThreadPoolExecutor
 import pytz
 from .deployment import deploy_static, log_deployment, update_sites_data
 import datetime
@@ -13,8 +14,6 @@ def create_scheduler():
     scheduler.add_job(update_sites_basic_data, 'interval', minutes=5)
     
     return scheduler
-
-from concurrent.futures import ThreadPoolExecutor
 
 def deploy_all_websites():
     start_time = datetime.datetime.now()

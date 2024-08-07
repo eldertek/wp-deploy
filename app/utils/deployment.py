@@ -13,7 +13,7 @@ def deploy_static(domain_name):
         static_path = f"{wp_path}/wp-content/uploads/simply-static/temp-files/"
         destination_path = f"/var/www/{domain_name}-static"
 
-        socketio.emit("console", f"Début du déploiement pour {domain_name}.")
+        socketio.emit("message", f"Début du déploiement pour {domain_name}.")
 
         # Supprimer tous les fichiers dans le répertoire de destination
         if os.path.exists(destination_path):
