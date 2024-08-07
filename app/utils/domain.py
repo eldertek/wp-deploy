@@ -59,18 +59,26 @@ def configure_dns(domain_name):
         existing_records = dns_client.list_records(domain_name).records
         existing_records_dict = {(record['name'], record['type']): record for record in existing_records}
 
+        # Iterate over DNS types to delete existing records
+        dns_types = ["A", "AAAA", "NS"]
+        for dns_type in dns_types:
+            for record in dns_records:
+                if record["type"] == dns_type:
+                    key = (record["name"], record["type"])
+                    if key in existing_records_dict:
+                        try:
+                            dns_client.remove_record(record["name"], record["type"], existing_records_dict[key]['value'])
+                            socketio.emit(
+                                "message",
+                                f'Enregistrement DNS {record["type"]} pour {record["name"]} supprimé.',
+                            )
+                        except Exception:
+                            pass  # Ignore errors during deletion
+
+        # Create new DNS records
         for record in dns_records:
             key = (record["name"], record["type"])
-            if key in existing_records_dict:
-                # Si l'enregistrement existe déjà, le mettre à jour
-                existing_record = existing_records_dict[key]
-                dns_client.update_record(record["name"], record["type"], existing_record['value'], record["value"])
-                socketio.emit(
-                    "message",
-                    f'Enregistrement DNS {record["type"]} pour {record["name"]} mis à jour à {record["value"]}.',
-                )
-            else:
-                # Sinon, ajouter un nouvel enregistrement
+            if key not in existing_records_dict:
                 dns_client.add_record(record["name"], record["type"], record["value"])
                 socketio.emit(
                     "message",
