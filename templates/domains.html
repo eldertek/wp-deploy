@@ -86,7 +86,7 @@
         var actionsCell = $('<td>');
         
         if (domain.status === 'En attente de vérification') {
-            actionsCell.append($('<button>').addClass('btn btn-sm btn-warning').text('Vérifier').click(function() {
+            actionsCell.append($('<button>').addClass('btn btn-sm btn-warning mr-2').text('Vérifier').click(function() {
                 configureDomain(domain.name);
             }));
         } else if (domain.status !== 'Configuré') {
