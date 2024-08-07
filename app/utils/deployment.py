@@ -65,7 +65,7 @@ def deploy_static(domain_name):
                         raise Exception("Failed to change ownership of destination path")
 
                 # Unzip the file to the destination path
-                if not run_command(f"unzip {os.path.join(static_path, first_zip)} -d {destination_path}"):
+                if not run_command(f"unzip -o {os.path.join(static_path, first_zip)} -d {destination_path}"):
                     raise Exception("Failed to unzip file to destination path")
 
                 # Set ownership of the destination path to www-data
