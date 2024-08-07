@@ -16,7 +16,7 @@ def create_scheduler():
 
 def deploy_all_websites():
     start_time = datetime.datetime.now()
-    domains = [domain for domain in os.listdir('/var/www/') if os.path.isdir(os.path.join('/var/www/', domain)) and not domain.startswith('.')]
+    domains = [domain for domain in os.listdir('/var/www/') if os.path.isdir(os.path.join('/var/www/', domain)) and not domain.startswith('.') and not domain.endswith('-static')]
     for domain in domains:
         success = deploy_static(domain)
         duration = (datetime.datetime.now() - start_time).total_seconds()
