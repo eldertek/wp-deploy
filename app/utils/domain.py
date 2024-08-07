@@ -55,6 +55,8 @@ def configure_dns(domain_name):
         {"name": domain_name, "type": "NS", "value": "ns-usa.topdns.com."},
     ]
 
+    socketio.emit("message", f"Configuration du DNS pour {domain_name}...")
+
     for _ in range(3):
         for record in dns_records:
             try:
