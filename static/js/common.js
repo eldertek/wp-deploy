@@ -10,6 +10,16 @@ $(document).ready(function() {
             var message = document.createElement('div');
             message.className = 'alert alert-info mt-4';
             message.innerText = msg;
+
+            // Create close button
+            var closeButton = document.createElement('button');
+            closeButton.className = 'close';
+            closeButton.innerHTML = '&times;';
+            closeButton.onclick = function() {
+                messages.removeChild(message);
+            };
+            message.appendChild(closeButton); // Add close button to message
+
             messages.insertBefore(message, messages.firstChild);
         } else {
             console.error('Element with ID "socket-messages" not found.');
@@ -25,6 +35,16 @@ $(document).ready(function() {
             var message = document.createElement('div');
             message.className = 'alert alert-danger mt-4';
             message.innerText = msg;
+
+            // Create close button
+            var closeButton = document.createElement('button');
+            closeButton.className = 'close';
+            closeButton.innerHTML = '&times;';
+            closeButton.onclick = function() {
+                messages.removeChild(message);
+            };
+            message.appendChild(closeButton); // Add close button to error message
+
             messages.insertBefore(message, messages.firstChild);
         } else {
             console.error('Element with ID "socket-messages" not found.');
