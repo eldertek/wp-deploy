@@ -141,7 +141,7 @@ def update_sites_data(indexed=False):
 
     domains = [
         domain for domain in os.listdir("/var/www/")
-        if os.path.isdir(os.path.join("/var/www/", domain)) and not domain.startswith(".")
+        if os.path.isdir(os.path.join("/var/www/", domain)) and not domain.startswith(".") and not domain.endswith("-static")
     ]
 
     for domain in domains:
