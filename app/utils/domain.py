@@ -56,7 +56,7 @@ def configure_dns(domain_name):
     ]
 
     try:
-        existing_records = dns_client.list_records(domain_name)  # Récupérer les enregistrements existants
+        existing_records = dns_client.list_records(domain_name).records
         existing_records_dict = {(record['name'], record['type']): record for record in existing_records}
 
         for record in dns_records:
