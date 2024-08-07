@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Débogage{% endblock %}
+
+{% block content %}
+<div class="card shadow-lg p-4 mb-4 w-100">
+    <h1 class="card-title">Débogage</h1>
+    <form id="debugForm">
+        <div class="form-group">
+            <label for="domain">Nom de domaine</label>
+            <input type="text" class="form-control" id="domain" name="domain" required>
+        </div>
+        <div class="form-group">
+            <label for="action">Action</label>
+            <select class="form-control" id="action" name="action" required>
+                <option value="nginx">Configurer Nginx</option>
+                <option value="ssl">Configurer SSL</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Exécuter</button>
+    </form>
+    <div id="result" class="mt-3"></div>
+</div>
+
+<script>
+    document.getElementById('debugForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        var formData = new FormData(this);
+        
+        fetch("{{ url_for('debug.debug') }}", {
+            method: "POST",
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('result').innerHTML = `<div class="alert alert-${data.status}">${data.message}</div>`;
+        })
+        .catch(error => {
+            document.getElementById('result').innerHTML = `<div class="alert alert-danger">Erreur: ${error}</div>`;
+        });
+    });
+</script>
+{% endblock %}
