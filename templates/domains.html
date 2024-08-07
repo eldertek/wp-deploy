@@ -18,18 +18,20 @@
 
     <!-- Liste des domaines -->
     <h2>Domaines enregistrés</h2>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Domaine</th>
-                <th>Statut</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody id="domainList">
-            <!-- Les domaines seront ajoutés ici dynamiquement -->
-        </tbody>
-    </table>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Domaine</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="domainList">
+                <!-- Les domaines seront ajoutés ici dynamiquement -->
+            </tbody>
+        </table>
+    </div>
     <div id="socket-messages"></div> <!-- Added container for socket messages -->
 </div>
 {% endblock %}
@@ -56,26 +58,28 @@
 
     function loadDomains() {
         $.get('{{ url_for("domains.get_domains") }}', function(data) {
+            var groupedDomains = groupDomainsByStatus(data.domains);
             $('#domainList').empty();
-            data.domains.forEach(function(domain) {
-                addDomainToList(domain);
+            Object.keys(groupedDomains).forEach(function(status) {
+                addStatusGroup(status, groupedDomains[status]);
             });
         });
     }
 
-    function addDomain(domain, registrar) {
-        $.post('{{ url_for("domains.add_domain") }}', {
-            domain: domain,
-            registrar: registrar
-        }, function(data) {
-            if (data.status === 'success') {
-                addDomainToList(data.domain);
-                $('#domain').val('');
-            } else if (data.status === 'error' && data.message === 'Domaine déjà existant') {
-                alert('Le domaine est déjà dans la liste.');
-            } else {
-                alert('Erreur lors de l\'ajout du domaine: ' + data.message);
-            }
+    function groupDomainsByStatus(domains) {
+        return domains.reduce(function(acc, domain) {
+            (acc[domain.status] = acc[domain.status] || []).push(domain);
+            return acc;
+        }, {});
+    }
+
+    function addStatusGroup(status, domains) {
+        var statusRow = $('<tr>').addClass('table-secondary');
+        statusRow.append($('<td colspan="3">').text(status).addClass('font-weight-bold'));
+        $('#domainList').append(statusRow);
+        
+        domains.forEach(function(domain) {
+            addDomainToList(domain);
         });
     }
 
@@ -95,7 +99,6 @@
             }));
         }
         
-        // Ajout du bouton de suppression avec une marge
         actionsCell.append($('<button>').addClass('btn btn-sm btn-danger').text('Supprimer').click(function() {
             deleteDomain(domain.name);
         }));
