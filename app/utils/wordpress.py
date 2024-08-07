@@ -92,7 +92,7 @@ def setup_ssl(domain_name):
 
         # Install Certbot and obtain SSL certificate for both bo.domain_name and domain_name
         result = run_command(
-            f"certbot --nginx -d bo.{domain_name} -d {domain_name} --non-interactive --agree-tos -m {registrant_email}",
+            f"certbot --nginx --expand -d bo.{domain_name} -d {domain_name} --non-interactive --agree-tos -m {registrant_email}",
             elevated=True,
             return_output=True
         )
