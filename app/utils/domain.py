@@ -55,29 +55,16 @@ def configure_dns(domain_name):
         {"name": domain_name, "type": "NS", "value": "ns-usa.topdns.com."},
     ]
 
+    for _ in range(3):
+        for record in dns_records:
+            try:
+                dns_client.remove_record(record["name"], record["type"])
+            except Exception:
+                pass
+
     try:
-        existing_records = dns_client.list_records(domain_name).records
-        existing_records_dict = {(record['name'], record['type']): record for record in existing_records}
-
-        # Iterate over DNS types to delete existing records
-        dns_types = ["A", "AAAA", "NS"]
-        for dns_type in dns_types:
-            for record in dns_records:
-                if record["type"] == dns_type:
-                    key = (record["name"], record["type"])
-                    if key in existing_records_dict:
-                        try:
-                            dns_client.remove_record(record["name"], record["type"], existing_records_dict[key]['value'])
-                            socketio.emit(
-                                "message",
-                                f'Enregistrement DNS {record["type"]} pour {record["name"]} supprimé.',
-                            )
-                        except Exception:
-                            pass  # Ignore errors during deletion
-
         # Create new DNS records
         for record in dns_records:
-            key = (record["name"], record["type"])
             dns_client.add_record(record["name"], record["type"], record["value"])
             socketio.emit(
                 "message",
