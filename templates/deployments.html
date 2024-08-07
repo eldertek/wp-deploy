@@ -39,7 +39,13 @@
 <script>
     $(document).ready(function() {
         $('#deploymentsTable').DataTable({
-            "order": [[2, "asc"]],
+            "order": [[2, "desc"]], // Tri par la colonne de date (index 2)
+            "columnDefs": [
+                {
+                    "targets": 2, // Cible la colonne de date
+                    "type": "date" // Indique que c'est une date
+                }
+            ],
             "language": {
                 url: '//cdn.datatables.net/plug-ins/2.0.8/i18n/fr-FR.json',
             }
