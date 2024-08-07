@@ -14,13 +14,19 @@ def create_scheduler():
     
     return scheduler
 
+from concurrent.futures import ThreadPoolExecutor
+
 def deploy_all_websites():
     start_time = datetime.datetime.now()
     domains = [domain for domain in os.listdir('/var/www/') if os.path.isdir(os.path.join('/var/www/', domain)) and not domain.startswith('.') and not domain.endswith('-static')]
-    for domain in domains:
-        success = deploy_static(domain)
-        duration = (datetime.datetime.now() - start_time).total_seconds()
-        log_deployment(domain, success, duration)
+    
+    # Use ThreadPoolExecutor to deploy websites in parallel
+    with ThreadPoolExecutor() as executor:
+        futures = {executor.submit(deploy_static, domain): domain for domain in domains}
+        for future in futures:
+            success = future.result()  # Get the result of the deployment
+            duration = (datetime.datetime.now() - start_time).total_seconds()
+            log_deployment(futures[future], success, duration)
 
 def update_indexed_articles():
     update_sites_data(indexed=True)
