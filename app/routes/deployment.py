@@ -4,7 +4,6 @@ from app.routes.domains import load_domains
 from app.utils.deployment import deploy_static, log_deployment, format_deployment_log
 from app.utils.domain import configure_dns, check_dns
 from app.utils.wordpress import create_nginx_config, setup_ssl, install_wordpress
-from app.utils.git import initialize_git_repo
 from app import socketio
 import datetime
 import os
@@ -90,12 +89,6 @@ def setup_ssl_route():
 def install_wordpress_route():
     domain_name = request.form.get("domain")
     return handle_deployment_route(domain_name, install_wordpress)
-
-@deployment_bp.route("/initialize_git_repo", methods=["POST"])
-@login_required
-def initialize_git_repo_route():
-    domain_name = request.form.get("domain")
-    return handle_deployment_route(domain_name, initialize_git_repo)
 
 @deployment_bp.route("/deploy_static", methods=["POST"])
 @login_required

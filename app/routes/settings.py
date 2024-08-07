@@ -41,10 +41,6 @@ def settings():
             settings["internetbs_password"] = request.form.get(
                 "internetbs_password", "testpass"
             ).strip()
-            settings["github_username"] = request.form.get(
-                "github_username", ""
-            ).strip()
-            settings["github_token"] = request.form.get("github_token", "").strip()
             settings["test_mode"] = "test_mode" in request.form
             settings["wordpress_admin_email"] = request.form.get("wordpress_admin_email", "").strip()
 

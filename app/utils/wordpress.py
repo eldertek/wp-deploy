@@ -8,61 +8,80 @@ import shlex
 
 def create_nginx_config(domain_name):
     try:
-        config_path = f"/etc/nginx/sites-available/bo.{domain_name}"
+        config_path = f"/etc/nginx/sites-available/{domain_name}"
 
         # Create a temporary file for the Nginx config
         temp_config_path = f"/tmp/nginx_config_{domain_name}.conf"
         with open(temp_config_path, "w") as temp_config_file:
             temp_config_file.write(
                 f"""
-            server {{
-                listen 80;
-                server_name bo.{domain_name};
+server {{
+    listen 80;
+    server_name bo.{domain_name};
 
-                root /var/www/{domain_name};
-                index index.php index.html index.htm;
+    root /var/www/{domain_name};
+    index index.php index.html index.htm;
 
-                location / {{
-                    try_files $uri $uri/ /index.php?$args;
-                }}
+    location / {{
+        try_files $uri $uri/ /index.php?$args;
+    }}
 
-                location ~ \.php$ {{
-                    include snippets/fastcgi-php.conf;
-                    fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
-                }}
+    location ~ \.php$ {{
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+    }}
 
-                location ~ /\.ht {{
-                    deny all;
-                }}
+    location ~ /\.ht {{
+        deny all;
+    }}
 
-                # Security headers
-                add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
-                add_header X-Frame-Options "SAMEORIGIN" always;
-                add_header X-Content-Type-Options "nosniff" always;
-                add_header Referrer-Policy "no-referrer-when-downgrade" always;
-                add_header Permissions-Policy "geolocation=(), microphone=(), camera=()" always;
-            }}
-            """
+    # Security headers
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "no-referrer-when-downgrade" always;
+    add_header Permissions-Policy "geolocation=(), microphone=(), camera=()" always;
+}}
+
+server {{
+    listen 80;
+    server_name {domain_name};
+
+    root /var/www/{domain_name}-static;  # Configuration pour le domaine principal
+    index index.html index.htm;
+
+    location / {{
+        try_files $uri $uri/ =404;
+    }}
+
+    # Security headers
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "no-referrer-when-downgrade" always;
+    add_header Permissions-Policy "geolocation=(), microphone=(), camera=()" always;
+}}
+                """
             )
 
         # Move the temporary file to the Nginx config directory with elevated privileges
         run_command(f"mv {temp_config_path} {config_path}", elevated=True)
 
-        if os.path.exists(f"/etc/nginx/sites-enabled/bo.{domain_name}"):
-            run_command(f"rm /etc/nginx/sites-enabled/bo.{domain_name}", elevated=True)
+        if os.path.exists(f"/etc/nginx/sites-enabled/{domain_name}"):
+            run_command(f"rm /etc/nginx/sites-enabled/{domain_name}", elevated=True)
 
         run_command(
-            f"ln -s {config_path} /etc/nginx/sites-enabled/bo.{domain_name}",
+            f"ln -s {config_path} /etc/nginx/sites-enabled/{domain_name}",
             elevated=True,
         )
         run_command("systemctl reload nginx", elevated=True)
-        socketio.emit("message", f"Configuration Nginx pour bo.{domain_name} créée.")
+        socketio.emit("message", f"Configuration Nginx pour {domain_name} créée.")
 
         return True
     except Exception as e:
         socketio.emit(
             "error",
-            f"Erreur lors de la création de la configuration Nginx pour bo.{domain_name}: {str(e)}",
+            f"Erreur lors de la création de la configuration Nginx pour {domain_name}: {str(e)}",
         )
         return False
 
@@ -71,21 +90,21 @@ def setup_ssl(domain_name):
         settings = load_settings()
         registrant_email = settings["registrant"]["email"]
 
-        # Install Certbot and obtain SSL certificate
+        # Install Certbot and obtain SSL certificate for both bo.domain_name and domain_name
         result = run_command(
-            f"certbot --nginx -d bo.{domain_name} --non-interactive --agree-tos -m {registrant_email}",
+            f"certbot --nginx -d bo.{domain_name} -d {domain_name} --non-interactive --agree-tos -m {registrant_email}",
             elevated=True,
             return_output=True
         )
         if "Some challenges have failed" in result:
             raise Exception("Les défis ont échoué")
         
-        socketio.emit("message", f"SSL configuré pour bo.{domain_name}.")
+        socketio.emit("message", f"SSL configuré pour bo.{domain_name} et {domain_name}.")
         return True
     except Exception as e:
         socketio.emit(
             "console",
-            f"Erreur lors de la configuration SSL pour bo.{domain_name}: {str(e)}",
+            f"Erreur lors de la configuration SSL pour bo.{domain_name} et {domain_name}: {str(e)}",
         )
         return False
 

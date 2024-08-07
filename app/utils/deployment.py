@@ -11,7 +11,14 @@ def deploy_static(domain_name):
     try:
         wp_path = f"/var/www/{domain_name}"
         static_path = f"{wp_path}/wp-content/uploads/simply-static/temp-files/"
+        destination_path = f"/var/www/{domain_name}-static"
 
+        # Supprimer tous les fichiers dans le répertoire de destination
+        if os.path.exists(destination_path):
+            if not run_command(f"rm -rf {destination_path}/*", elevated=True):
+                raise Exception("Failed to clear static path")
+
+        # Supprimer les fichiers temporaires
         if os.path.exists(static_path):
             if not run_command(f"rm -rf {static_path}", elevated=True):
                 raise Exception("Failed to remove static path")
@@ -45,9 +52,6 @@ def deploy_static(domain_name):
             zip_files = [f for f in os.listdir(static_path) if f.endswith(".zip")]
             if zip_files:
                 first_zip = zip_files[0]
-                folder_name = first_zip[:-4]  # Remove the .zip extension to get the folder name
-                folder_path = os.path.join(static_path, folder_name)
-                destination_path = f"/opt/websites/{domain_name}"
 
                 # Ensure the destination path exists and set permissions
                 if not os.path.exists(destination_path):
@@ -56,22 +60,14 @@ def deploy_static(domain_name):
                     if not run_command(f"chown -R www-data:www-data {destination_path}", elevated=True):
                         raise Exception("Failed to change ownership of destination path")
 
-                # Check if the folder with the same name as the zip file exists
-                if os.path.exists(folder_path) and os.path.isdir(folder_path):
-                    if not run_command(f"cp -r {folder_path}/* {destination_path}", elevated=True):
-                        raise Exception("Failed to copy folder contents to destination path")
-                else:
-                    if not run_command(f"unzip {os.path.join(static_path, first_zip)} -d {destination_path}"):
-                        raise Exception("Failed to unzip file to destination path")
+                # Unzip the file to the destination path
+                if not run_command(f"unzip {os.path.join(static_path, first_zip)} -d {destination_path}"):
+                    raise Exception("Failed to unzip file to destination path")
 
                 # Create Readme.md with deployment details
                 readme_content = f"# Deployment Info\n\nDomain: {domain_name}\n\nDate: {datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n"
                 with open(os.path.join(destination_path, "Readme.md"), "w") as readme_file:
                     readme_file.write(readme_content)
-
-                # Add, commit, and push changes to the git repository, forcing the push even if the tree is clean or up-to-date
-                if not run_command(f"cd {destination_path} && git add . && git commit -m 'Deploy static site' && git push --force"):
-                    raise Exception("Failed to push changes to git repository")
 
                 # Clear the static path
                 if not run_command(f"rm -rf {static_path}"):
