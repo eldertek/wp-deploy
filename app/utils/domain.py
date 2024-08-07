@@ -59,7 +59,10 @@ def configure_dns(domain_name):
     socketio.emit("message", f"Configuration du DNS pour {domain_name}...")
 
     # On supprime tous les hosts
-    socketio.emit("console", "Hotes: " + str(host_client.list_hosts()))
+    try:
+        socketio.emit("console", "Hotes: " + str(host_client.list_hosts()))
+    except Exception as e:
+        socketio.emit("error", f"Erreur lors de la récupération des hôtes: {str(e)}")
 
     for _ in range(3):
         for record in dns_records:
