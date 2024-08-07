@@ -1,4 +1,4 @@
-from internetbs import Domain, DNS
+from internetbs import Domain, DNS, Host
 from app import socketio
 from .settings import load_settings
 import dns.resolver
@@ -10,6 +10,7 @@ test_mode = settings["test_mode"]
 
 domain_client = Domain(api_key, password, test_mode)
 dns_client = DNS(api_key, password, test_mode)
+host_client = Host(api_key, password, test_mode)
 
 def is_domain_owned(domain_name):
     socketio.emit(
@@ -56,6 +57,9 @@ def configure_dns(domain_name):
     ]
 
     socketio.emit("message", f"Configuration du DNS pour {domain_name}...")
+
+    # On supprime tous les hosts
+    socketio.emit("console", "Hotes: " + str(host_client.list_hosts()))
 
     for _ in range(3):
         for record in dns_records:
