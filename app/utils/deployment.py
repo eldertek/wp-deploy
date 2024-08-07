@@ -6,8 +6,23 @@ from app import socketio
 from .system import run_command
 from .wordpress import get_published_articles
 from .settings import save_sites_data
+import asyncio
 
-def deploy_static(domain_name):
+async def run_command_async(command, elevated=False):
+    if elevated:
+        command = f"sudo -s {command}"
+    process = await asyncio.create_subprocess_shell(
+        command,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE
+    )
+    stdout, stderr = await process.communicate()
+    if process.returncode != 0:
+        socketio.emit("console", f"Erreur: {stderr.decode()}")
+        return False
+    return stdout.decode()
+
+async def deploy_static_async(domain_name):
     try:
         wp_path = f"/var/www/{domain_name}"
         static_path = f"{wp_path}/wp-content/uploads/simply-static/temp-files/"
@@ -18,13 +33,13 @@ def deploy_static(domain_name):
         # Supprimer les fichiers temporaires
         if os.path.exists(static_path):
             socketio.emit("console", "Suppression des fichiers temporaires.")
-            if not run_command(f"rm -rf {static_path}", elevated=True):
+            if not await run_command_async(f"rm -rf {static_path}", elevated=True):
                 raise Exception("Failed to remove static path")
 
         # Force Elementor data update
         try:
             socketio.emit("console", "Mise à jour de la base de données Elementor.")
-            run_command(f"wp elementor update db --path={wp_path}")
+            await run_command_async(f"wp elementor update db --path={wp_path}")
         except Exception as e:
             if "is not a registered wp command" in str(e):
                 socketio.emit("console", "Elementor command not found, skipping Elementor data update.")
@@ -34,20 +49,16 @@ def deploy_static(domain_name):
         # Try to activate Simply Static plugin
         try:
             socketio.emit("console", "Activation du plugin Simply Static.")
-            result = run_command(f"wp plugin activate simply-static --path={wp_path}", return_output=True)
+            result = await run_command_async(f"wp plugin activate simply-static --path={wp_path}", return_output=True)
             socketio.emit("console", f"Activation de Simply Static: {result}")
-            result = run_command(f"wp plugin activate simply-static-pro --path={wp_path}", return_output=True)
+            result = await run_command_async(f"wp plugin activate simply-static-pro --path={wp_path}", return_output=True)
             socketio.emit("console", f"Activation de Simply Static Pro: {result}")
         except Exception:
             socketio.emit("console", "Erreur lors de l'activation des plugins, mais on continue.")
 
         # Run Simply Static export
         socketio.emit("console", "Exécution de l'exportation Simply Static.")
-        if not run_command(f"wp simply-static run --path={wp_path}"):
-            raise Exception("Failed to run Simply Static export")
-
-        # Check if the export was successful
-        result = run_command(f"wp simply-static run --path={wp_path}", return_output=True)
+        result = await run_command_async(f"wp simply-static run --path={wp_path}", return_output=True)
         if "Success: Export Completed" in result:
             socketio.emit("console", "Exportation réussie.")
             # Move the first zip file in static path to the destination and copy content if folder exists
@@ -59,17 +70,17 @@ def deploy_static(domain_name):
                 # Ensure the destination path exists and set permissions
                 if not os.path.exists(destination_path):
                     socketio.emit("console", "Création du répertoire de destination.")
-                    if not run_command(f"mkdir -p {destination_path}", elevated=True):
+                    if not await run_command_async(f"mkdir -p {destination_path}", elevated=True):
                         raise Exception("Failed to create destination path")
-                    if not run_command(f"chown -R www-data:www-data {destination_path}", elevated=True):
+                    if not await run_command_async(f"chown -R www-data:www-data {destination_path}", elevated=True):
                         raise Exception("Failed to change ownership of destination path")
 
                 # Unzip the file to the destination path
-                if not run_command(f"unzip -o {os.path.join(static_path, first_zip)} -d {destination_path}"):
+                if not await run_command_async(f"unzip -o {os.path.join(static_path, first_zip)} -d {destination_path}"):
                     raise Exception("Failed to unzip file to destination path")
 
                 # Set ownership of the destination path to www-data
-                if not run_command(f"chown -R www-data:www-data {destination_path}", elevated=True):
+                if not await run_command_async(f"chown -R www-data:www-data {destination_path}", elevated=True):
                     raise Exception("Failed to change ownership of destination path to www-data")
 
                 # Create Readme.md with deployment details
@@ -80,7 +91,7 @@ def deploy_static(domain_name):
                 socketio.emit("console", "Création de Readme.md avec les détails du déploiement.")
 
                 # Clear the static path
-                if not run_command(f"rm -rf {static_path}"):
+                if not await run_command_async(f"rm -rf {static_path}"):
                     raise Exception("Failed to clear static path")
 
                 socketio.emit("success", f"Déploiement réussi pour {domain_name}.")
@@ -96,6 +107,9 @@ def deploy_static(domain_name):
             "error", f"Erreur lors du déploiement statique pour {domain_name}: {str(e)}"
         )
         return False
+
+def deploy_static(domain_name):
+    return asyncio.run(deploy_static_async(domain_name))
 
 def log_deployment(domain_name, success, duration):
     log_entry = {
