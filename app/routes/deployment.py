@@ -62,9 +62,6 @@ def deployments():
     if os.path.exists(log_path):
         with open(log_path, "r") as log_file:
             deployments = json.load(log_file)
-            deployments = [
-                format_deployment_log(deployment) for deployment in deployments
-            ]
     else:
         deployments = []
     return render_template("deployments.html", deployments=deployments)

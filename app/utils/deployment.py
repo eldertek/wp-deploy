@@ -114,13 +114,6 @@ def log_deployment(domain_name, success, duration):
         "chown www-data:www-data data/deployments.json", elevated=True
     )  # Ensure ownership
 
-def format_deployment_log(deployment):
-    deployment["time"] = datetime.datetime.fromtimestamp(deployment["time"]).strftime(
-        "%d/%m/%Y %H:%M:%S"
-    )
-    deployment["duration"] = f"{deployment['duration']:.2f}"
-    return deployment
-
 def get_indexed_articles(domain_name):
     api_key = "33cef647-1f76-4604-927d-e7f0d5b93205"
     url = f"https://api.spaceserp.com/google/search?apiKey={api_key}&q=site%3A{domain_name}&location=Lyon%2CAuvergne-Rhone-Alpes%2CFrance&domain=google.fr&gl=fr&hl=fr&resultFormat=json&resultBlocks=total_results_count"
