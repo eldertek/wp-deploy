@@ -3,24 +3,9 @@ import json
 import datetime
 import requests
 from app import socketio
-from .system import run_command
+from .system import run_command, run_command_async
 from .wordpress import get_published_articles
 from .settings import save_sites_data
-import asyncio
-
-async def run_command_async(command, elevated=False):
-    if elevated:
-        command = f"sudo -s {command}"
-    process = await asyncio.create_subprocess_shell(
-        command,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE
-    )
-    stdout, stderr = await process.communicate()
-    if process.returncode != 0:
-        socketio.emit("console", f"Erreur: {stderr.decode()}")
-        return False
-    return stdout.decode()
 
 async def deploy_static_async(domain_name):
     try:
@@ -33,12 +18,8 @@ async def deploy_static_async(domain_name):
         # Supprimer les fichiers temporaires
         if os.path.exists(static_path):
             socketio.emit("console", "Suppression des fichiers temporaires.")
-            try:
-                if not await run_command_async(f"rm -rf {static_path}", elevated=True):
-                    raise Exception("Failed to remove static path")
-            except Exception as e:
-                socketio.emit("error", f"Erreur lors de la suppression du chemin statique: {str(e)}")
-                raise  # Relancer l'exception pour le traitement ultérieur
+            if not await run_command_async(f"rm -rf {static_path}", elevated=True):
+                raise Exception("Failed to remove static path")
 
         # Force Elementor data update
         try:
