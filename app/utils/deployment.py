@@ -15,12 +15,6 @@ def deploy_static(domain_name):
 
         socketio.emit("message", f"Début du déploiement pour {domain_name}.")
 
-        # Supprimer tous les fichiers dans le répertoire de destination
-        if os.path.exists(destination_path):
-            socketio.emit("console", "Suppression des fichiers dans le répertoire de destination.")
-            if not run_command(f"rm -rf {destination_path}/*", elevated=True):
-                raise Exception("Failed to clear static path")
-
         # Supprimer les fichiers temporaires
         if os.path.exists(static_path):
             socketio.emit("console", "Suppression des fichiers temporaires.")
