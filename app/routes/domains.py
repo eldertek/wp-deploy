@@ -51,15 +51,21 @@ def add_domain():
 @login_required
 def configure_domain():
     domain = request.form.get("domain")
-    
-    if configure_dns(domain):
+    domains = load_domains()
+    current_status = next((d["status"] for d in domains if d["name"] == domain), None)
+
+    if current_status == "En attente de vérification":
         if check_dns(domain):
             update_domain_status(domain, "Configuré")
             return jsonify({"status": "success"})
         else:
-            return jsonify({"status": "error", "message": "La configuration DNS n'a pas pu être vérifiée. Il peut-être nécessaire de réessayer plus tard."})
+            return jsonify({"status": "error", "message": "Le DNS n'est pas encore configuré."})
     else:
-        return jsonify({"status": "error", "message": "Erreur lors de la configuration DNS."})
+        if configure_dns(domain):
+            update_domain_status(domain, "En attente de vérification")
+            return jsonify({"status": "success"})
+        else:
+            return jsonify({"status": "error", "message": "Erreur lors de la configuration DNS."})
 
 @domains_bp.route("/domains/delete", methods=["POST"])
 @login_required
