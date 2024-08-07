@@ -60,7 +60,7 @@ def configure_dns(domain_name):
 
     # On supprime tous les hosts
     try:
-        socketio.emit("console", "Hotes: " + str(host_client.list_hosts()))
+        socketio.emit("console", "Hotes: " + str(host_client.list_hosts(domain_name)))
     except Exception as e:
         socketio.emit("error", f"Erreur lors de la récupération des hôtes: {str(e)}")
 
