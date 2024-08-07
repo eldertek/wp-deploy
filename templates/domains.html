@@ -91,8 +91,8 @@
 
         // Create rows for each status group
         for (const status in groupedDomains) {
-            // Add a header row for the status
-            $('#domainList').append($('<tr>').append($('<td colspan="3" class="font-weight-bold">').text(status)));
+            // Add a header row for the status with Bootstrap styling
+            $('#domainList').append($('<tr>').append($('<td colspan="3" class="table-primary font-weight-bold text-center">').text(status)));
 
             // Add each domain under the status
             groupedDomains[status].forEach(domain => {
