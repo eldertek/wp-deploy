@@ -53,8 +53,15 @@ def deploy_site():
 def deployments():
     log_path = "data/deployments.json"
     if os.path.exists(log_path):
-        with open(log_path, "r") as log_file:
-            deployments = json.load(log_file)
+        try:
+            with open(log_path, "r") as log_file:
+                deployments = json.load(log_file)
+        except json.JSONDecodeError:
+            # Initialize the JSON file if it is invalid or does not exist
+            deployments = []
+            with open(log_path, "w") as log_file:
+                json.dump(deployments, log_file, indent=4)
+            socketio.emit("error", "Le fichier de log est corrompu ou vide. Un nouveau fichier a été créé.")
     else:
         deployments = []
     return render_template("deployments.html", deployments=deployments)
