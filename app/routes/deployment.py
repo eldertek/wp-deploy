@@ -26,7 +26,6 @@ def handle_deployment_route(domain_name, deployment_function):
 @deployment_bp.route("/deploy_all", methods=["POST"])
 @login_required
 def deploy_all():
-    start_time = datetime.datetime.now()
     domains = [
         domain
         for domain in os.listdir("/var/www/")
