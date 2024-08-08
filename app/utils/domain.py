@@ -95,13 +95,13 @@ def check_dns(domain_name):
             if not any(rdata.to_text() == record["value"] for rdata in answers):
                 socketio.emit(
                     "error",
-                    f'Enregistrement DNS {record["type"]} pour {record["name"]} avec valeur {record["value"]} est manquant ou incorrect.'
+                    f'Enregistrement DNS {record["type"]} pour {record["name"]} avec valeur {record["value"]} est manquant ou incorrect. Il peut être nécessaire d\'attendre la propagation DNS.'
                 )
                 return False
         return True
     except Exception as e:
         error_message = f"Erreur lors de la vérification DNS pour {domain_name}: {str(e)}"
-        if "The DNS query name does not exist" in str(e):
+        if "The DNS response does not contain an answer to the question" in str(e):
             error_message = f"La configuration DNS pour {domain_name} est incorrecte. Si vous venez de configurer le DNS, attendez quelques heures et réessayez."
         socketio.emit("error", error_message)
         socketio.emit("console", f"Erreur lors de la vérification DNS pour {domain_name}: {str(e)}")
