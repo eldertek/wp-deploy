@@ -56,9 +56,6 @@ def deployments():
         try:
             with open(log_path, "r") as log_file:
                 deployments = json.load(log_file)
-                # Format the timestamp for each deployment
-                for deployment in deployments:
-                    deployment['time'] = datetime.datetime.fromtimestamp(deployment['time']).strftime('%d/%m/%Y - %Hh%M')
         except json.JSONDecodeError:
             # Initialize the JSON file if it is invalid or does not exist
             deployments = []

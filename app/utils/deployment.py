@@ -104,6 +104,7 @@ def log_deployment(domain_name, success, duration):
         "domain": domain_name,
         "success": success,
         "timestamp": int(datetime.datetime.now().timestamp()),
+        "time": datetime.datetime.now().strftime('%d/%m/%Y - %Hh%M'),
         "duration": round(duration, 2),
     }
     log_path = "data/deployments.json"
