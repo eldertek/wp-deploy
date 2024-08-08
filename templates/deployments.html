@@ -22,7 +22,7 @@
                     <td>{{ deployment.domain }}</td>
                     <td>{{ 'Oui' if deployment.success else 'Non' }}</td>
                     <td>{{ deployment.time }}</td>
-                    <td>{{ deployment.time.strftime('%d/%m/%Y - %Hh%M') }}</td>
+                    <td>{{ deployment.time }}</td>
                     <td>{{ deployment.duration }}</td>
                 </tr>
                 {% endfor %}
