@@ -23,7 +23,7 @@
                     <td>{{ 'Oui' if deployment.success else 'Non' }}</td>
                     <td>{{ deployment.time }}</td>
                     <td>{{ deployment.time.strftime('%d/%m/%Y - %Hh%M') }}</td>
-                    <td>{{ '{:.2f}'.format(deployment.duration) }}</td>
+                    <td>{{ deployment.duration }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
