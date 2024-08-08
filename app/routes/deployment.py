@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required
 from app.routes.domains import load_domains
-from app.utils.deployment import deploy_static, log_deployment
+from app.utils.deployment import deploy_static
 from app.utils.domain import configure_dns, check_dns
 from app.utils.wordpress import create_nginx_config, setup_ssl, install_wordpress
 from app import socketio
@@ -13,14 +13,11 @@ import re
 deployment_bp = Blueprint('deployment', __name__)
 
 def handle_deployment_route(domain_name, deployment_function):
-    if not domain_name or not re.match(r'^[a-zA-Z0-9.-]+$', domain_name):  # Added regex validation for domain
+    if not domain_name or not re.match(r'^[a-zA-Z0-9.-]+$', domain_name):
         return jsonify({"status": "error", "message": "Nom de domaine invalide"}), 400
     start_time = datetime.datetime.now()
     try:
-        success = deployment_function(domain_name)
-        duration = (datetime.datetime.now() - start_time).total_seconds()
-        log_deployment(domain_name, success, duration)
-        if success:
+        if deployment_function(domain_name):
             return jsonify({"status": "success"})
         return jsonify({"status": "error"})
     except Exception as e:
@@ -39,9 +36,7 @@ def deploy_all():
     ]
     for domain in domains:
         try:
-            success = deploy_static(domain)
-            duration = (datetime.datetime.now() - start_time).total_seconds()
-            log_deployment(domain, success, duration)
+            deploy_static(domain)
         except Exception as e:
             socketio.emit("error", f"Error deploying {domain}: {str(e)}")
     return jsonify({"status": "deployed"})

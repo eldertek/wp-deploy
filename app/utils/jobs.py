@@ -1,7 +1,7 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 from concurrent.futures import ThreadPoolExecutor
 import pytz
-from .deployment import deploy_static, log_deployment, update_sites_data
+from .deployment import deploy_static, update_sites_data
 import datetime
 import os
 
@@ -22,10 +22,6 @@ def deploy_all_websites():
     # Use ThreadPoolExecutor to deploy websites in parallel
     with ThreadPoolExecutor() as executor:
         futures = {executor.submit(deploy_static, domain): domain for domain in domains}
-        for future in futures:
-            success = future.result()  # Get the result of the deployment
-            duration = (datetime.datetime.now() - start_time).total_seconds()
-            log_deployment(futures[future], success, duration)
 
 def update_indexed_articles():
     update_sites_data(indexed=True)

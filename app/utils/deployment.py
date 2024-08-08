@@ -8,6 +8,7 @@ from .wordpress import get_published_articles
 from .settings import save_sites_data
 
 def deploy_static(domain_name):
+    start_time = datetime.datetime.now()
     try:
         wp_path = f"/var/www/{domain_name}"
         static_path = f"{wp_path}/wp-content/uploads/simply-static/temp-files/"
@@ -80,17 +81,22 @@ def deploy_static(domain_name):
                     raise Exception("Failed to clear static path")
 
                 socketio.emit("success", f"Déploiement réussi pour {domain_name}.")
+                success = True
             else:
                 socketio.emit("error", f"Aucun fichier ZIP trouvé dans {static_path}.")
-                return False
+                success = False
         else:
             socketio.emit("error", f"Erreur lors de l'exportation Simply Static: {result}")
-            return False
-        return True
+            success = False
+
+        duration = (datetime.datetime.now() - start_time).total_seconds()
+        log_deployment(domain_name, success, duration)
+        return success
     except Exception as e:
         socketio.emit(
             "error", f"Erreur lors du déploiement statique pour {domain_name}: {str(e)}"
         )
+        log_deployment(domain_name, False, 0)
         return False
 
 def log_deployment(domain_name, success, duration):
