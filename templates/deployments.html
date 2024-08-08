@@ -12,7 +12,7 @@
                     <th>Domaine</th>
                     <th>Succès</th>
                     <th>Date</th>
-                    <th>Date (timestamp)</th>
+                    <th style="display:none;">Date (timestamp)</th>
                     <th>Durée (secondes)</th>
                 </tr>
             </thead>
@@ -21,8 +21,8 @@
                 <tr>
                     <td>{{ deployment.domain }}</td>
                     <td>{{ 'Oui' if deployment.success else 'Non' }}</td>
-                    <td>{{ deployment.time }}</td>
                     <td>{{ deployment.time.strftime('%d/%m/%Y - %Hh%M') }}</td>
+                    <td style="display:none;">{{ deployment.time }}</td>
                     <td>{{ '{:.2f}'.format(deployment.duration) }}</td>
                 </tr>
                 {% endfor %}
@@ -41,7 +41,7 @@
 <script>
     $(document).ready(function() {
         $('#deploymentsTable').DataTable({
-            "order": [[2, "desc"]],
+            "order": [[3, "desc"]],
             "language": {
                 url: '//cdn.datatables.net/plug-ins/2.0.8/i18n/fr-FR.json',
             }
