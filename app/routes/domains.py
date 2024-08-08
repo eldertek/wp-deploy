@@ -44,8 +44,9 @@ def add_domain():
         else:
             return jsonify({"status": "error", "message": "Erreur lors de l'achat du domaine."})
     else:
-        save_domain(domain, "En attente de configuration")
-        return jsonify({"status": "success", "domain": {"name": domain, "status": "En attente de configuration"}})
+        # Change status to "En attente de vérification" for other registrars
+        save_domain(domain, "En attente de vérification")
+        return jsonify({"status": "success", "domain": {"name": domain, "status": "En attente de vérification"}})
 
 @domains_bp.route("/domains/configure", methods=["POST"])
 @login_required
