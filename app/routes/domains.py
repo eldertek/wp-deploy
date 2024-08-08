@@ -60,7 +60,7 @@ def configure_domain():
             update_domain_status(domain, "Configuré")
             return jsonify({"status": "success"})
         else:
-            return jsonify({"status": "error", "message": "Le DNS n'est pas encore configuré."})
+            return jsonify({"status": "error", "message": "La configuration DNS n'est pas encore correcte. Il est possible que le DNS n'ait pas encore propagé. Veuillez attendre quelques heures et réessayer."})
     else:
         if configure_dns(domain):
             update_domain_status(domain, "En attente de vérification")
