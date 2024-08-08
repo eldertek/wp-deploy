@@ -64,7 +64,7 @@ def deployments():
             deployments = []
             with open(log_path, "w") as log_file:
                 json.dump(deployments, log_file, indent=4)
-            socketio.emit("error", "Le fichier de log est corrompu ou vide. Un nouveau fichier a été créé.")
+            socketio.emit("console", "Le fichier de log est corrompu ou vide. Un nouveau fichier a été créé.")
     else:
         deployments = []
     return render_template("deployments.html", deployments=deployments)
