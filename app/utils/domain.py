@@ -71,17 +71,22 @@ def configure_dns(domain_name):
         resolver.cache = dns.resolver.LRUCache(0)
         current_ns = [rdata.to_text() for rdata in resolver.resolve(domain_name, 'NS')]
 
+        for ns in expected_ns:
+            api_response, api_url = dns_client.add_record(domain_name, "NS", ns)
+            socketio.emit("console", f"DNS : {domain_name} NS {ns} -> {api_url}")
+
         if not all(ns in current_ns for ns in expected_ns):
             socketio.emit("message", f"Les serveurs de noms pour {domain_name} ne sont pas configurés correctement. Configuration en cours...")
             api_response, api_url = domain_client.update_domain(domain_name, ns_list=expected_ns)
             socketio.emit("console", f"Configuration NS pour {domain_name} -> {api_url}")
 
-            for ns in expected_ns:
-                api_response, api_url = dns_client.add_record(domain_name, "NS", ns)
-                socketio.emit("console", f"DNS : {domain_name} NS {ns} -> {api_url}")
-
     except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer, dns.resolver.NoNameservers):
         socketio.emit("message", f"Les serveurs de noms pour {domain_name} ne sont pas configurés correctement. Configuration en cours...")
+
+        for ns in expected_ns:
+            api_response, api_url = dns_client.add_record(domain_name, "NS", ns)
+            socketio.emit("console", f"DNS : {domain_name} NS {ns} -> {api_url}")
+
         api_response, api_url = domain_client.update_domain(domain_name, ns_list=expected_ns)
         socketio.emit("console", f"NXDOMAIN-NoAnswer -> Configuration NS pour {domain_name} -> {api_url}")
         socketio.emit("message", "La propagation DNS peut prendre plusieurs heures. Veuillez réessayer plus tard.")
