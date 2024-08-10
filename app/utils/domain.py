@@ -48,6 +48,12 @@ def purchase_domain(domain_name, contacts):
         return None
 
 def configure_dns(domain_name):
+    expected_records = [
+        {"name": f"bo.{domain_name}", "type": "A", "value": "51.210.255.66"},
+        {"name": f"bo.{domain_name}", "type": "AAAA", "value": "2001:41d0:304:200::5ec6"},
+        {"name": f"{domain_name}", "type": "A", "value": "51.210.255.66"},
+        {"name": f"{domain_name}", "type": "AAAA", "value": "2001:41d0:304:200::5ec6"},
+    ]
     ns_records = ["ns-usa.topdns.com", "ns-canada.topdns.com", "ns-uk.topdns.com"]
 
     resolver = dns.resolver.Resolver()
@@ -60,8 +66,7 @@ def configure_dns(domain_name):
         socketio.emit("console", f"{domain_name} - Erreur lors de la récupération des NS: {str(e)}")
         current_ns_records = []
 
-    # Compare current NS records with the desired NS records
-    if set(current_ns_records) != set(ns_records):
+    if set(current_ns_records) != set(ns_records): # NS Server Incorrect - Add NS Records
         socketio.emit("message", f"Les serveurs de noms sont incorrects. Configuration en cours...")
         # Loop to add all records, try, catch
         for record in ns_records:
@@ -79,8 +84,14 @@ def configure_dns(domain_name):
             socketio.emit("message", "Les serveurs de noms ont été configurés avec succès. Merci de patienter quelques minutes puis réessayez.")
         except Exception as e:
             socketio.emit("console", f"{domain_name} - Erreur lors de la mise à jour du domaine: {str(e)}")
-    else:
-        socketio.emit("console", f"{domain_name} - Les NS sont déjà configurés.")
+    else: # NS Server Correct - Add DNS Records
+        socketio.emit("message", "Les serveurs de noms sont corrects. Configuration en cours...")
+        for record in expected_records:
+            try:
+                dns_client.add_record(record["name"], record["type"], record["value"])
+                socketio.emit("console", f"Enregistrement DNS {record['type']} pour {record['name']} avec valeur {record['value']} ajouté.")
+            except Exception as e:
+                socketio.emit("error", f"Erreur lors de l'ajout de l'enregistrement DNS: {str(e)}")
 
 def check_dns(domain_name):
     expected_records = [
