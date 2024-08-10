@@ -66,7 +66,6 @@ def configure_dns(domain_name):
 
     try:
         resolver = dns.resolver.Resolver()
-        resolver.cache = dns.resolver.LRUCache(0)
         current_ns = [rdata.to_text() for rdata in resolver.resolve(domain_name, 'NS')]
         expected_ns = [record["value"] for record in dns_records if record["type"] == "NS"]
 
