@@ -16,10 +16,11 @@ def is_domain_owned(domain_name):
     socketio.emit(
         "message", f"Vérification de la possession du domaine {domain_name}..."
     )
-    domains = domain_client.list_domains()
+    domains, api_url = domain_client.list_domains()
     for d in domains:
         if d.domain_name == domain_name:
             socketio.emit("message", f"Domaine {domain_name} est déjà possédé.")
+            socketio.emit("console", f"Domaine {domain_name} est déjà possédé. -> {api_url}")
             return True
     return False
 
