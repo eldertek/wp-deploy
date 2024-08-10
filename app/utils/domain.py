@@ -48,28 +48,23 @@ def purchase_domain(domain_name, contacts):
         return None
 
 def configure_dns(domain_name):
-    zone_file_path = f"/etc/bind/db.{domain_name}"
-    temp_zone_file_path = f"/tmp/db.{domain_name}"
+    records = [
+        {"name": f"{domain_name}", "type": "NS", "value": "ns-usa.topdns.com"},
+        {"name": f"{domain_name}", "type": "NS", "value": "ns-canada.topdns.com"},
+        {"name": f"{domain_name}", "type": "NS", "value": "ns-uk.topdns.com"}
+    ]
 
-    # Create DNS configuration file
-    with open(temp_zone_file_path, "w") as temp_zone_file:
-        temp_zone_file.write(f"$TTL 86400\n")
-        temp_zone_file.write(f"@   IN  SOA ns1.a1b2c3d4e5.fr. admin.chinavisum24.de. (\n")
-        temp_zone_file.write(f"            2023081001  ; Serial\n")
-        temp_zone_file.write(f"            3600        ; Refresh\n")
-        temp_zone_file.write(f"            1800        ; Retry\n")
-        temp_zone_file.write(f"            1209600     ; Expire\n")
-        temp_zone_file.write(f"            86400 )     ; Negative Cache TTL\n")
-        temp_zone_file.write(f";\n")
-        temp_zone_file.write(f"@       IN  NS  ns1.a1b2c3d4e5.fr.\n")
-        temp_zone_file.write(f"@       IN  NS  ns2.a1b2c3d4e5.fr.\n")
-        temp_zone_file.write(f"@       IN  A   51.210.255.66\n")
-        temp_zone_file.write(f"@       IN  AAAA  2001:41d0:304:200::5ec6\n")
-        temp_zone_file.write(f"bo      IN  A   51.210.255.66\n")
-        temp_zone_file.write(f"bo      IN  AAAA  2001:41d0:304:200::5ec6\n")
+    # Loop to add all records
+    for record in records:
+        dns_client.add_record(domain_name, record["type"], record["name"], record["value"])
+        socketio.emit("console", f"Enregistrement DNS {record['type']} pour {record['name']} avec valeur {record['value']} ajouté.")
 
-        # Move the temporary file to the Nginx config directory with elevated privileges
-        run_command(f"mv {temp_zone_file_path} {zone_file_path}", elevated=True)
+    # Update Domain, try, catch
+    try:
+        domain_client.update_domain(domain_name, ns_list=records)
+        socketio.emit("console", f"Domaine {domain_name} mis à jour avec succès.")
+    except Exception as e:
+        socketio.emit("error", f"Erreur lors de la mise à jour du domaine {domain_name}: {str(e)}")
 
 def check_dns(domain_name):
     expected_records = [
