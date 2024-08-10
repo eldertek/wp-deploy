@@ -105,12 +105,25 @@
         statusRow.append(statusCell);
         $('#domainList').append(statusRow);
         
-        var domainsContainer = $('<tbody>').addClass('configured-domains').hide();
-        $('#domainList').append(domainsContainer);
-        
-        domains.forEach(function(domain) {
-            addDomainToList(domain, status === 'Configuré', domainsContainer);
-        });
+        if (status === 'Configuré') {
+            var collapsibleSection = $('<tr>').addClass('collapse configured-domains');
+            var collapsibleCell = $('<td colspan="3">').addClass('p-0');
+            var innerTable = $('<table>').addClass('table mb-0');
+            var innerTbody = $('<tbody>');
+            
+            domains.forEach(function(domain) {
+                addDomainToList(domain, true, innerTbody);
+            });
+            
+            innerTable.append(innerTbody);
+            collapsibleCell.append(innerTable);
+            collapsibleSection.append(collapsibleCell);
+            $('#domainList').append(collapsibleSection);
+        } else {
+            domains.forEach(function(domain) {
+                addDomainToList(domain, false, $('#domainList'));
+            });
+        }
     }
 
     function addDomainToList(domain, isConfigured, container) {
@@ -145,11 +158,7 @@
         
         row.append(actionsCell);
         
-        if (isConfigured) {
-            container.append(row);
-        } else {
-            $('#domainList').append(row);
-        }
+        container.append(row);
     }
 
     function configureDomain(button) {
@@ -205,13 +214,11 @@
         var $icon = $(this).find('i');
         var $configuredDomains = $(this).closest('tr').next('.configured-domains');
         
-        if ($configuredDomains.is(':visible')) {
-            $configuredDomains.hide();
-            $icon.removeClass('fa-chevron-up').addClass('fa-chevron-down');
-        } else {
-            $configuredDomains.show();
-            $icon.removeClass('fa-chevron-down').addClass('fa-chevron-up');
-        }
+        var bsCollapse = new bootstrap.Collapse($configuredDomains[0], {
+            toggle: true
+        });
+        
+        $icon.toggleClass('fa-chevron-down fa-chevron-up');
     });
 </script>
 {% endblock %}
