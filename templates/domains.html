@@ -95,7 +95,7 @@
         var statusCell = $('<td colspan="3">').addClass('font-weight-bold');
         
         if (status === 'Configuré') {
-            statusCell.html('<a href="#" class="toggle-configured" data-toggle="collapse" data-target=".configured-domains">' +
+            statusCell.html('<a href="#" class="toggle-configured">' +
                             status + ' <span class="badge badge-pill badge-info">' + domains.length + '</span>' +
                             '<i class="fas fa-chevron-down ml-2"></i></a>');
         } else {
@@ -105,28 +105,36 @@
         statusRow.append(statusCell);
         $('#domainList').append(statusRow);
         
+        var domainsContainer = $('<tbody>').addClass('configured-domains').hide();
+        $('#domainList').append(domainsContainer);
+        
         domains.forEach(function(domain) {
-            addDomainToList(domain, status === 'Configuré');
+            addDomainToList(domain, status === 'Configuré', domainsContainer);
         });
     }
 
-    function addDomainToList(domain, isConfigured) {
+    function addDomainToList(domain, isConfigured, container) {
         var row = $('<tr>');
-        if (isConfigured) {
-            row.addClass('configured-domains collapse');
-        }
         row.append($('<td>').text(domain.name));
         row.append($('<td>').text(domain.status));
         var actionsCell = $('<td>');
         
         if (domain.status === 'En attente de vérification') {
-            actionsCell.append($('<button>').addClass('btn btn-sm btn-warning mr-2').text('Vérifier').click(function() {
-                configureDomain(domain.name);
-            }));
+            actionsCell.append($('<button>')
+                .addClass('btn btn-sm btn-warning mr-2 configure-btn')
+                .text('Vérifier')
+                .attr('data-domain', domain.name)
+                .click(function() {
+                    configureDomain($(this));
+                }));
         } else if (domain.status !== 'Configuré') {
-            actionsCell.append($('<button>').addClass('btn btn-sm btn-primary mr-2').text('Configurer').click(function() {
-                configureDomain(domain.name);
-            }));
+            actionsCell.append($('<button>')
+                .addClass('btn btn-sm btn-primary mr-2 configure-btn')
+                .text('Configurer')
+                .attr('data-domain', domain.name)
+                .click(function() {
+                    configureDomain($(this));
+                }));
         }
         
         actionsCell.append($('<button>').addClass('btn btn-sm btn-danger').text('Supprimer').click(function() {
@@ -134,10 +142,18 @@
         }));
         
         row.append(actionsCell);
-        $('#domainList').append(row);
+        
+        if (isConfigured) {
+            container.append(row);
+        } else {
+            $('#domainList').append(row);
+        }
     }
 
-    function configureDomain(domain) {
+    function configureDomain(button) {
+        var domain = button.data('domain');
+        button.prop('disabled', true).text('Configuration en cours...');
+
         $.post('{{ url_for("domains.configure_domain") }}', {
             domain: domain
         }, function(data) {
@@ -145,7 +161,11 @@
                 loadDomains();
             } else {
                 alert('Erreur lors de la configuration du domaine: ' + data.message);
+                button.prop('disabled', false).text('Configurer');
             }
+        }).fail(function() {
+            alert('Erreur de communication avec le serveur');
+            button.prop('disabled', false).text('Configurer');
         });
     }
 
@@ -175,8 +195,14 @@
 
     $(document).on('click', '.toggle-configured', function(e) {
         e.preventDefault();
-        $('.configured-domains').collapse('toggle');
-        $(this).find('i').toggleClass('fa-chevron-down fa-chevron-up');
+        var $icon = $(this).find('i');
+        var $configuredDomains = $('.configured-domains');
+        
+        var bsCollapse = new bootstrap.Collapse($configuredDomains[0], {
+            toggle: true
+        });
+        
+        $icon.toggleClass('fa-chevron-down fa-chevron-up');
     });
 </script>
 {% endblock %}

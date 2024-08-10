@@ -63,8 +63,6 @@ def configure_dns(domain_name):
                 dns_client.remove_record(record["name"], record["type"])
             except Exception:
                 pass
-    
-    socketio.emit("message", f"Vérification des enregistrements NS pour {domain_name}...")
 
     try:
         current_ns = [rdata.to_text() for rdata in dns.resolver.resolve(domain_name, 'NS')]
