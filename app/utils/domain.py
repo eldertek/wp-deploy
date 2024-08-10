@@ -69,6 +69,7 @@ def configure_dns(domain_name):
         expected_ns = [record["value"] for record in dns_records if record["type"] == "NS"]
 
         if not all(ns in current_ns for ns in expected_ns):
+            socketio.emit("console", f"Serveurs de noms actuels : {current_ns}")
             socketio.emit("message", f"Les serveurs de noms pour {domain_name} ne sont pas configurés correctement. Configuration en cours...")
             for record in [r for r in dns_records if r["type"] == "NS"]:
                 api_response, api_url = dns_client.add_record(record["name"], record["type"], record["value"])
