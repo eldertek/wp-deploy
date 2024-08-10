@@ -65,7 +65,9 @@ def configure_dns(domain_name):
                 pass
 
     try:
+        # Utiliser un résolveur sans cache
         resolver = dns.resolver.Resolver()
+        resolver.cache = dns.resolver.LRUCache(0)
         current_ns = [rdata.to_text() for rdata in resolver.resolve(domain_name, 'NS')]
         expected_ns = [record["value"] for record in dns_records if record["type"] == "NS"]
 
@@ -115,8 +117,10 @@ def check_dns(domain_name):
     ]
 
     try:
+        resolver = dns.resolver.Resolver()
+        resolver.cache = dns.resolver.LRUCache(0)
         for record in expected_records:
-            answers = dns.resolver.resolve(record["name"], record["type"])
+            answers = resolver.resolve(record["name"], record["type"])
             if not any(rdata.to_text() == record["value"] for rdata in answers):
                 socketio.emit(
                     "error",
