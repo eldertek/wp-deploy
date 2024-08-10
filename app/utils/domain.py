@@ -57,6 +57,8 @@ def configure_dns(domain_name):
         {"name": domain_name, "type": "NS", "value": "ns-canada.topdns.com"},
     ]
 
+    expected_ns = [record["value"] for record in dns_records if record["type"] == "NS"]
+
     for _ in range(3):
         for record in dns_records:
             try:
@@ -68,7 +70,6 @@ def configure_dns(domain_name):
         resolver = dns.resolver.Resolver()
         resolver.cache = dns.resolver.LRUCache(0)
         current_ns = [rdata.to_text() for rdata in resolver.resolve(domain_name, 'NS')]
-        expected_ns = [record["value"] for record in dns_records if record["type"] == "NS"]
 
         if not all(ns in current_ns for ns in expected_ns):
             socketio.emit("message", f"Les serveurs de noms pour {domain_name} ne sont pas configurés correctement. Configuration en cours...")
