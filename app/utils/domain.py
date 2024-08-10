@@ -89,7 +89,7 @@ def configure_dns(domain_name):
         return None
     except Exception as e:
         socketio.emit("error", f'Erreur lors de la vérification des serveurs de noms pour {domain_name}. Veuillez réessayer dans quelques minutes.')
-        socketio.emit("console", f"Erreur lors de la vérification des serveurs de noms pour {domain_name}: {str(e)}")
+        socketio.emit("console", f"Erreur lors de la vérification des serveurs de noms pour {domain_name}: {type(e).__name__} - {str(e)}")
         return None
 
     socketio.emit("message", f"Configuration du DNS pour {domain_name}...")
