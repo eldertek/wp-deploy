@@ -197,6 +197,13 @@
     }
 
     function addDomain(domain, registrar) {
+        // Vérifier si le domaine existe déjà dans la liste
+        var exists = $('#domainList').find('td:contains("' + domain + '")').length > 0;
+        if (exists) {
+            alert("Le domaine est déjà enregistré.");
+            return; // Sortir de la fonction si le domaine existe déjà
+        }
+
         $.post('{{ url_for("domains.add_domain") }}', {
             domain: domain,
             registrar: registrar
@@ -205,7 +212,7 @@
                 $('#domain').val(''); // Clear the input field
                 loadDomains(); // Reload the domain list
             }
-        })
+        });
     }
 
     $(document).on('click', '.toggle-configured', function(e) {
