@@ -63,7 +63,7 @@ def configure_dns(domain_name):
                 dns_client.remove_record(record["name"], record["type"])
             except Exception:
                 pass
-    
+
     try:
         current_ns = [rdata.to_text() for rdata in dns.resolver.resolve(domain_name, 'NS')]
         expected_ns = [record["value"] for record in dns_records if record["type"] == "NS"]
@@ -77,26 +77,6 @@ def configure_dns(domain_name):
                 socketio.emit("message", f'Enregistrement DNS NS pour {domain_name} configuré à {record["value"]}.')
             socketio.emit("error", "Veuillez réessayer plus tard après la propagation DNS. (cela peut prendre plusieurs heures)")
             return None
-
-    except dns.resolver.NXDOMAIN:
-        socketio.emit("message", f"Le domaine {domain_name} n'existe pas. Création des enregistrements NS...")
-        for record in [r for r in dns_records if r["type"] == "NS"]:
-            api_response, api_url = dns_client.add_record(record["name"], record["type"], record["value"])
-            socketio.emit("console", f"DNS : {record['name']} {record['type']} {record['value']} -> {api_url}")
-            socketio.emit("console", f"DNS Response: {api_response}")
-            socketio.emit("message", f'Enregistrement DNS NS pour {domain_name} configuré à {record["value"]}.')
-        socketio.emit("error", "Veuillez réessayer plus tard après la propagation DNS. (cela peut prendre plusieurs heures)")
-        return None
-
-    except dns.resolver.NoAnswer:
-        socketio.emit("message", f"Pas de réponse NS pour {domain_name}. Création des enregistrements NS...")
-        for record in [r for r in dns_records if r["type"] == "NS"]:
-            api_response, api_url = dns_client.add_record(record["name"], record["type"], record["value"])
-            socketio.emit("console", f"DNS : {record['name']} {record['type']} {record['value']} -> {api_url}")
-            socketio.emit("console", f"DNS Response: {api_response}")
-            socketio.emit("message", f'Enregistrement DNS NS pour {domain_name} configuré à {record["value"]}.')
-        socketio.emit("error", "Veuillez réessayer plus tard après la propagation DNS. (cela peut prendre plusieurs heures)")
-        return None
 
     except Exception as e:
         socketio.emit("error", f'Erreur lors de la vérification des enregistrements NS pour {domain_name}, merci de réessayer dans quelques minutes.')
