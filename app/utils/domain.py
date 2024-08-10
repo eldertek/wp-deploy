@@ -52,9 +52,9 @@ def configure_dns(domain_name):
         {"name": f"bo.{domain_name}", "type": "AAAA", "value": "2001:41d0:304:200::5ec6"},
         {"name": domain_name, "type": "A", "value": "51.210.255.66"},
         {"name": domain_name, "type": "AAAA", "value": "2001:41d0:304:200::5ec6"},
-        {"name": domain_name, "type": "NS", "value": "ns-usa.topdns.com."},
-        {"name": domain_name, "type": "NS", "value": "ns-canada.topdns.com."},
-        {"name": domain_name, "type": "NS", "value": "ns-uk.topdns.com."},
+        {"name": domain_name, "type": "NS", "value": "ns-usa.topdns.com"},
+        {"name": domain_name, "type": "NS", "value": "ns-uk.topdns.com"},
+        {"name": domain_name, "type": "NS", "value": "ns-canada.topdns.com"},
     ]
 
     for _ in range(3):
