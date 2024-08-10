@@ -176,7 +176,6 @@
             if (data.status === 'success') {
                 loadDomains();
             } else {
-                alert('Erreur lors de la ' + (action === 'verify' ? 'vérification' : 'configuration') + ' du domaine: ' + data.message);
                 button.prop('disabled', false).text(originalText);
             }
         }).fail(function() {
