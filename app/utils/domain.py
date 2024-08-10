@@ -69,18 +69,27 @@ def configure_dns(domain_name):
         expected_ns = [record["value"] for record in dns_records if record["type"] == "NS"]
 
         if not all(ns in current_ns for ns in expected_ns):
-            socketio.emit("message", f"Les enregistrements NS pour {domain_name} ne sont pas corrects. Création des enregistrements NS...")
+            socketio.emit("message", f"Les serveurs de noms pour {domain_name} ne sont pas configurés correctement. Configuration en cours...")
             for record in [r for r in dns_records if r["type"] == "NS"]:
                 api_response, api_url = dns_client.add_record(record["name"], record["type"], record["value"])
                 socketio.emit("console", f"DNS : {record['name']} {record['type']} {record['value']} -> {api_url}")
                 socketio.emit("console", f"DNS Response: {api_response}")
-                socketio.emit("message", f'Enregistrement DNS NS pour {domain_name} configuré à {record["value"]}.')
-            socketio.emit("error", "Veuillez réessayer plus tard après la propagation DNS. (cela peut prendre plusieurs heures)")
+                socketio.emit("message", f'Serveur de noms pour {domain_name} configuré à {record["value"]}.')
+            socketio.emit("error", "La propagation DNS peut prendre plusieurs heures. Veuillez réessayer plus tard.")
             return None
 
+    except dns.resolver.NXDOMAIN:
+        socketio.emit("message", f"Les serveurs de noms pour {domain_name} n'existent pas. Configuration en cours...")
+        for record in [r for r in dns_records if r["type"] == "NS"]:
+            api_response, api_url = dns_client.add_record(record["name"], record["type"], record["value"])
+            socketio.emit("console", f"DNS : {record['name']} {record['type']} {record['value']} -> {api_url}")
+            socketio.emit("console", f"DNS Response: {api_response}")
+            socketio.emit("message", f'Serveur de noms pour {domain_name} configuré à {record["value"]}.')
+        socketio.emit("error", "La propagation DNS peut prendre plusieurs heures. Veuillez réessayer plus tard.")
+        return None
     except Exception as e:
-        socketio.emit("error", f'Erreur lors de la vérification des enregistrements NS pour {domain_name}, merci de réessayer dans quelques minutes.')
-        socketio.emit("console", f"Erreur lors de la vérification des enregistrements NS pour {domain_name}: {str(e)}")
+        socketio.emit("error", f'Erreur lors de la vérification des serveurs de noms pour {domain_name}. Veuillez réessayer dans quelques minutes.')
+        socketio.emit("console", f"Erreur lors de la vérification des serveurs de noms pour {domain_name}: {str(e)}")
         return None
 
     socketio.emit("message", f"Configuration du DNS pour {domain_name}...")
