@@ -84,6 +84,7 @@ def configure_dns(domain_name):
             socketio.emit("message", "Les serveurs de noms ont été configurés avec succès. Merci de patienter quelques minutes puis réessayez.")
         except Exception as e:
             socketio.emit("console", f"{domain_name} - Erreur lors de la mise à jour du domaine: {str(e)}")
+            socketio.emit("error", "Erreur lors de la mise à jour du domaine. Veuillez patienter quelques minutes puis réessayez.")
     else: # NS Server Correct - Add DNS Records
         socketio.emit("message", "Les serveurs de noms sont corrects. Configuration en cours...")
         for record in expected_records:
