@@ -68,8 +68,9 @@ def configure_dns(domain_name):
     try:
         # Create new DNS records
         for record in dns_records:
-            api_response = dns_client.add_record(record["name"], record["type"], record["value"])
-            socketio.emit("console", f"DNS: {record['name']} {record['type']} {record['value']} -> {api_response.url}")
+            api_response, api_url = dns_client.add_record(record["name"], record["type"], record["value"])
+            socketio.emit("console", f"DNS : {record['name']} {record['type']} {record['value']} -> {api_url}")
+            socketio.emit("console", f"DNS Response: {api_response}")
             socketio.emit(
                 "message",
                 f'Enregistrement DNS {record["type"]} pour {record["name"]} configuré à {record["value"]}.',
