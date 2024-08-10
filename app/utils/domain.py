@@ -52,6 +52,9 @@ def configure_dns(domain_name):
         {"name": f"bo.{domain_name}", "type": "AAAA", "value": "2001:41d0:304:200::5ec6"},
         {"name": domain_name, "type": "A", "value": "51.210.255.66"},
         {"name": domain_name, "type": "AAAA", "value": "2001:41d0:304:200::5ec6"},
+    ]
+
+    ns_records = [
         {"name": domain_name, "type": "NS", "value": "ns-usa.topdns.com."},
         {"name": domain_name, "type": "NS", "value": "ns-canada.topdns.com."},
         {"name": domain_name, "type": "NS", "value": "ns-uk.topdns.com."},
@@ -65,7 +68,6 @@ def configure_dns(domain_name):
                 pass
 
     try:
-        # Utiliser un résolveur sans cache
         resolver = dns.resolver.Resolver()
         resolver.cache = dns.resolver.LRUCache(0)
         current_ns = [rdata.to_text() for rdata in resolver.resolve(domain_name, 'NS')]
@@ -73,11 +75,10 @@ def configure_dns(domain_name):
 
         if not all(ns in current_ns for ns in expected_ns):
             socketio.emit("message", f"Les serveurs de noms pour {domain_name} ne sont pas configurés correctement. Configuration en cours...")
-            for record in [r for r in dns_records if r["type"] == "NS"]:
-                api_response, api_url = dns_client.add_record(record["name"], record["type"], record["value"])
-                socketio.emit("console", f"DNS : {record['name']} {record['type']} {record['value']} -> {api_url}")
-                socketio.emit("console", f"DNS Response: {api_response}")
-                socketio.emit("message", f'Serveur de noms pour {domain_name} configuré à {record["value"]}.')
+            api_response, api_url = domain_client.update_domain(domain_name, ns_records)
+            socketio.emit("console", f"DNS : {record['name']} {record['type']} {record['value']} -> {api_url}")
+            socketio.emit("console", f"DNS Response: {api_response}")
+            socketio.emit("message", f'Serveur de noms pour {domain_name} configuré à {record["value"]}.')
             socketio.emit("error", "La propagation DNS peut prendre plusieurs heures. Veuillez réessayer plus tard.")
             return None
 
