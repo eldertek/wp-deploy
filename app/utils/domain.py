@@ -52,9 +52,9 @@ def configure_dns(domain_name):
         {"name": f"bo.{domain_name}", "type": "AAAA", "value": "2001:41d0:304:200::5ec6"},
         {"name": domain_name, "type": "A", "value": "51.210.255.66"},
         {"name": domain_name, "type": "AAAA", "value": "2001:41d0:304:200::5ec6"},
+        {"name": domain_name, "type": "NS", "value": "ns-usa.topdns.com."},
         {"name": domain_name, "type": "NS", "value": "ns-canada.topdns.com."},
         {"name": domain_name, "type": "NS", "value": "ns-uk.topdns.com."},
-        {"name": domain_name, "type": "NS", "value": "ns-usa.topdns.com."},
     ]
 
     for _ in range(3):
@@ -65,10 +65,10 @@ def configure_dns(domain_name):
                 pass
 
     try:
-        current_ns = [rdata.to_text() for rdata in dns.resolver.resolve(domain_name, 'NS')]
+        resolver = dns.resolver.Resolver()
+        resolver.cache = dns.resolver.LRUCache(0)
+        current_ns = [rdata.to_text() for rdata in resolver.resolve(domain_name, 'NS')]
         expected_ns = [record["value"] for record in dns_records if record["type"] == "NS"]
-        socketio.emit("console", f"Serveurs de noms actuels : {current_ns}")
-        socketio.emit("console", f"Serveurs de noms attendus : {expected_ns}")
 
         if not all(ns in current_ns for ns in expected_ns):
             socketio.emit("message", f"Les serveurs de noms pour {domain_name} ne sont pas configurés correctement. Configuration en cours...")
