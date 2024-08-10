@@ -54,17 +54,21 @@ def configure_dns(domain_name):
         {"name": f"{domain_name}", "type": "NS", "value": "ns-uk.topdns.com"}
     ]
 
-    # Loop to add all records
+    # Loop to add all records, try, catch
     for record in records:
-        dns_client.add_record(domain_name, record["type"], record["name"], record["value"])
-        socketio.emit("console", f"Enregistrement DNS {record['type']} pour {record['name']} avec valeur {record['value']} ajouté.")
+        try:
+            dns_client.add_record(domain_name, record["type"], record["name"], record["value"])
+            socketio.emit("console", f"Enregistrement DNS {record['type']} pour {record['name']} avec valeur {record['value']} ajouté.")
+        except Exception as e:
+            socketio.emit("console", f"Erreur lors de l'ajout de l'enregistrement DNS {record['type']} pour {record['name']} avec valeur {record['value']}: {str(e)}")
+            raise Exception(f"Erreur lors de l'ajout de l'enregistrement DNS {record['type']} pour {record['name']} avec valeur {record['value']}: {str(e)}")
 
     # Update Domain, try, catch
     try:
         domain_client.update_domain(domain_name, ns_list=records)
         socketio.emit("console", f"Domaine {domain_name} mis à jour avec succès.")
     except Exception as e:
-        socketio.emit("error", f"Erreur lors de la mise à jour du domaine {domain_name}: {str(e)}")
+        socketio.emit("console", f"Erreur lors de la mise à jour du domaine {domain_name}: {str(e)}")
 
 def check_dns(domain_name):
     expected_records = [
