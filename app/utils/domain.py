@@ -57,7 +57,7 @@ def configure_dns(domain_name):
     # Loop to add all records, try, catch
     for record in records:
         try:
-            dns_client.add_record(domain_name, record["type"], record["name"], record["value"])
+            dns_client.add_record(record["name"], record["type"], record["value"])
             socketio.emit("console", f"Enregistrement DNS {record['type']} pour {record['name']} avec valeur {record['value']} ajouté.")
         except Exception as e:
             socketio.emit("console", f"Erreur lors de l'ajout de l'enregistrement DNS {record['type']} pour {record['name']} avec valeur {record['value']}: {str(e)}")
