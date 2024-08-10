@@ -73,7 +73,7 @@ def configure_dns(domain_name):
 
         for ns in expected_ns:
             api_response, api_url = dns_client.add_record(domain_name, "NS", ns)
-            socketio.emit("console", f"DNS : {domain_name} NS {ns} -> {api_url}")
+            socketio.emit("console", f"DNS ({api_response.status}) : {domain_name} NS {ns} -> {api_url}")
 
         if not all(ns in current_ns for ns in expected_ns):
             socketio.emit("message", f"Les serveurs de noms pour {domain_name} ne sont pas configurés correctement. Configuration en cours...")
@@ -85,9 +85,12 @@ def configure_dns(domain_name):
 
         for ns in expected_ns:
             api_response, api_url = dns_client.add_record(domain_name, "NS", ns)
-            socketio.emit("console", f"DNS : {domain_name} NS {ns} -> {api_url}")
+            socketio.emit("console", f"DNS ({api_response.status}) : {domain_name} NS {ns} -> {api_url}")
 
-        api_response, api_url = domain_client.update_domain(domain_name, ns_list=expected_ns)
+        try:
+            api_response, api_url = domain_client.update_domain(domain_name, ns_list=expected_ns)
+        except Exception as e:
+            socketio.emit("console", f"Erreur lors de la mise à jour du domaine {domain_name}: {str(e)}")
         socketio.emit("console", f"NXDOMAIN-NoAnswer -> Configuration NS pour {domain_name} -> {api_url}")
         socketio.emit("message", "La propagation DNS peut prendre plusieurs heures. Veuillez réessayer plus tard.")
         
