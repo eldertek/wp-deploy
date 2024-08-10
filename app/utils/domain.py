@@ -76,12 +76,9 @@ def configure_dns(domain_name):
             socketio.emit("console", f"Configuration NS pour {domain_name} -> {api_url}")
 
     except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
-        socketio.emit("message", f"Les serveurs de noms pour {domain_name} n'existent pas. Configuration en cours...")
-        for record in [r for r in dns_records if r["type"] == "NS"]:
-            api_response, api_url = dns_client.add_record(record["name"], record["type"], record["value"])
-            socketio.emit("console", f"DNS : {record['name']} {record['type']} {record['value']} -> {api_url}")
-            socketio.emit("console", f"DNS Response: {api_response}")
-            socketio.emit("message", f'Serveur de noms pour {domain_name} configuré à {record["value"]}.')
+        socketio.emit("message", f"Les serveurs de noms pour {domain_name} ne sont pas configurés correctement. Configuration en cours...")
+        api_response, api_url = domain_client.update_domain(domain_name, ns_list=expected_ns)
+        socketio.emit("console", f"Configuration NS pour {domain_name} -> {api_url}")
         socketio.emit("message", "La propagation DNS peut prendre plusieurs heures. Veuillez réessayer plus tard.")
         return None
     except Exception as e:
