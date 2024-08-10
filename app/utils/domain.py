@@ -101,6 +101,9 @@ def configure_dns(domain_name):
     try:
         for record in dns_records:
             api_response, api_url = dns_client.add_record(record["name"], record["type"], record["value"])
+            if api_response.status == "FAILURE":
+                socketio.emit("error", f"Erreur lors de l'ajout de l'enregistrement DNS pour {record['name']}. Veuillez réessayer plus tard.")
+                return None
             socketio.emit("console", f"DNS : {record['name']} {record['type']} {record['value']} -> {api_url}")
             socketio.emit("console", f"DNS Response: {api_response}")
             socketio.emit("message", f'Enregistrement DNS {record["type"]} pour {record["name"]} configuré à {record["value"]}.')
