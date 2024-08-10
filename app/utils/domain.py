@@ -77,6 +77,8 @@ def configure_dns(domain_name):
             socketio.emit("console", f"{domain_name} - Mise à jour du domaine avec succès.")
         except Exception as e:
             socketio.emit("console", f"{domain_name} - Erreur lors de la mise à jour du domaine: {str(e)}")
+    else:
+        socketio.emit("console", f"{domain_name} - Les NS sont déjà configurés.")
 
 def check_dns(domain_name):
     expected_records = [
