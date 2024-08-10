@@ -80,6 +80,7 @@ def configure_dns(domain_name):
 
     except Exception as e:
         socketio.emit("error", f'Erreur lors de la vérification des enregistrements NS pour {domain_name}, merci de réessayer dans quelques minutes.')
+        socketio.emit("console", f"Erreur lors de la vérification des enregistrements NS pour {domain_name}: {str(e)}")
         return None
 
     socketio.emit("message", f"Configuration du DNS pour {domain_name}...")
