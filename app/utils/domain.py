@@ -89,6 +89,7 @@ def configure_dns(domain_name):
         for record in expected_records:
             try:
                 dns_client.add_record(record["name"], record["type"], record["value"])
+                
             except Exception as e:
                 socketio.emit("error", f"Erreur lors de l'ajout de l'enregistrement DNS: {str(e)}")
         socketio.emit("message", "Les enregistrements DNS ont été configurés avec succès. Merci de patienter quelques minutes puis procédez à la vérification.")
@@ -116,7 +117,7 @@ def check_dns(domain_name):
         return True
     except Exception as e:
         error_message = f"Erreur lors de la vérification DNS pour {domain_name}: {str(e)}"
-        if "The DNS response does not contain an answer to the question" in str(e):
+        if ("The DNS response does not contain an answer to the question" in str(e)) or ("The DNS query name does not exist" in str(e)):
             error_message = f"La configuration DNS pour {domain_name} est incorrecte. Si vous venez de configurer le DNS, attendez quelques heures et réessayez."
         socketio.emit("error", error_message)
         socketio.emit("console", f"Erreur lors de la vérification DNS pour {domain_name}: {str(e)}")
