@@ -62,6 +62,7 @@ def configure_dns(domain_name):
 
     # Compare current NS records with the desired NS records
     if set(current_ns_records) != set(ns_records):
+        socketio.emit("message", f"Les serveurs de noms sont incorrects. Configuration en cours...")
         # Loop to add all records, try, catch
         for record in ns_records:
             try:
@@ -74,7 +75,7 @@ def configure_dns(domain_name):
         # Update Domain, try, catch
         try:
             domain_client.update_domain(domain_name, ns_list=ns_records)
-            socketio.emit("console", f"{domain_name} - Mise à jour du domaine avec succès.")
+            socketio.emit("message", "Les serveurs de noms ont été configurés avec succès. Merci de patienter quelques minutes puis réessayez.")
         except Exception as e:
             socketio.emit("console", f"{domain_name} - Erreur lors de la mise à jour du domaine: {str(e)}")
     else:
