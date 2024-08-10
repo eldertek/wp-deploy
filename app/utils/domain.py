@@ -48,16 +48,12 @@ def purchase_domain(domain_name, contacts):
         return None
 
 def configure_dns(domain_name):
-    records = [
-        {"name": f"{domain_name}", "type": "NS", "value": "ns-usa.topdns.com"},
-        {"name": f"{domain_name}", "type": "NS", "value": "ns-canada.topdns.com"},
-        {"name": f"{domain_name}", "type": "NS", "value": "ns-uk.topdns.com"}
-    ]
+    ns_records = ["ns-usa.topdns.com", "ns-canada.topdns.com", "ns-uk.topdns.com"]
 
     # Loop to add all records, try, catch
-    for record in records:
+    for record in ns_records:
         try:
-            dns_client.add_record(record["name"], record["type"], record["value"])
+            dns_client.add_record(domain_name, "NS", record)
             socketio.emit("console", f"Enregistrement DNS {record['type']} pour {record['name']} avec valeur {record['value']} ajouté.")
         except Exception as e:
             socketio.emit("console", f"Erreur lors de l'ajout de l'enregistrement DNS {record['type']} pour {record['name']} avec valeur {record['value']}: {str(e)}")
@@ -65,7 +61,7 @@ def configure_dns(domain_name):
 
     # Update Domain, try, catch
     try:
-        domain_client.update_domain(domain_name, ns_list=records)
+        domain_client.update_domain(domain_name, ns_list=ns_records)
         socketio.emit("console", f"Domaine {domain_name} mis à jour avec succès.")
     except Exception as e:
         socketio.emit("console", f"Erreur lors de la mise à jour du domaine {domain_name}: {str(e)}")
