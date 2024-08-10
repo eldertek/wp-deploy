@@ -93,16 +93,29 @@
 
     function addStatusGroup(status, domains) {
         var statusRow = $('<tr>').addClass('table-secondary');
-        statusRow.append($('<td colspan="3">').text(status).addClass('font-weight-bold'));
+        var statusCell = $('<td colspan="3">').addClass('font-weight-bold');
+        
+        if (status === 'Configuré') {
+            statusCell.html('<a href="#" class="toggle-configured" data-toggle="collapse" data-target=".configured-domains">' +
+                            status + ' <span class="badge badge-pill badge-info">' + domains.length + '</span>' +
+                            '<i class="fas fa-chevron-down ml-2"></i></a>');
+        } else {
+            statusCell.text(status);
+        }
+        
+        statusRow.append(statusCell);
         $('#domainList').append(statusRow);
         
         domains.forEach(function(domain) {
-            addDomainToList(domain);
+            addDomainToList(domain, status === 'Configuré');
         });
     }
 
-    function addDomainToList(domain) {
+    function addDomainToList(domain, isConfigured) {
         var row = $('<tr>');
+        if (isConfigured) {
+            row.addClass('configured-domains collapse');
+        }
         row.append($('<td>').text(domain.name));
         row.append($('<td>').text(domain.status));
         var actionsCell = $('<td>');
@@ -160,5 +173,11 @@
             }
         })
     }
+
+    $(document).on('click', '.toggle-configured', function(e) {
+        e.preventDefault();
+        $('.configured-domains').collapse('toggle');
+        $(this).find('i').toggleClass('fa-chevron-down fa-chevron-up');
+    });
 </script>
 {% endblock %}
