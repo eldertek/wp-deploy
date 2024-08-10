@@ -50,21 +50,32 @@ def purchase_domain(domain_name, contacts):
 def configure_dns(domain_name):
     ns_records = ["ns-usa.topdns.com", "ns-canada.topdns.com", "ns-uk.topdns.com"]
 
-    # Loop to add all records, try, catch
-    for record in ns_records:
-        try:
-            dns_client.add_record(domain_name, "NS", record)
-            socketio.emit("console", f"{domain_name} - {record} ajouté.")
-        except Exception as e:
-            socketio.emit("console", f"{domain_name} - {record} - Erreur lors de l'ajout de l'enregistrement DNS: {str(e)}")
-            raise Exception(f"{domain_name} - {record} - Erreur lors de l'ajout de l'enregistrement DNS: {str(e)}")
-
-    # Update Domain, try, catch
+    resolver = dns.resolver.Resolver()
+    resolver.cache = dns.resolver.LRUCache(0)
     try:
-        domain_client.update_domain(domain_name, ns_list=ns_records)
-        socketio.emit("console", f"{domain_name} - Mise à jour du domaine avec succès.")
+        current_ns_records = [rdata.target.to_text(omit_final_dot=True) for rdata in resolver.resolve(domain_name, 'NS')]
+    except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
+        current_ns_records = []
     except Exception as e:
-        socketio.emit("console", f"{domain_name} - Erreur lors de la mise à jour du domaine: {str(e)}")
+        socketio.emit("console", f"{domain_name} - Erreur lors de la récupération des NS: {str(e)}")
+        current_ns_records = []
+
+    if not current_ns_records:
+        # Loop to add all records, try, catch
+        for record in ns_records:
+            try:
+                dns_client.add_record(domain_name, "NS", record)
+                socketio.emit("console", f"{domain_name} - {record} ajouté.")
+            except Exception as e:
+                socketio.emit("console", f"{domain_name} - {record} - Erreur lors de l'ajout de l'enregistrement DNS: {str(e)}")
+                raise Exception(f"{domain_name} - {record} - Erreur lors de l'ajout de l'enregistrement DNS: {str(e)}")
+
+        # Update Domain, try, catch
+        try:
+            domain_client.update_domain(domain_name, ns_list=ns_records)
+            socketio.emit("console", f"{domain_name} - Mise à jour du domaine avec succès.")
+        except Exception as e:
+            socketio.emit("console", f"{domain_name} - Erreur lors de la mise à jour du domaine: {str(e)}")
 
 def check_dns(domain_name):
     expected_records = [
