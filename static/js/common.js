@@ -21,6 +21,15 @@ $(document).ready(function() {
             message.appendChild(closeButton); // Add close button to message
 
             messages.insertBefore(message, messages.firstChild);
+            
+            // Ajout d'une animation de fondu
+            setTimeout(function() {
+                message.style.transition = 'opacity 1s';
+                message.style.opacity = 0;
+                setTimeout(function() {
+                    messages.removeChild(message);
+                }, 1000); // Retirer après la transition
+            }, 5000); // Attendre 5 secondes avant de commencer le fondu
         } else {
             console.error('Element with ID "socket-messages" not found.');
         }
@@ -46,6 +55,15 @@ $(document).ready(function() {
             message.appendChild(closeButton); // Add close button to error message
 
             messages.insertBefore(message, messages.firstChild);
+            
+            // Ajout d'une animation de fondu
+            setTimeout(function() {
+                message.style.transition = 'opacity 1s';
+                message.style.opacity = 0;
+                setTimeout(function() {
+                    messages.removeChild(message);
+                }, 1000); // Retirer après la transition
+            }, 5000); // Attendre 5 secondes avant de commencer le fondu
         } else {
             console.error('Element with ID "socket-messages" not found.');
         }
@@ -75,6 +93,15 @@ $(document).ready(function() {
             message.appendChild(closeButton); // Add close button to success message
 
             messages.insertBefore(message, messages.firstChild);
+            
+            // Ajout d'une animation de fondu
+            setTimeout(function() {
+                message.style.transition = 'opacity 1s';
+                message.style.opacity = 0;
+                setTimeout(function() {
+                    messages.removeChild(message);
+                }, 1000); // Retirer après la transition
+            }, 5000); // Attendre 5 secondes avant de commencer le fondu
         } else {
             console.error('Element with ID "socket-messages" not found.');
         }
