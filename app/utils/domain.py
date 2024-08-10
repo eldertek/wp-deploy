@@ -52,9 +52,6 @@ def configure_dns(domain_name):
         {"name": f"bo.{domain_name}", "type": "AAAA", "value": "2001:41d0:304:200::5ec6"},
         {"name": domain_name, "type": "A", "value": "51.210.255.66"},
         {"name": domain_name, "type": "AAAA", "value": "2001:41d0:304:200::5ec6"},
-    ]
-
-    ns_records = [
         {"name": domain_name, "type": "NS", "value": "ns-usa.topdns.com."},
         {"name": domain_name, "type": "NS", "value": "ns-canada.topdns.com."},
         {"name": domain_name, "type": "NS", "value": "ns-uk.topdns.com."},
@@ -71,10 +68,11 @@ def configure_dns(domain_name):
         resolver = dns.resolver.Resolver()
         resolver.cache = dns.resolver.LRUCache(0)
         current_ns = [rdata.to_text() for rdata in resolver.resolve(domain_name, 'NS')]
+        expected_ns = [record["value"] for record in dns_records if record["type"] == "NS"]
 
-        if not all(ns in current_ns for ns in ns_records):
+        if not all(ns in current_ns for ns in expected_ns):
             socketio.emit("message", f"Les serveurs de noms pour {domain_name} ne sont pas configurés correctement. Configuration en cours...")
-            api_response, api_url = domain_client.update_domain(domain_name, ns_records)
+            api_response, api_url = domain_client.update_domain(domain_name, expected_ns)
             socketio.emit("console", f"DNS : {record['name']} {record['type']} {record['value']} -> {api_url}")
             socketio.emit("console", f"DNS Response: {api_response}")
             socketio.emit("message", f'Serveur de noms pour {domain_name} configuré à {record["value"]}.')
