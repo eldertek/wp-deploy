@@ -60,7 +60,8 @@ def configure_dns(domain_name):
         socketio.emit("console", f"{domain_name} - Erreur lors de la récupération des NS: {str(e)}")
         current_ns_records = []
 
-    if not current_ns_records:
+    # Compare current NS records with the desired NS records
+    if set(current_ns_records) != set(ns_records):
         # Loop to add all records, try, catch
         for record in ns_records:
             try:
