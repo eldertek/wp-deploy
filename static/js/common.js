@@ -29,7 +29,7 @@ $(document).ready(function() {
                 setTimeout(function() {
                     messages.removeChild(message);
                 }, 1000); // Retirer après la transition
-            }, 5000); // Attendre 5 secondes avant de commencer le fondu
+            }, 30000); // Attendre 30 secondes avant de commencer le fondu
         } else {
             console.error('Element with ID "socket-messages" not found.');
         }
@@ -63,7 +63,7 @@ $(document).ready(function() {
                 setTimeout(function() {
                     messages.removeChild(message);
                 }, 1000); // Retirer après la transition
-            }, 5000); // Attendre 5 secondes avant de commencer le fondu
+            }, 60000); // Attendre 1 minute avant de commencer le fondu
         } else {
             console.error('Element with ID "socket-messages" not found.');
         }
@@ -101,7 +101,7 @@ $(document).ready(function() {
                 setTimeout(function() {
                     messages.removeChild(message);
                 }, 1000); // Retirer après la transition
-            }, 5000); // Attendre 5 secondes avant de commencer le fondu
+            }, 30000); // Attendre 30 secondes avant de commencer le fondu
         } else {
             console.error('Element with ID "socket-messages" not found.');
         }
