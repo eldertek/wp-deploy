@@ -2,7 +2,7 @@ $(document).ready(function() {
     var socket = io.connect('https://' + document.domain + ':' + location.port);
     
     socket.on('message', function(msg) {
-        console.log('Received message:', msg);
+        // console.log('Received message:', msg);
         var messages = document.getElementById('socket-messages');
         
         // Check if messages element exists
