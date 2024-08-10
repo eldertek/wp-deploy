@@ -76,6 +76,10 @@ def configure_dns(domain_name):
             api_response, api_url = domain_client.update_domain(domain_name, ns_list=expected_ns)
             socketio.emit("console", f"Configuration NS pour {domain_name} -> {api_url}")
 
+            for ns in expected_ns:
+                api_response, api_url = dns_client.add_record(domain_name, "NS", ns)
+                socketio.emit("console", f"DNS : {domain_name} NS {ns} -> {api_url}")
+
     except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
         socketio.emit("message", f"Les serveurs de noms pour {domain_name} ne sont pas configurés correctement. Configuration en cours...")
         api_response, api_url = domain_client.update_domain(domain_name, ns_list=expected_ns)
