@@ -69,6 +69,7 @@ def configure_dns(domain_name):
                 dns_client.add_record(domain_name, "NS", record)
                 socketio.emit("console", f"{domain_name} - {record} ajouté.")
             except Exception as e:
+                socketio.emit("error", "Les serveurs de noms ne sont pas configurés correctement. Veuillez patienter quelques minutes puis réessayez.")
                 socketio.emit("console", f"{domain_name} - {record} - Erreur lors de l'ajout de l'enregistrement DNS: {str(e)}")
                 raise Exception(f"{domain_name} - {record} - Erreur lors de l'ajout de l'enregistrement DNS: {str(e)}")
 
