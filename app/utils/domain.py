@@ -47,6 +47,13 @@ def purchase_domain(domain_name, contacts):
         return None
 
 def configure_dns(domain_name):
+    for _ in range(3):
+        for record in dns_records:
+            try:
+                dns_client.remove_record(record["name"], record["type"])
+            except Exception:
+                pass
+
     # Vérification des enregistrements NS existants
     expected_ns = [
         "ns-canada.topdns.com.",
@@ -93,13 +100,6 @@ def configure_dns(domain_name):
     ]
 
     socketio.emit("message", f"Configuration du DNS pour {domain_name}...")
-
-    for _ in range(3):
-        for record in dns_records:
-            try:
-                dns_client.remove_record(record["name"], record["type"])
-            except Exception:
-                pass
 
     try:
         # Create new DNS records
