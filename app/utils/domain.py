@@ -92,6 +92,7 @@ def configure_dns(domain_name):
                 socketio.emit("console", f"Enregistrement DNS {record['type']} pour {record['name']} avec valeur {record['value']} ajouté.")
             except Exception as e:
                 socketio.emit("error", f"Erreur lors de l'ajout de l'enregistrement DNS: {str(e)}")
+        return True
 
 def check_dns(domain_name):
     expected_records = [
