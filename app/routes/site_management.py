@@ -132,3 +132,13 @@ def update_site_config():
         return jsonify({"status": "success"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+@site_management_bp.route("/get_categories", methods=["GET"])
+@login_required
+def get_categories():
+    try:
+        sites_data = load_sites_data()
+        categories = list(set(site['category'] for site in sites_data['sites'] if 'category' in site))
+        return jsonify({"status": "success", "categories": categories})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
