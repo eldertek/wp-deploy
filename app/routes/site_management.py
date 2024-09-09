@@ -2,10 +2,11 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from app.utils.domain import is_domain_owned, is_domain_available, purchase_domain
 from app.utils.wordpress import generate_wp_login_link
-from app.utils.settings import load_settings, load_sites_data
+from app.utils.settings import load_settings, load_sites_data, save_sites_data
 from app.utils.jobs import scheduler
 from functools import wraps
 import os
+import json
 
 site_management_bp = Blueprint('site_management', __name__)
 
@@ -31,10 +32,11 @@ def get_domains():
 def index():
     try:
         sites_data = load_sites_data()
-        return render_template("index.html", sites=sites_data['sites'], last_update=sites_data['last_update'])
+        categories = list(set(site['category'] for site in sites_data['sites'] if 'category' in site))
+        return render_template("index.html", sites=sites_data['sites'], last_update=sites_data['last_update'], categories=categories)
     except Exception as e:
         flash(f"Erreur lors du chargement des données des sites : {str(e)}", "danger")
-        return render_template("index.html", sites=[], last_update="")
+        return render_template("index.html", sites=[], last_update="", categories=[])
 
 @site_management_bp.route("/add_domain", methods=["GET", "POST"])
 @login_required
@@ -109,5 +111,24 @@ def run_job(job_name):
         from app.utils.jobs import run_job
         run_job(job_name)
         return jsonify({"status": "success", "message": f"Job '{job_name}' executé avec succès."})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@site_management_bp.route("/update_site_config", methods=["POST"])
+@login_required
+def update_site_config():
+    domain = request.form.get("domain")
+    category = request.form.get("category")
+    if not domain or not category:
+        return jsonify({"status": "error", "message": "Domaine ou catégorie manquant"}), 400
+
+    try:
+        sites_data = load_sites_data()
+        for site in sites_data['sites']:
+            if site['domain'] == domain:
+                site['category'] = category
+                break
+        save_sites_data(sites_data)
+        return jsonify({"status": "success"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
