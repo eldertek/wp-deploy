@@ -4,5 +4,6 @@ app/__pycache__/
 data/config.json
 data/deployments.json
 data/sites_data.json
+data/domains.json
 data/secret_key.json
 data/users.json
