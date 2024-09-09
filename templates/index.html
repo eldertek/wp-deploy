@@ -59,6 +59,7 @@
                     <div class="form-group">
                         <label for="siteCategory">Catégorie</label>
                         <input type="text" class="form-control" id="siteCategory" name="category" required>
+                        <div id="categorySuggestions" class="list-group"></div>
                     </div>
                     <input type="hidden" id="siteDomain" name="domain">
                 </form>
@@ -73,7 +74,6 @@
 {% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 <style>
     .status-dot {
         width: 12px;
@@ -93,39 +93,49 @@
     .site-config {
         cursor: pointer;
     }
+    .list-group-item {
+        cursor: pointer;
+    }
 </style>
 {% endblock %}
 
 {% block scripts %}
-<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 <script>
     var deploySiteUrl = "{{ url_for('deployment.deploy_site') }}";
 
-    $(document).ready(function() {
+    document.addEventListener('DOMContentLoaded', function() {
         // Filtrer les sites par catégorie
-        $('.filter-btn').on('click', function() {
-            var category = $(this).data('category');
-            if (category === 'all') {
-                $('.site-card').show();
-            } else {
-                $('.site-card').hide();
-                $('.site-card[data-category="' + category + '"]').show();
-            }
+        document.querySelectorAll('.filter-btn').forEach(function(button) {
+            button.addEventListener('click', function() {
+                var category = this.getAttribute('data-category');
+                document.querySelectorAll('.site-card').forEach(function(card) {
+                    if (category === 'all' || card.getAttribute('data-category') === category) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
         });
 
         // Ouvrir le modal de configuration du site
-        $('.site-config').on('click', function() {
-            var domain = $(this).data('domain');
-            var category = $(this).data('category');
-            $('#siteDomain').val(domain);
-            $('#siteCategory').val(category);
-            $('#siteConfigModal').modal('show');
+        document.querySelectorAll('.site-config').forEach(function(icon) {
+            icon.addEventListener('click', function() {
+                var domain = this.getAttribute('data-domain');
+                var category = this.getAttribute('data-category');
+                document.getElementById('siteDomain').value = domain;
+                document.getElementById('siteCategory').value = category;
+                $('#siteConfigModal').modal('show');
+            });
         });
 
         // Enregistrer la configuration du site
-        $('#saveSiteConfig').on('click', function() {
-            var formData = $('#siteConfigForm').serialize();
-            $.post("{{ url_for('site_management.update_site_config') }}", formData, function(data) {
+        document.getElementById('saveSiteConfig').addEventListener('click', function() {
+            var formData = new FormData(document.getElementById('siteConfigForm'));
+            fetch("{{ url_for('site_management.update_site_config') }}", {
+                method: 'POST',
+                body: formData
+            }).then(response => response.json()).then(data => {
                 if (data.status === 'success') {
                     location.reload();
                 } else {
@@ -135,15 +145,41 @@
         });
 
         // Autocomplétion pour les catégories
-        $.get("{{ url_for('site_management.get_categories') }}", function(data) {
-            if (data.status === 'success') {
-                var categories = data.categories;
-                $('#siteCategory').autocomplete({
-                    source: categories
-                });
+        var siteCategoryInput = document.getElementById('siteCategory');
+        var categorySuggestions = document.getElementById('categorySuggestions');
+
+        siteCategoryInput.addEventListener('input', function() {
+            var query = this.value.toLowerCase();
+            if (query.length > 0) {
+                fetch("{{ url_for('site_management.get_categories') }}")
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            var categories = data.categories.filter(category => category.toLowerCase().includes(query));
+                            categorySuggestions.innerHTML = '';
+                            categories.forEach(category => {
+                                var item = document.createElement('div');
+                                item.className = 'list-group-item list-group-item-action';
+                                item.textContent = category;
+                                item.addEventListener('click', function() {
+                                    siteCategoryInput.value = category;
+                                    categorySuggestions.innerHTML = '';
+                                });
+                                categorySuggestions.appendChild(item);
+                            });
+                        }
+                    });
+            } else {
+                categorySuggestions.innerHTML = '';
+            }
+        });
+
+        // Fermer les suggestions lorsque l'utilisateur clique en dehors
+        document.addEventListener('click', function(event) {
+            if (!siteCategoryInput.contains(event.target) && !categorySuggestions.contains(event.target)) {
+                categorySuggestions.innerHTML = '';
             }
         });
     });
 </script>
-<script src="{{ url_for('static', filename='js/index.js') }}"></script>
 {% endblock %}
