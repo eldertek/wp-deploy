@@ -168,7 +168,8 @@ def update_sites_data(indexed=False):
             "published_articles": published_articles,
             "indexed_articles": indexed_articles,
             "indexed_percentage": round(indexed_percentage, 2),
-            "status": status
+            "status": status,
+            "category": existing_domains.get(domain, {}).get("category", "")
         }
 
     sites_data["sites"] = list(existing_domains.values())
