@@ -13,19 +13,19 @@
     <div class="mb-4">
         <button class="btn btn-secondary filter-btn" data-category="all">Tous</button>
         {% for category in categories %}
-        <button class="btn btn-secondary filter-btn" data-category="{{ category }}">{{ category }}</button>
+        <button class="btn btn-secondary filter-btn" data-category="{{ category|default('') }}">{{ category|default('Sans catégorie') }}</button>
         {% endfor %}
     </div>
 
     <div class="row">
         {% for site in sites %}
-        <div class="col-md-4 mb-4 site-card" data-category="{{ site.category }}">
+        <div class="col-md-4 mb-4 site-card" data-category="{{ site.category|default('') }}">
             <div class="card shadow-sm h-100 position-relative">
                 <div class="card-body d-flex flex-column">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="card-title mb-0">{{ site.domain }}</h5>
                         <span class="status-dot {{ 'bg-success' if site.status == 'online' else 'bg-danger' }}"></span>
-                        <i class="fas fa-cog site-config" data-domain="{{ site.domain }}" data-category="{{ site.category }}"></i>
+                        <i class="fas fa-cog site-config" data-domain="{{ site.domain }}" data-category="{{ site.category|default('') }}"></i>
                     </div>
                     <p class="card-text">Articles publiés: {{ site.published_articles }}</p>
                     <p class="card-text">Articles indexés: {{ site.indexed_articles }}</p>
@@ -109,7 +109,7 @@
             button.addEventListener('click', function() {
                 var category = this.getAttribute('data-category');
                 document.querySelectorAll('.site-card').forEach(function(card) {
-                    if (category === 'all' || card.getAttribute('data-category') === category) {
+                    if (category === 'all' || card.getAttribute('data-category') === category || card.getAttribute('data-category') === '') {
                         card.style.display = 'block';
                     } else {
                         card.style.display = 'none';
