@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required
 from app.utils.wordpress import publish_article
+from app.utils.settings import load_sites_data
 import os
 from werkzeug.utils import secure_filename
 
@@ -20,30 +21,39 @@ def save_featured_image(featured_image):
 @editor_bp.route("/editor", methods=["GET", "POST"])
 @login_required
 def editor():
-    domains = [
-        domain
-        for domain in os.listdir("/var/www/")
-        if os.path.isdir(os.path.join("/var/www/", domain))
-        and not domain.startswith(".")
-        and not domain.endswith("-static")  # Exclude domains ending with -static
-    ]
+    sites_data = load_sites_data()
+    domains = [site['domain'] for site in sites_data['sites']]
+    categories = list(set(site['category'] for site in sites_data['sites'] if 'category' in site))
 
     if request.method == "POST":
         site = request.form.get("site")
+        category = request.form.get("category")
         title = request.form.get("title")
         content = request.form.get("content")
         featured_image = request.files.get("featured_image")
         
-        if site in domains:
+        image_path = save_featured_image(featured_image)
+        
+        if site and site in domains:
             try:
-                image_path = save_featured_image(featured_image)
                 publish_article(site, title, content, image_path)
+                flash("Article publié avec succès", "success")
+                return redirect(url_for("site_management.index"))
+            except Exception as e:
+                flash("Une erreur est survenue lors de la publication de l'article", "danger")
+                return redirect(url_for("editor.editor"))
+        elif category:
+            try:
+                for site in sites_data['sites']:
+                    if site['category'] == category:
+                        publish_article(site['domain'], title, content, image_path)
+                flash("Article publié avec succès sur tous les sites de la catégorie", "success")
                 return redirect(url_for("site_management.index"))
             except Exception as e:
                 flash("Une erreur est survenue lors de la publication de l'article", "danger")
                 return redirect(url_for("editor.editor"))
         else:
-            flash("Site invalide", "danger")
+            flash("Veuillez sélectionner un site ou une catégorie", "danger")
             return redirect(url_for("editor.editor"))
 
     selected_site = request.args.get("site")
@@ -51,4 +61,4 @@ def editor():
         flash("Site invalide", "danger")
         return redirect(url_for("site_management.index"))
 
-    return render_template("editor.html", domains=domains, selected_site=selected_site)
+    return render_template("editor.html", domains=domains, categories=categories, selected_site=selected_site)

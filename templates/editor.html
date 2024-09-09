@@ -5,12 +5,22 @@
 {% block content %}
 <div class="card shadow-lg p-4 mb-4 w-100">
     <h1 class="card-title">Rédiger un article</h1>
-    <form id="articleForm">
+    <form id="articleForm" method="POST" enctype="multipart/form-data">
         <div class="form-group">
             <label for="site">Site</label>
-            <select class="form-control" id="site" name="site" required>
+            <select class="form-control" id="site" name="site">
+                <option value="">Sélectionner un site</option>
                 {% for domain in domains %}
                     <option value="{{ domain }}" {% if domain == selected_site %}selected{% endif %}>{{ domain }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="category">Catégorie</label>
+            <select class="form-control" id="category" name="category">
+                <option value="">Sélectionner une catégorie</option>
+                {% for category in categories %}
+                    <option value="{{ category }}">{{ category }}</option>
                 {% endfor %}
             </select>
         </div>
