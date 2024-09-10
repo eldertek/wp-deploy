@@ -97,10 +97,18 @@ def save_categories(categories):
 
 def load_languages():
     languages_path = "data/languages.json"
+    default_language = "Aucune langue"  # Ajout de la langue par défaut
     if os.path.exists(languages_path):
         with open(languages_path, "r") as f:
-            return json.load(f)
-    return []
+            languages = json.load(f)
+    else:
+        languages = []
+
+    if default_language not in languages:
+        languages.append(default_language)
+        save_languages(languages)  # Sauvegarde des langues avec la langue par défaut
+
+    return languages
 
 def save_languages(languages):
     languages_path = "data/languages.json"
