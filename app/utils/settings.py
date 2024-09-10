@@ -86,7 +86,7 @@ def load_categories():
 
     if default_category not in categories:
         categories.append(default_category)
-        save_categories(categories)  # Save the updated categories list
+        save_categories(categories) 
 
     return categories
 

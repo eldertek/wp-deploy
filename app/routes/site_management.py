@@ -160,3 +160,18 @@ def manage_categories():
     
     categories = load_categories()
     return render_template("categories.html", categories=categories)
+
+@site_management_bp.route("/delete_category", methods=["POST"])
+@login_required
+def delete_category():
+    category = request.form.get("category")
+    if not category:
+        return jsonify({"status": "error", "message": "Nom de catégorie manquant"}), 400
+
+    categories = load_categories()
+    if category not in categories:
+        return jsonify({"status": "error", "message": "Catégorie non trouvée"}), 400
+
+    categories.remove(category)
+    save_categories(categories)
+    return jsonify({"status": "success", "categories": categories})

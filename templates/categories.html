@@ -19,7 +19,12 @@
     <h2>Catégories existantes</h2>
     <ul id="categoryList" class="list-group">
         {% for category in categories %}
-        <li class="list-group-item">{{ category }}</li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            {{ category }}
+            {% if category != 'Aucune catégorie' %}
+            <button class="btn btn-danger btn-sm delete-category" data-category="{{ category }}">Supprimer</button>
+            {% endif %}
+        </li>
         {% endfor %}
     </ul>
 </div>
@@ -33,12 +38,25 @@
             var category = $('#category').val();
             $.post('{{ url_for("site_management.manage_categories") }}', { category: category }, function(data) {
                 if (data.status === 'success') {
-                    $('#categoryList').append('<li class="list-group-item">' + category + '</li>');
+                    $('#categoryList').append('<li class="list-group-item d-flex justify-content-between align-items-center">' + category + '<button class="btn btn-danger btn-sm delete-category" data-category="' + category + '">Supprimer</button></li>');
                     $('#category').val('');
                 } else {
                     alert(data.message);
                 }
             });
+        });
+
+        $(document).on('click', '.delete-category', function() {
+            var category = $(this).data('category');
+            if (confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')) {
+                $.post('{{ url_for("site_management.delete_category") }}', { category: category }, function(data) {
+                    if (data.status === 'success') {
+                        location.reload();
+                    } else {
+                        alert(data.message);
+                    }
+                });
+            }
         });
     });
 </script>
