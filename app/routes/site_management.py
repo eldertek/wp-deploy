@@ -119,14 +119,16 @@ def run_job(job_name):
 def update_site_config():
     domain = request.form.get("domain")
     category = request.form.get("category")
-    if not domain or not category:
-        return jsonify({"status": "error", "message": "Domaine ou catégorie manquant"}), 400
+    language = request.form.get("language")  # Ajout de la langue
+    if not domain or not category or not language:  # Vérifiez également la langue
+        return jsonify({"status": "error", "message": "Domaine, catégorie ou langue manquant"}), 400
 
     try:
         sites_data = load_sites_data()
         for site in sites_data['sites']:
             if site['domain'] == domain:
                 site['category'] = category
+                site['language'] = language 
                 break
         save_sites_data(sites_data)
         return jsonify({"status": "success"})
