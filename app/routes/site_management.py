@@ -32,7 +32,8 @@ def index():
     try:
         sites_data = load_sites_data()
         categories = load_categories()
-        return render_template("index.html", sites=sites_data['sites'], last_update=sites_data['last_update'], categories=categories)
+        languages = load_languages()
+        return render_template("index.html", sites=sites_data['sites'], last_update=sites_data['last_update'], categories=categories, languages=languages)
     except Exception as e:
         flash(f"Erreur lors du chargement des données des sites : {str(e)}", "danger")
         return render_template("index.html", sites=[], last_update="", categories=[])
