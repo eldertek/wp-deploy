@@ -11,6 +11,7 @@
     
     <!-- Menu déroulant de filtre de catégorie -->
     <div class="mb-4">
+        <label for="categoryFilter">Catégorie :</label>
         <select class="form-control" id="categoryFilter">
             <option value="all">Tous</option>
             {% for category in categories %}
@@ -28,7 +29,6 @@
                         <h5 class="card-title mb-0">{{ site.domain }}</h5>
                         <span class="status-dot {{ 'bg-success' if site.status == 'online' else 'bg-danger' }}"></span>
                     </div>
-                    <p class="card-text">Catégorie: {{ site.category|default('Aucune catégorie') }}</p>
                     <p class="card-text">Articles publiés: {{ site.published_articles }}</p>
                     <p class="card-text">Articles indexés: {{ site.indexed_articles }}</p>
                     <p class="card-text">Pourcentage indexé: {{ site.indexed_percentage|round(2) }}%</p>
