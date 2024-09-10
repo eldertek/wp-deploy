@@ -28,6 +28,7 @@
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="card-title mb-0">{{ site.domain }}</h5>
                         <span class="status-dot {{ 'bg-success' if site.status == 'online' else 'bg-danger' }}"></span>
+                        <i class="fas fa-cog site-config" data-domain="{{ site.domain }}" data-category="{{ site.category|default('') }}"></i>
                     </div>
                     <p class="card-text">Articles publiés: {{ site.published_articles }}</p>
                     <p class="card-text">Articles indexés: {{ site.indexed_articles }}</p>
@@ -37,7 +38,6 @@
                             <a href="{{ url_for('site_management.backoffice', domain=site.domain) }}" class="btn btn-outline-primary btn-sm">Backoffice</a>
                             <a href="{{ url_for('editor.editor', site=site.domain) }}" class="btn btn-outline-secondary btn-sm">Rédiger</a>
                             <button type="button" class="btn btn-outline-warning btn-sm force-update-btn" data-domain="{{ site.domain }}">Forcer la mise à jour</button>
-                            <i class="fas fa-cog site-config ml-2" data-domain="{{ site.domain }}" data-category="{{ site.category|default('') }}"></i>
                         </div>
                     </div>
                 </div>
@@ -98,6 +98,9 @@
     }
     .site-config {
         cursor: pointer;
+        position: absolute;
+        top: 15px;
+        right: 15px;
     }
     .list-group-item {
         cursor: pointer;
