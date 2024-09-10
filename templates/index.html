@@ -15,7 +15,7 @@
         <select class="form-control w-auto mr-3" id="categoryFilter">
             <option value="all">Tous</option>
             {% for category in categories %}
-            <option value="{{ category|default('') }}">{{ category|default('Sans catégorie') }}</option>
+            <option value="{{ category|default('') }}">{{ category|default('Aucune catégorie') }}</option>
             {% endfor %}
         </select>
         <label for="languageFilter" class="mr-2 mb-0">Langue :</label>
