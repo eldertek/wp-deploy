@@ -136,10 +136,9 @@
                 var cardLanguage = card.getAttribute('data-language');
                 
                 // Vérification des critères de filtrage
-                var categoryMatch = (cardCategory === category);
-                var languageMatch = (cardLanguage === language);
+                var categoryMatch = (category === 'all' || cardCategory === category);
+                var languageMatch = (language === 'all' || cardLanguage === language);
                 
-                // Afficher le site si les deux critères correspondent
                 if (categoryMatch && languageMatch) {
                     card.style.display = 'block';
                 } else {
