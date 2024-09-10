@@ -77,10 +77,18 @@ def save_sites_data(data):
 
 def load_categories():
     categories_path = "data/categories.json"
+    default_category = "Aucune catégorie"
     if os.path.exists(categories_path):
         with open(categories_path, "r") as f:
-            return json.load(f)
-    return []
+            categories = json.load(f)
+    else:
+        categories = []
+
+    if default_category not in categories:
+        categories.append(default_category)
+        save_categories(categories)  # Save the updated categories list
+
+    return categories
 
 def save_categories(categories):
     categories_path = "data/categories.json"
