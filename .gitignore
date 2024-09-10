@@ -8,3 +8,4 @@ data/domains.json
 data/secret_key.json
 data/users.json
 data/categories.json
+data/languages.json

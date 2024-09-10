@@ -73,6 +73,7 @@
                             <option value="{{ category }}">{{ category }}</option>
                             {% endfor %}
                         </select>
+                        <div id="categorySuggestions" class="list-group"></div>
                     </div>
                     <div class="form-group">
                         <label for="siteLanguage">Langue</label>
@@ -81,6 +82,7 @@
                             <option value="{{ language }}">{{ language }}</option>
                             {% endfor %}
                         </select>
+                        <div id="languageSuggestions" class="list-group"></div>
                     </div>
                     <input type="hidden" id="siteDomain" name="domain">
                 </form>
