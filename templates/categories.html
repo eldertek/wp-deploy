@@ -3,52 +3,74 @@
 {% block title %}Gestion des catégories et langues{% endblock %}
 
 {% block content %}
-<div class="card shadow-lg p-4 mb-4 w-100">
-    <h1 class="card-title">Gestion des catégories et langues</h1>
+<div class="container mt-4">
+    <h1 class="mb-4">Gestion des catégories et langues</h1>
     
-    <!-- Formulaire d'ajout de catégorie -->
-    <form id="categoryForm" class="mb-4">
-        <div class="form-group">
-            <label for="category">Nom de la catégorie</label>
-            <input type="text" class="form-control" id="category" name="category" required>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h5 mb-0">Catégories</h2>
+                </div>
+                <div class="card-body">
+                    <form id="categoryForm" class="mb-3">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="category" name="category" placeholder="Nouvelle catégorie" required>
+                            <div class="input-group-append">
+                                <button type="submit" class="btn btn-primary">Ajouter</button>
+                            </div>
+                        </div>
+                    </form>
+                    <ul id="categoryList" class="list-group">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Aucune catégorie
+                            <span class="badge badge-secondary badge-pill">Par défaut</span>
+                        </li>
+                        {% for category in categories %}
+                            {% if category != 'Aucune catégorie' %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ category }}
+                                <button class="btn btn-danger btn-sm delete-category" data-category="{{ category }}">Supprimer</button>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
         </div>
-        <button type="submit" class="btn btn-primary">Ajouter</button>
-    </form>
-
-    <!-- Liste des catégories -->
-    <h2>Catégories existantes</h2>
-    <ul id="categoryList" class="list-group">
-        {% for category in categories %}
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-            {{ category }}
-            {% if category != 'Aucune catégorie' %}
-            <button class="btn btn-danger btn-sm delete-category" data-category="{{ category }}">Supprimer</button>
-            {% endif %}
-        </li>
-        {% endfor %}
-    </ul>
-
-    <!-- Formulaire d'ajout de langue -->
-    <form id="languageForm" class="mb-4 mt-4">
-        <div class="form-group">
-            <label for="language">Nom de la langue</label>
-            <input type="text" class="form-control" id="language" name="language" required>
+        
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h2 class="h5 mb-0">Langues</h2>
+                </div>
+                <div class="card-body">
+                    <form id="languageForm" class="mb-3">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="language" name="language" placeholder="Nouvelle langue" required>
+                            <div class="input-group-append">
+                                <button type="submit" class="btn btn-success">Ajouter</button>
+                            </div>
+                        </div>
+                    </form>
+                    <ul id="languageList" class="list-group">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Aucune langue
+                            <span class="badge badge-secondary badge-pill">Par défaut</span>
+                        </li>
+                        {% for language in languages %}
+                            {% if language != 'Aucune langue' %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ language }}
+                                <button class="btn btn-danger btn-sm delete-language" data-language="{{ language }}">Supprimer</button>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
         </div>
-        <button type="submit" class="btn btn-primary">Ajouter</button>
-    </form>
-
-    <!-- Liste des langues -->
-    <h2>Langues existantes</h2>
-    <ul id="languageList" class="list-group">
-        {% for language in languages %}
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-            {{ language }}
-            {% if language != 'Aucune langue' %}  <!-- Vérification pour empêcher la suppression -->
-            <button class="btn btn-danger btn-sm delete-language" data-language="{{ language }}">Supprimer</button>
-            {% endif %}
-        </li>
-        {% endfor %}
-    </ul>
+    </div>
 </div>
 {% endblock %}
 
