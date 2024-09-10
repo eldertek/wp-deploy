@@ -9,12 +9,14 @@
     <h2 class="mb-4">Monitoring des sites</h2>
     <p class="text-muted">Dernière actualisation: {{ last_update }}</p>
     
-    <!-- Boutons de filtre de catégorie -->
+    <!-- Menu déroulant de filtre de catégorie -->
     <div class="mb-4">
-        <button class="btn btn-secondary filter-btn" data-category="all">Tous</button>
-        {% for category in categories %}
-        <button class="btn btn-secondary filter-btn" data-category="{{ category|default('') }}">{{ category|default('Sans catégorie') }}</button>
-        {% endfor %}
+        <select class="form-control" id="categoryFilter">
+            <option value="all">Tous</option>
+            {% for category in categories %}
+            <option value="{{ category|default('') }}">{{ category|default('Sans catégorie') }}</option>
+            {% endfor %}
+        </select>
     </div>
 
     <div class="row">
@@ -108,16 +110,14 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         // Filtrer les sites par catégorie
-        document.querySelectorAll('.filter-btn').forEach(function(button) {
-            button.addEventListener('click', function() {
-                var category = this.getAttribute('data-category');
-                document.querySelectorAll('.site-card').forEach(function(card) {
-                    if (category === 'all' || card.getAttribute('data-category') === category || card.getAttribute('data-category') === '') {
-                        card.style.display = 'block';
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
+        document.getElementById('categoryFilter').addEventListener('change', function() {
+            var category = this.value;
+            document.querySelectorAll('.site-card').forEach(function(card) {
+                if (category === 'all' || card.getAttribute('data-category') === category || card.getAttribute('data-category') === '') {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
             });
         });
 
