@@ -9,25 +9,35 @@
     <h2 class="mb-4">Monitoring des sites</h2>
     <p class="text-muted">Dernière actualisation: {{ last_update }}</p>
     
-    <!-- Menu déroulant de filtre de catégorie et langue -->
-    <div class="mb-4 d-flex align-items-center">
-        <label for="categoryFilter" class="mr-2 mb-0">Catégorie :</label>
-        <select class="form-control w-auto mr-3" id="categoryFilter">
-            <option value="all">Tous</option>
-            {% for category in categories %}
-            <option value="{{ category|default('') }}">{{ category|default('Aucune catégorie') }}</option>
-            {% endfor %}
-        </select>
-        <label for="languageFilter" class="mr-2 mb-0">Langue :</label>
-        <select class="form-control w-auto" id="languageFilter">
-            <option value="all">Toutes</option>
-            {% for language in languages %}
-            <option value="{{ language }}">{{ language }}</option>
-            {% endfor %}
-        </select>
+    <!-- Filtres et recherche -->
+    <div class="mb-4">
+        <div class="row">
+            <div class="col-md-3 mb-2">
+                <label for="categoryFilter" class="mr-2 mb-0">Catégorie :</label>
+                <select class="form-control" id="categoryFilter">
+                    <option value="all">Tous</option>
+                    {% for category in categories %}
+                    <option value="{{ category|default('') }}">{{ category|default('Aucune catégorie') }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 mb-2">
+                <label for="languageFilter" class="mr-2 mb-0">Langue :</label>
+                <select class="form-control" id="languageFilter">
+                    <option value="all">Toutes</option>
+                    {% for language in languages %}
+                    <option value="{{ language }}">{{ language }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6 mb-2">
+                <label for="searchInput" class="mr-2 mb-0">Recherche :</label>
+                <input type="text" class="form-control" id="searchInput" placeholder="Filtrer par URL...">
+            </div>
+        </div>
     </div>
 
-    <div class="row">
+    <div class="row" id="siteCards">
         {% for site in sites %}
         <div class="col-md-4 mb-4 site-card" data-category="{{ site.category|default('') }}" data-language="{{ site.language|default('') }}">
             <div class="card shadow-sm h-100">
@@ -128,19 +138,21 @@
     var deploySiteUrl = "{{ url_for('deployment.deploy_site') }}";
 
     document.addEventListener('DOMContentLoaded', function() {
-        // Filtrer les sites par catégorie et langue
         function filterSites() {
             var category = document.getElementById('categoryFilter').value;
             var language = document.getElementById('languageFilter').value;
+            var searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
             document.querySelectorAll('.site-card').forEach(function(card) {
                 var cardCategory = card.getAttribute('data-category');
                 var cardLanguage = card.getAttribute('data-language');
+                var cardDomain = card.querySelector('.card-title').textContent.toLowerCase();
                 
-                // Vérification des critères de filtrage
                 var categoryMatch = (category === 'all' || cardCategory === category);
                 var languageMatch = (language === 'all' || cardLanguage === language);
+                var searchMatch = cardDomain.includes(searchTerm);
                 
-                if (categoryMatch && languageMatch) {
+                if (categoryMatch && languageMatch && searchMatch) {
                     card.style.display = 'block';
                 } else {
                     card.style.display = 'none';
@@ -150,6 +162,7 @@
 
         document.getElementById('categoryFilter').addEventListener('change', filterSites);
         document.getElementById('languageFilter').addEventListener('change', filterSites);
+        document.getElementById('searchInput').addEventListener('input', filterSites);
 
         // Ouvrir le modal de configuration du site
         document.querySelectorAll('.site-config').forEach(function(icon) {
