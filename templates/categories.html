@@ -43,7 +43,9 @@
         {% for language in languages %}
         <li class="list-group-item d-flex justify-content-between align-items-center">
             {{ language }}
+            {% if language != 'Aucune langue' %}  <!-- Vérification pour empêcher la suppression -->
             <button class="btn btn-danger btn-sm delete-language" data-language="{{ language }}">Supprimer</button>
+            {% endif %}
         </li>
         {% endfor %}
     </ul>
