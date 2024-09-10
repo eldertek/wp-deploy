@@ -134,10 +134,12 @@
             document.querySelectorAll('.site-card').forEach(function(card) {
                 var cardCategory = card.getAttribute('data-category');
                 var cardLanguage = card.getAttribute('data-language');
-                // Vérification des critères de filtrage
-                var categoryMatch = (category === 'all' || cardCategory === category || cardCategory === '');
-                var languageMatch = (language === 'all' || cardLanguage === language || cardLanguage === '');
                 
+                // Vérification des critères de filtrage
+                var categoryMatch = (category === 'all' || cardCategory === category);
+                var languageMatch = (language === 'all' || cardLanguage === language);
+                
+                // Afficher le site si les deux critères correspondent
                 if (categoryMatch && languageMatch) {
                     card.style.display = 'block';
                 } else {
@@ -164,6 +166,15 @@
 
         // Enregistrer la configuration du site
         document.getElementById('saveSiteConfig').addEventListener('click', function() {
+            var category = document.getElementById('siteCategory').value;
+            var language = document.getElementById('siteLanguage').value;
+
+            // Vérification si les champs sont vides
+            if (!category || !language) {
+                alert('Veuillez remplir tous les champs.');
+                return; // Empêche l'envoi du formulaire
+            }
+
             var formData = new FormData(document.getElementById('siteConfigForm'));
             fetch("{{ url_for('site_management.update_site_config') }}", {
                 method: 'POST',
