@@ -74,3 +74,15 @@ def save_sites_data(data):
     with open(data_path, "w") as f:
         json.dump(data, f, indent=4)
     run_command("chown www-data:www-data data/sites_data.json", elevated=True)
+
+def load_categories():
+    categories_path = "data/categories.json"
+    if os.path.exists(categories_path):
+        with open(categories_path, "r") as f:
+            return json.load(f)
+    return []
+
+def save_categories(categories):
+    categories_path = "data/categories.json"
+    with open(categories_path, "w") as f:
+        json.dump(categories, f, indent=4)

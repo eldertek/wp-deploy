@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des catégories{% endblock %}
+
+{% block content %}
+<div class="card shadow-lg p-4 mb-4 w-100">
+    <h1 class="card-title">Gestion des catégories</h1>
+    
+    <!-- Formulaire d'ajout de catégorie -->
+    <form id="categoryForm" class="mb-4">
+        <div class="form-group">
+            <label for="category">Nom de la catégorie</label>
+            <input type="text" class="form-control" id="category" name="category" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Ajouter</button>
+    </form>
+
+    <!-- Liste des catégories -->
+    <h2>Catégories existantes</h2>
+    <ul id="categoryList" class="list-group">
+        {% for category in categories %}
+        <li class="list-group-item">{{ category }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        $('#categoryForm').on('submit', function(e) {
+            e.preventDefault();
+            var category = $('#category').val();
+            $.post('{{ url_for("site_management.manage_categories") }}', { category: category }, function(data) {
+                if (data.status === 'success') {
+                    $('#categoryList').append('<li class="list-group-item">' + category + '</li>');
+                    $('#category').val('');
+                } else {
+                    alert(data.message);
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

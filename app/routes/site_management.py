@@ -2,11 +2,10 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from app.utils.domain import is_domain_owned, is_domain_available, purchase_domain
 from app.utils.wordpress import generate_wp_login_link
-from app.utils.settings import load_settings, load_sites_data, save_sites_data
+from app.utils.settings import load_settings, load_sites_data, save_sites_data, load_categories, save_categories
 from app.utils.jobs import scheduler
 from functools import wraps
 import os
-import json
 
 site_management_bp = Blueprint('site_management', __name__)
 
@@ -32,7 +31,7 @@ def get_domains():
 def index():
     try:
         sites_data = load_sites_data()
-        categories = list(set(site['category'] for site in sites_data['sites'] if 'category' in site))
+        categories = load_categories()
         return render_template("index.html", sites=sites_data['sites'], last_update=sites_data['last_update'], categories=categories)
     except Exception as e:
         flash(f"Erreur lors du chargement des données des sites : {str(e)}", "danger")
@@ -142,3 +141,22 @@ def get_categories():
         return jsonify({"status": "success", "categories": categories})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+@site_management_bp.route("/categories", methods=["GET", "POST"])
+@login_required
+def manage_categories():
+    if request.method == "POST":
+        category = request.form.get("category")
+        if not category:
+            return jsonify({"status": "error", "message": "Nom de catégorie manquant"}), 400
+        
+        categories = load_categories()
+        if category in categories:
+            return jsonify({"status": "error", "message": "Catégorie déjà existante"}), 400
+        
+        categories.append(category)
+        save_categories(categories)
+        return jsonify({"status": "success", "categories": categories})
+    
+    categories = load_categories()
+    return render_template("categories.html", categories=categories)

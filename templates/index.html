@@ -58,8 +58,11 @@
                 <form id="siteConfigForm">
                     <div class="form-group">
                         <label for="siteCategory">Catégorie</label>
-                        <input type="text" class="form-control" id="siteCategory" name="category" required>
-                        <div id="categorySuggestions" class="list-group"></div>
+                        <select class="form-control" id="siteCategory" name="category" required>
+                            {% for category in categories %}
+                            <option value="{{ category }}">{{ category }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                     <input type="hidden" id="siteDomain" name="domain">
                 </form>
