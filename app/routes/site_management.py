@@ -150,19 +150,32 @@ def get_categories():
 def manage_categories():
     if request.method == "POST":
         category = request.form.get("category")
-        if not category:
-            return jsonify({"status": "error", "message": "Nom de catégorie manquant"}), 400
+        language = request.form.get("language")
+        if not category and not language:
+            return jsonify({"status": "error", "message": "Nom de catégorie et de langue manquant"}), 400
         
         categories = load_categories()
-        if category in categories:
-            return jsonify({"status": "error", "message": "Catégorie déjà existante"}), 400
-        
-        categories.append(category)
-        save_categories(categories)
-        return jsonify({"status": "success", "categories": categories})
+        languages = load_languages()
+
+        if category:
+            if category in categories:
+                return jsonify({"status": "error", "message": "Catégorie déjà existante"}), 400
+            
+            categories.append(category)
+            save_categories(categories)
+
+        if language:
+            if language in languages:
+                return jsonify({"status": "error", "message": "Langue déjà existante"}), 400
+            
+            languages.append(language)
+            save_languages(languages)
+
+        return jsonify({"status": "success", "categories": categories, "languages": languages})
     
     categories = load_categories()
-    return render_template("categories.html", categories=categories)
+    languages = load_languages()
+    return render_template("categories.html", categories=categories, languages=languages)
 
 @site_management_bp.route("/delete_category", methods=["POST"])
 @login_required
