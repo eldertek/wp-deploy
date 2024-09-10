@@ -175,3 +175,42 @@ def delete_category():
     categories.remove(category)
     save_categories(categories)
     return jsonify({"status": "success", "categories": categories})
+
+@site_management_bp.route("/get_languages", methods=["GET"])
+@login_required
+def get_languages():
+    try:
+        languages = load_languages()
+        return jsonify({"status": "success", "languages": languages})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@site_management_bp.route("/manage_languages", methods=["POST"])
+@login_required
+def manage_languages():
+    language = request.form.get("language")
+    if not language:
+        return jsonify({"status": "error", "message": "Nom de langue manquant"}), 400
+    
+    languages = load_languages()
+    if language in languages:
+        return jsonify({"status": "error", "message": "Langue déjà existante"}), 400
+    
+    languages.append(language)
+    save_languages(languages)
+    return jsonify({"status": "success", "languages": languages})
+
+@site_management_bp.route("/delete_language", methods=["POST"])
+@login_required
+def delete_language():
+    language = request.form.get("language")
+    if not language:
+        return jsonify({"status": "error", "message": "Nom de langue manquant"}), 400
+
+    languages = load_languages()
+    if language not in languages:
+        return jsonify({"status": "error", "message": "Langue non trouvée"}), 400
+
+    languages.remove(language)
+    save_languages(languages)
+    return jsonify({"status": "success", "languages": languages})

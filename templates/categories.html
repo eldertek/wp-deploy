@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}Gestion des catégories{% endblock %}
+{% block title %}Gestion des catégories et langues{% endblock %}
 
 {% block content %}
 <div class="card shadow-lg p-4 mb-4 w-100">
-    <h1 class="card-title">Gestion des catégories</h1>
+    <h1 class="card-title">Gestion des catégories et langues</h1>
     
     <!-- Formulaire d'ajout de catégorie -->
     <form id="categoryForm" class="mb-4">
@@ -24,6 +24,26 @@
             {% if category != 'Aucune catégorie' %}
             <button class="btn btn-danger btn-sm delete-category" data-category="{{ category }}">Supprimer</button>
             {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+
+    <!-- Formulaire d'ajout de langue -->
+    <form id="languageForm" class="mb-4 mt-4">
+        <div class="form-group">
+            <label for="language">Nom de la langue</label>
+            <input type="text" class="form-control" id="language" name="language" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Ajouter</button>
+    </form>
+
+    <!-- Liste des langues -->
+    <h2>Langues existantes</h2>
+    <ul id="languageList" class="list-group">
+        {% for language in languages %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            {{ language }}
+            <button class="btn btn-danger btn-sm delete-language" data-language="{{ language }}">Supprimer</button>
         </li>
         {% endfor %}
     </ul>
@@ -50,6 +70,32 @@
             var category = $(this).data('category');
             if (confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')) {
                 $.post('{{ url_for("site_management.delete_category") }}', { category: category }, function(data) {
+                    if (data.status === 'success') {
+                        location.reload();
+                    } else {
+                        alert(data.message);
+                    }
+                });
+            }
+        });
+
+        $('#languageForm').on('submit', function(e) {
+            e.preventDefault();
+            var language = $('#language').val();
+            $.post('{{ url_for("site_management.manage_languages") }}', { language: language }, function(data) {
+                if (data.status === 'success') {
+                    $('#languageList').append('<li class="list-group-item d-flex justify-content-between align-items-center">' + language + '<button class="btn btn-danger btn-sm delete-language" data-language="' + language + '">Supprimer</button></li>');
+                    $('#language').val('');
+                } else {
+                    alert(data.message);
+                }
+            });
+        });
+
+        $(document).on('click', '.delete-language', function() {
+            var language = $(this).data('language');
+            if (confirm('Êtes-vous sûr de vouloir supprimer cette langue ?')) {
+                $.post('{{ url_for("site_management.delete_language") }}', { language: language }, function(data) {
                     if (data.status === 'success') {
                         location.reload();
                     } else {
