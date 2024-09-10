@@ -94,3 +94,15 @@ def save_categories(categories):
     categories_path = "data/categories.json"
     with open(categories_path, "w") as f:
         json.dump(categories, f, indent=4)
+
+def load_languages():
+    languages_path = "data/languages.json"
+    if os.path.exists(languages_path):
+        with open(languages_path, "r") as f:
+            return json.load(f)
+    return []
+
+def save_languages(languages):
+    languages_path = "data/languages.json"
+    with open(languages_path, "w") as f:
+        json.dump(languages, f, indent=4)

@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from app.utils.domain import is_domain_owned, is_domain_available, purchase_domain
 from app.utils.wordpress import generate_wp_login_link
-from app.utils.settings import load_settings, load_sites_data, save_sites_data, load_categories, save_categories
+from app.utils.settings import load_settings, load_languages, save_languages, load_sites_data, save_sites_data, load_categories, save_categories
 from app.utils.jobs import scheduler
 from functools import wraps
 import os
