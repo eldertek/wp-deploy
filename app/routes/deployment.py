@@ -88,7 +88,25 @@ def setup_ssl_route():
 @login_required
 def install_wordpress_route():
     domain_name = request.form.get("domain")
-    return handle_deployment_route(domain_name, install_wordpress)
+    backup_file = request.files.get("backupFile")
+    
+    if backup_file:
+        # Sauvegarder temporairement le fichier
+        backup_file_path = f"/tmp/{domain_name}_backup.wpress"
+        backup_file.save(backup_file_path)
+    else:
+        backup_file_path = None
+
+    try:
+        if install_wordpress(domain_name, backup_file_path):
+            if backup_file_path:
+                os.remove(backup_file_path)  # Nettoyer le fichier temporaire
+            return jsonify({"status": "success"})
+        return jsonify({"status": "error"})
+    except Exception as e:
+        if backup_file_path:
+            os.remove(backup_file_path)  # Nettoyer le fichier temporaire en cas d'erreur
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @deployment_bp.route("/deploy_static", methods=["POST"])
 @login_required

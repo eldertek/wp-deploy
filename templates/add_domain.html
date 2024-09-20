@@ -85,12 +85,14 @@
     }
 
     function executeStep(domain, step) {
-        var backupFile = $('#backupFile')[0].files[0];
         var formData = new FormData();
         formData.append('domain', domain);
-        if (backupFile) {
-            formData.append('backupFile', backupFile);
-            console.log('Backup file added to FormData:', backupFile.name);
+        
+        if (step.name === 'installWordPress') {
+            var backupFile = $('#backupFile')[0].files[0];
+            if (backupFile) {
+                formData.append('backupFile', backupFile);
+            }
         }
         
         $.ajax({
@@ -125,7 +127,7 @@
                 }
             },
             error: function(xhr, status, error) {
-                handleError(`Erreur lors de l'envoi du fichier de sauvegarde: ${error}`, true, domain);
+                handleError(`Erreur lors de l'exécution de l'étape ${step.name}: ${error}`, true, domain);
             }
         });
     }
