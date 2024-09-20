@@ -1,7 +1,8 @@
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required
 from app.utils.domain import is_domain_owned, is_domain_available, purchase_domain, configure_dns, check_dns
-from app.utils.settings import load_settings, save_settings
+from app.utils.settings import load_settings
+from app import socketio
 import json
 import os
 from werkzeug.utils import secure_filename
@@ -30,6 +31,7 @@ def add_domain():
     if backup_file:
         backup_file_path = f"/tmp/{secure_filename(backup_file.filename)}"
         backup_file.save(backup_file_path)
+        socketio.emit("console", f"Fichier de sauvegarde reçu et enregistré à: {backup_file_path}")  # Ajout du message de console
 
         # Vérifiez l'espace disque ou d'autres erreurs
         if os.path.getsize(backup_file_path) > 20 * 1024 * 1024 * 1024:  # Limite de 20 Go
