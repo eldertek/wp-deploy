@@ -79,22 +79,47 @@
     }
 
     function executeStep(domain, step) {
-        $.post(step.url, { domain: domain }, function (data) {
-            console.log(`${step.name} result:`, data);
-            if (data.status === step.successStatus) {
-                currentStepIndex++;
-                executeNextStep(domain);
-            } else {
-                if (step.name === 'checkDNS') {
-                    addMessage(data.message, 'danger');
-                    hasErrorOccurred = true;
-                    document.getElementById('submitButtonInstall').disabled = false;
+        var backupFile = $('#backupFile')[0].files[0]; // Récupérer le fichier de sauvegarde
+        var formData = new FormData();
+        formData.append('domain', domain);
+        if (backupFile) {
+            formData.append('backupFile', backupFile); // Ajouter le fichier de sauvegarde si présent
+        }
+        
+        $.ajax({
+            url: step.url,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            xhr: function() {
+                var xhr = new window.XMLHttpRequest();
+                xhr.upload.addEventListener("progress", function(evt) {
+                    if (evt.lengthComputable) {
+                        var percentComplete = (evt.loaded / evt.total) * 100;
+                        $('#progressBar').css('width', percentComplete + '%').attr('aria-valuenow', percentComplete);
+                    }
+                }, false);
+                return xhr;
+            },
+            success: function(data) {
+                console.log(`${step.name} result:`, data);
+                if (data.status === step.successStatus) {
+                    currentStepIndex++;
+                    executeNextStep(domain);
                 } else {
-                    handleError(data.message, true, domain);
+                    if (step.name === 'checkDNS') {
+                        addMessage(data.message, 'danger');
+                        hasErrorOccurred = true;
+                        document.getElementById('submitButtonInstall').disabled = false;
+                    } else {
+                        handleError(data.message, true, domain);
+                    }
                 }
+            },
+            error: function(xhr, status, error) {
+                handleError(`Erreur lors de l'envoi du fichier de sauvegarde: ${error}`, true, domain);
             }
-        }).fail(function () {
-            handleError(step.errorMessage, true, domain);
         });
     }
 
