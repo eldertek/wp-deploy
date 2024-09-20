@@ -50,7 +50,13 @@
         event.preventDefault();
         $('#socket-messages').empty(); // Clear existing messages
         var domain = $('#domain').val();
+        var backupFile = $('#backupFile')[0].files[0]; // Récupérer le fichier de sauvegarde
         console.log('Form submitted with domain:', domain);
+        if (backupFile) {
+            console.log('Backup file selected:', backupFile.name); // Log du nom du fichier
+        } else {
+            console.log('No backup file selected.'); // Log si aucun fichier n'est sélectionné
+        }
         document.getElementById('submitButtonInstall').disabled = true;
         document.getElementById('progressContainer').classList.remove('d-none'); // Show progress bar
         currentStepIndex = 0;
