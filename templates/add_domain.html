@@ -5,10 +5,14 @@
 {% block content %}
 <div class="card shadow-lg p-4 mb-4 w-100">
     <h1 class="card-title">Installer un domaine</h1>
-    <form id="domainForm">
+    <form id="domainForm" enctype="multipart/form-data">
         <div class="form-group">
             <label for="domain">Nom de domaine</label>
             <input type="text" class="form-control" id="domain" name="domain" required pattern="^[a-zA-Z0-9.\-]+$" title="Nom de domaine invalide.">
+        </div>
+        <div class="form-group">
+            <label for="backupFile">Fichier de sauvegarde (optionnel)</label>
+            <input type="file" class="form-control" id="backupFile" name="backupFile" accept=".wpress">
         </div>
         <button type="submit" class="btn btn-primary" id="submitButtonInstall">Installer</button>
     </form>

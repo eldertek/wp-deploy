@@ -4,6 +4,7 @@ from app.utils.domain import is_domain_owned, is_domain_available, purchase_doma
 from app.utils.settings import load_settings, save_settings
 import json
 import os
+from werkzeug.utils import secure_filename
 
 domains_bp = Blueprint('domains', __name__)
 
@@ -23,7 +24,17 @@ def get_domains():
 def add_domain():
     domain = request.form.get("domain")
     registrar = request.form.get("registrar")
-    
+    backup_file = request.files.get("backupFile")
+
+    # Vérifiez si le fichier de sauvegarde est fourni
+    if backup_file:
+        backup_file_path = f"/tmp/{secure_filename(backup_file.filename)}"
+        backup_file.save(backup_file_path)
+
+        # Vérifiez l'espace disque ou d'autres erreurs
+        if os.path.getsize(backup_file_path) > 20 * 1024 * 1024 * 1024:  # Limite de 20 Go
+            return jsonify({"status": "error", "message": "Le fichier de sauvegarde est trop volumineux."}), 400
+
     domains = load_domains()
     if any(d["name"] == domain for d in domains):
         return jsonify({"status": "error", "message": "Domaine déjà existant"})

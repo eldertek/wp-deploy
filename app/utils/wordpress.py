@@ -108,7 +108,7 @@ def setup_ssl(domain_name):
         )
         return False
 
-def install_wordpress(domain_name):
+def install_wordpress(domain_name, backup_file_path=None):
     try:
         settings = load_settings()
         wp_path = f"/var/www/{domain_name}"
@@ -170,8 +170,12 @@ def install_wordpress(domain_name):
             raise Exception("Échec de la copie de wpocopo.wpress")
 
         # Restore
-        if not run_command(f"wp ai1wm restore wpocopo.wpress --yes --path={wp_path}"):
-            raise Exception("Échec de la restauration de wpocopo.wpress")
+        if backup_file_path:
+            if not run_command(f"wp ai1wm restore {backup_file_path} --yes --path={wp_path}"):
+                raise Exception(f"Échec de la restauration de {backup_file_path}")
+        else:
+            if not run_command(f"wp ai1wm restore wpocopo.wpress --yes --path={wp_path}"):
+                raise Exception("Échec de la restauration de wpocopo.wpress")
 
         # Recreate initial admin user (new complex password)
         new_admin_password = "".join(
