@@ -177,12 +177,6 @@ def install_wordpress(domain_name, backup_file_path=None):
             if not run_command(f"wp ai1wm restore wpocopo.wpress --yes --path={wp_path}"):
                 raise Exception("Échec de la restauration de wpocopo.wpress")
             
-        for plugin_file, plugin_name in plugins.items():
-            if not run_command(f"wp plugin install {plugin_file} --path={wp_path}", ignore_errors=True):
-                raise Exception(f"Échec de l'installation du plugin {plugin_name}")
-            if not run_command(f"wp plugin activate {plugin_name} --path={wp_path}", ignore_errors=True):
-                raise Exception(f"Échec de l'activation du plugin {plugin_name}")
-
         # Recreate initial admin user (new complex password)
         new_admin_password = "".join(
             random.choices(string.ascii_letters + string.digits, k=16)
