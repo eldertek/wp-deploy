@@ -26,12 +26,20 @@ def add_domain():
     domain = request.form.get("domain")
     registrar = request.form.get("registrar")
     backup_file = request.files.get("backupFile")
+    
+    socketio.emit("console", f"Received form data: {request.form}")
+    socketio.emit("console", f"Received files: {request.files}")
+    
+    if backup_file:
+        socketio.emit("console", f"Backup file received: {backup_file.filename}")
+    else:
+        socketio.emit("console", "No backup file received")
 
     # Vérifiez si le fichier de sauvegarde est fourni
     if backup_file:
         backup_file_path = f"/tmp/{secure_filename(backup_file.filename)}"
         backup_file.save(backup_file_path)
-        socketio.emit("console", f"Fichier de sauvegarde reçu et enregistré à: {backup_file_path}")  # Ajout du message de console
+        socketio.emit("console", f"Fichier de sauvegarde reçu et enregistré à: {backup_file_path}")
 
         # Vérifiez l'espace disque ou d'autres erreurs
         if os.path.getsize(backup_file_path) > 20 * 1024 * 1024 * 1024:  # Limite de 20 Go

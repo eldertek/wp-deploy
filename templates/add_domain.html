@@ -85,11 +85,12 @@
     }
 
     function executeStep(domain, step) {
-        var backupFile = $('#backupFile')[0].files[0]; // Récupérer le fichier de sauvegarde
+        var backupFile = $('#backupFile')[0].files[0];
         var formData = new FormData();
         formData.append('domain', domain);
         if (backupFile) {
-            formData.append('backupFile', backupFile); // Ajouter le fichier de sauvegarde si présent
+            formData.append('backupFile', backupFile);
+            console.log('Backup file added to FormData:', backupFile.name);
         }
         
         $.ajax({
