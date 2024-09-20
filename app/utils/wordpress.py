@@ -181,7 +181,7 @@ def install_wordpress(domain_name, backup_file_path=None):
         new_admin_password = "".join(
             random.choices(string.ascii_letters + string.digits, k=16)
         )
-        if not run_command(f"wp user create admin {registrant_email} --role=administrator --user_pass={new_admin_password} --path={wp_path}"):
+        if not run_command(f"wp user create admin {registrant_email} --role=administrator --user_pass={new_admin_password} --path={wp_path}", ignore_errors=True):
             raise Exception("Échec de la recréation de l'utilisateur administrateur initial")
 
         # Generate a simple username of up to 5 letters

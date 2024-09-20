@@ -2,7 +2,7 @@ import subprocess
 from app import socketio
 import asyncio
 
-def run_command(command, elevated=False, return_output=False):
+def run_command(command, elevated=False, return_output=False, ignore_errors=False):
     if elevated:
         command = f"sudo -s {command}"
     try:
@@ -15,9 +15,11 @@ def run_command(command, elevated=False, return_output=False):
         else:
             return True  # Command succeeded without needing to return output
     except subprocess.CalledProcessError as e:
-        # Emit both stdout and stderr in case of error
-        socketio.emit("console", f"Erreur: {e}\nSortie: {e.stdout}\nErreur: {e.stderr}")
-        return False  # Command failed
+        if not ignore_errors:
+            # Emit both stdout and stderr in case of error
+            socketio.emit("console", f"Erreur: {e}\nSortie: {e.stdout}\nErreur: {e.stderr}")
+        return ignore_errors  # Return True if ignoring errors
     except Exception as e:
-        socketio.emit("console", f"Erreur inattendue: {str(e)}")
-        return False  # Unexpected error
+        if not ignore_errors:
+            socketio.emit("console", f"Erreur inattendue: {str(e)}")
+        return ignore_errors  # Return True if ignoring errors
