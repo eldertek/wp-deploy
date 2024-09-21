@@ -168,6 +168,14 @@ def install_wordpress(domain_name, backup_file_path=None):
         # Copy wpocopo.wpress to wp-content/ai1wm-backups
         if not run_command(f"cp ../wpocopo.wpress {wp_path}/wp-content/ai1wm-backups/"):
             raise Exception("Échec de la copie de wpocopo.wpress")
+        
+        # Copy backup_file_path to wp-content/ai1wm-backups if it exists
+        if backup_file_path and run_command(f"cp {backup_file_path} {wp_path}/wp-content/ai1wm-backups/"):
+            socketio.emit("console", f"Copie de {backup_file_path}.")
+            backup_file_path = f"{wp_path}/wp-content/ai1wm-backups/{backup_file_path}"
+        else:
+            raise Exception("Échec de la copie de backup_file_path")
+    
 
         # Restore
         if backup_file_path:
