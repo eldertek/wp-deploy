@@ -166,28 +166,22 @@ def install_wordpress(domain_name, backup_file_path=None):
                 raise Exception(f"Échec de l'activation du plugin {plugin_name}")
 
         # Copy wpocopo.wpress to wp-content/ai1wm-backups
-        if not run_command(f"cp ../wpocopo.wpress {wp_path}/wp-content/ai1wm-backups/"):
+        if not run_command(f"cp ../wpocopo.wpress {wp_path}/wp-content/ai1wm-backups/backup.wpress"):
             raise Exception("Échec de la copie de wpocopo.wpress")
         
         # Copy backup_file_path to wp-content/ai1wm-backups if it exists
-        if backup_file_path and run_command(f"cp {backup_file_path} {wp_path}/wp-content/ai1wm-backups/"):
-            socketio.emit("console", f"Copie de {backup_file_path}.")
-            backup_file_path = f"{wp_path}/wp-content/ai1wm-backups/{backup_file_path}"
-        else:
-            raise Exception("Échec de la copie de backup_file_path")
-    
+        if backup_file_path:
+            if not run_command(f"cp {backup_file_path} {wp_path}/wp-content/ai1wm-backups/backup.wpress"):
+                raise Exception("Échec de la copie de backup.wpress")
 
         # Restore
-        if backup_file_path:
-            if run_command(f"wp ai1wm restore {backup_file_path} --yes --path={wp_path}"):
-                socketio.emit("console", f"Restauration de {backup_file_path}.")
-            else:
-                raise Exception(f"Échec de la restauration de {backup_file_path}")
+        if run_command(f"wp ai1wm restore backup.wpress --yes --path={wp_path}"):
+            socketio.emit("console", f"Restauration de backup.wpress.")
         else:
-            if run_command(f"wp ai1wm restore wpocopo.wpress --yes --path={wp_path}"):
-                socketio.emit("console", f"Restauration de wpocopo.wpress.")
-            else:
-                raise Exception("Échec de la restauration de wpocopo.wpress")
+            raise Exception(f"Échec de la restauration de backup.wpress")
+        # Delete the backup file after restoration
+        run_command(f"rm {wp_path}/wp-content/ai1wm-backups/backup.wpress")
+            
             
         # Recreate initial admin user (new complex password)
         new_admin_password = "".join(
