@@ -18,6 +18,7 @@ def run_command(command, elevated=False, return_output=False, ignore_errors=Fals
         if not ignore_errors:
             # Emit both stdout and stderr in case of error
             socketio.emit("console", f"Erreur: {e}\nSortie: {e.stdout}\nErreur: {e.stderr}")
+            return f"Erreur: {e}\nSortie: {e.stdout}\nErreur: {e.stderr}"
         return ignore_errors  # Return True if ignoring errors
     except Exception as e:
         if not ignore_errors:
