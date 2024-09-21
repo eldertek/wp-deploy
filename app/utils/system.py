@@ -23,4 +23,5 @@ def run_command(command, elevated=False, return_output=False, ignore_errors=Fals
     except Exception as e:
         if not ignore_errors:
             socketio.emit("console", f"Erreur inattendue: {str(e)}")
+            return f"Erreur inattendue: {str(e)}"
         return ignore_errors  # Return True if ignoring errors
