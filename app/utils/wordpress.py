@@ -171,10 +171,14 @@ def install_wordpress(domain_name, backup_file_path=None):
 
         # Restore
         if backup_file_path:
-            if not run_command(f"wp ai1wm restore {backup_file_path} --yes --path={wp_path}"):
+            if run_command(f"wp ai1wm restore {backup_file_path} --yes --path={wp_path}"):
+                socketio.emit("console", f"Restauration de {backup_file_path}.")
+            else:
                 raise Exception(f"Échec de la restauration de {backup_file_path}")
         else:
-            if not run_command(f"wp ai1wm restore wpocopo.wpress --yes --path={wp_path}"):
+            if run_command(f"wp ai1wm restore wpocopo.wpress --yes --path={wp_path}"):
+                socketio.emit("console", f"Restauration de wpocopo.wpress.")
+            else:
                 raise Exception("Échec de la restauration de wpocopo.wpress")
             
         # Recreate initial admin user (new complex password)
