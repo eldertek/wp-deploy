@@ -172,12 +172,7 @@ def install_wordpress(domain_name, backup_file_path=None):
         # Restore
         if backup_file_path:
             if not run_command(f"wp ai1wm restore {backup_file_path} --yes --path={wp_path}"):
-                for plugin_file, plugin_name in plugins.items():
-                    if not run_command(f"wp plugin install {plugin_file} --path={wp_path}", ignore_errors=True):
-                        raise Exception(f"Échec de l'installation du plugin {plugin_name}")
-                    if not run_command(f"wp plugin activate {plugin_name} --path={wp_path}", ignore_errors=True):
-                        raise Exception(f"Échec de l'activation du plugin {plugin_name}")
-                    raise Exception(f"Échec de la restauration de {backup_file_path}")
+                raise Exception(f"Échec de la restauration de {backup_file_path}")
         else:
             if not run_command(f"wp ai1wm restore wpocopo.wpress --yes --path={wp_path}"):
                 raise Exception("Échec de la restauration de wpocopo.wpress")
@@ -261,7 +256,7 @@ def install_wordpress(domain_name, backup_file_path=None):
         return True
     except Exception as e:
         socketio.emit("error", f"Erreur lors de l'installation de WordPress pour {domain_name}")
-        socketio.emit("console", f"Erreur lors de l'installation de WordPress pour {domain_name}: {str(e)}")
+        socketio.emit("console", f"Erreur lors de l'installation de WordPress pour {domain_name}: {str(e)} (ligne: {e.__traceback__.tb_lineno})")
         return False
 
 def generate_wp_login_link(domain_name):
