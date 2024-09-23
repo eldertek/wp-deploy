@@ -131,10 +131,9 @@ def get_indexed_articles(domain_name):
     return 0
 def check_site_status(domain):
     try:
-        domain = f"https://bo.{domain}/wp-json"
         response = requests.get(domain)
-        socketio.emit("console", f"Réponse obtenue : {response.status_code} pour le domaine : {domain}")
-        return response.status_code == 200
+        response_bo = requests.get(f"https://bo.{domain}/")
+        return response.status_code == 200 and response_bo.status_code == 200
     except Exception as e:
         socketio.emit("console", f"Erreur lors de la vérification du statut pour le domaine : {domain}, Erreur : {str(e)}")
         return False
