@@ -279,7 +279,7 @@ def generate_wp_login_link(domain_name):
             # Créer un nouvel utilisateur admin si l'utilisateur n'existe pas
             new_admin_password = "".join(random.choices(string.ascii_letters + string.digits, k=16))
             create_user_command = f"wp user create admin {load_settings()['registrant']['email']} --role=administrator --user_pass={new_admin_password} --path={wp_path}"
-            run_command(create_user_command, elevated=True)
+            run_command(create_user_command)
         
         # Créer le lien de connexion
         command = f"wp login create admin --path={wp_path} --url=https://bo.{domain_name}"
