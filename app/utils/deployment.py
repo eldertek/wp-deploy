@@ -129,12 +129,14 @@ def get_indexed_articles(domain_name):
         data = response.json()
         return data.get("total_results_count", 0)
     return 0
-
 def check_site_status(domain):
     try:
-        response = requests.get(f"https://bo.{domain}/wp-json")
+        domain = f"https://bo.{domain}/wp-json"
+        response = requests.get(domain)
+        socketio.emit("console", f"Réponse obtenue : {response.status_code} pour le domaine : {domain}")
         return response.status_code == 200
-    except Exception:
+    except Exception as e:
+        socketio.emit("console", f"Erreur lors de la vérification du statut pour le domaine : {domain}, Erreur : {str(e)}")
         return False
 
 def update_sites_data(indexed=False):
