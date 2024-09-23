@@ -131,7 +131,7 @@ def get_indexed_articles(domain_name):
     return 0
 def check_site_status(domain):
     try:
-        response = requests.get(domain)
+        response = requests.get(f"https://{domain}/")
         response_bo = requests.get(f"https://bo.{domain}/")
         return response.status_code == 200 and response_bo.status_code == 200
     except Exception as e:
