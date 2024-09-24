@@ -53,6 +53,8 @@ def configure_dns(domain_name):
         {"name": f"bo.{domain_name}", "type": "AAAA", "value": "2001:41d0:304:200::5ec6"},
         {"name": f"{domain_name}", "type": "A", "value": "51.210.255.66"},
         {"name": f"{domain_name}", "type": "AAAA", "value": "2001:41d0:304:200::5ec6"},
+        {"name": f"www.{domain_name}", "type": "A", "value": "51.210.255.66"},
+        {"name": f"www.{domain_name}", "type": "AAAA", "value": "2001:41d0:304:200::5ec6"},
     ]
     ns_records = ["ns-usa.topdns.com", "ns-canada.topdns.com", "ns-uk.topdns.com"]
 

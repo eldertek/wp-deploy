@@ -61,6 +61,12 @@ server {{
     add_header Referrer-Policy "no-referrer-when-downgrade" always;
     add_header Permissions-Policy "geolocation=(), microphone=(), camera=()" always;
 }}
+
+server {{
+    listen 80;
+    server_name www.{domain_name};
+    return 301 http://{domain_name}$request_uri;
+}}
                 """
             )
 
@@ -92,7 +98,7 @@ def setup_ssl(domain_name):
 
         # Install Certbot and obtain SSL certificate for both bo.domain_name and domain_name
         result = run_command(
-            f"certbot --nginx --expand -d bo.{domain_name} -d {domain_name} --non-interactive --agree-tos -m {registrant_email}",
+            f"certbot --nginx --expand -d www.{domain_name} -d bo.{domain_name} -d {domain_name} --non-interactive --agree-tos -m {registrant_email}",
             elevated=True,
             return_output=True
         )
