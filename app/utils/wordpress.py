@@ -105,12 +105,12 @@ def setup_ssl(domain_name):
         if "Some challenges have failed" in result:
             raise Exception("Les défis ont échoué")
         
-        socketio.emit("message", f"SSL configuré pour bo.{domain_name} et {domain_name}.")
+        socketio.emit("message", f"SSL configuré pour www.{domain_name}, bo.{domain_name} et {domain_name}.")
         return True
     except Exception as e:
         socketio.emit(
             "console",
-            f"Erreur lors de la configuration SSL pour bo.{domain_name} et {domain_name}: {str(e)}",
+            f"Erreur lors de la configuration SSL pour www.{domain_name}, bo.{domain_name} et {domain_name}: {str(e)}",
         )
         return False
 
