@@ -60,7 +60,10 @@
                         <div class="btn-group w-100" role="group">
                             <a href="{{ url_for('site_management.backoffice', domain=site.domain) }}" class="btn btn-outline-primary btn-sm">Backoffice</a>
                             <a href="{{ url_for('editor.editor', site=site.domain) }}" class="btn btn-outline-secondary btn-sm">Rédiger</a>
-                            <button type="button" class="btn btn-outline-warning btn-sm force-update-btn" data-domain="{{ site.domain }}">Mise à jour</button>
+                            <button type="button" class="btn btn-outline-warning btn-sm force-update-btn" data-domain="{{ site.domain }}">
+                                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                Mise à jour
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -198,6 +201,62 @@
                 } else {
                     alert('Erreur lors de la mise à jour de la configuration du site.');
                 }
+            });
+        });
+
+        // Add click event listener for the individual update button
+        document.querySelectorAll('.force-update-btn').forEach(function(button) {
+            button.addEventListener('click', function() {
+                var domain = this.getAttribute('data-domain');
+                var spinner = this.querySelector('.spinner-border');
+                spinner.classList.remove('d-none');
+                fetch(deploySiteUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ domain: domain })
+                }).then(response => response.json()).then(data => {
+                    spinner.classList.add('d-none');
+                    if (data.status === 'success') {
+                        var message = document.createElement('div');
+                        message.className = 'alert alert-success mt-4';
+                        message.innerText = 'Mise à jour réussie pour le domaine: ' + domain;
+                        document.getElementById('socket-messages').appendChild(message);
+                        setTimeout(function() {
+                            message.style.transition = 'opacity 1s';
+                            message.style.opacity = 0;
+                            setTimeout(function() {
+                                message.remove();
+                            }, 1000);
+                        }, 5000);
+                    } else {
+                        var message = document.createElement('div');
+                        message.className = 'alert alert-danger mt-4';
+                        message.innerText = 'Erreur lors de la mise à jour pour le domaine: ' + domain;
+                        document.getElementById('socket-messages').appendChild(message);
+                        setTimeout(function() {
+                            message.style.transition = 'opacity 1s';
+                            message.style.opacity = 0;
+                            setTimeout(function() {
+                                message.remove();
+                            }, 1000);
+                        }, 5000);
+                    }
+                }).catch(error => {
+                    spinner.classList.add('d-none');
+                    var message = document.createElement('div');
+                    message.className = 'alert alert-danger mt-4';
+                    message.innerText = 'Erreur lors de la mise à jour pour le domaine: ' + domain;
+                    document.getElementById('socket-messages').appendChild(message);
+                    setTimeout(function() {
+                        message.style.transition = 'opacity 1s';
+                        message.style.opacity = 0;
+                        setTimeout(function() {
+                            message.remove();
+                        }, 1000);
+                    }, 5000);
+                });
             });
         });
     });
