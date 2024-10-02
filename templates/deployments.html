@@ -5,7 +5,15 @@
 {% block content %}
 <div class="container mt-5">
     <h2 class="mb-4">Historique des déploiements</h2>
-    <div class="table-responsive">
+    <div class="mb-4">
+        <button id="deleteLogsYesterday" class="btn btn-danger">Supprimer les logs jusqu'à hier</button>
+        <button id="deleteLogsLastWeek" class="btn btn-danger">Supprimer les logs jusqu'à la semaine dernière</button>
+        <button id="deleteLogsLastMonth" class="btn btn-danger">Supprimer les logs jusqu'au mois dernier</button>
+    </div>
+    <div id="loadingSpinner" class="spinner-border text-primary" role="status" style="display: none;">
+        <span class="sr-only">Chargement...</span>
+    </div>
+    <div class="table-responsive" id="deploymentsTableContainer" style="display: none;">
         <table id="deploymentsTable" class="table table-striped">
             <thead>
                 <tr>
@@ -40,10 +48,50 @@
 <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 <script>
     $(document).ready(function() {
+        function showLoadingSpinner() {
+            $('#loadingSpinner').show();
+            $('#deploymentsTableContainer').hide();
+        }
+
+        function hideLoadingSpinner() {
+            $('#loadingSpinner').hide();
+            $('#deploymentsTableContainer').show();
+        }
+
+        function deleteLogs(url) {
+            showLoadingSpinner();
+            $.ajax({
+                url: url,
+                type: 'POST',
+                success: function(response) {
+                    location.reload();
+                },
+                error: function(xhr, status, error) {
+                    alert('Erreur lors de la suppression des logs: ' + error);
+                    hideLoadingSpinner();
+                }
+            });
+        }
+
+        $('#deleteLogsYesterday').click(function() {
+            deleteLogs('{{ url_for("deployment.delete_logs_yesterday") }}');
+        });
+
+        $('#deleteLogsLastWeek').click(function() {
+            deleteLogs('{{ url_for("deployment.delete_logs_last_week") }}');
+        });
+
+        $('#deleteLogsLastMonth').click(function() {
+            deleteLogs('{{ url_for("deployment.delete_logs_last_month") }}');
+        });
+
         $('#deploymentsTable').DataTable({
             "order": [[3, "desc"]],
             "language": {
                 url: '//cdn.datatables.net/plug-ins/2.0.8/i18n/fr-FR.json',
+            },
+            "initComplete": function(settings, json) {
+                hideLoadingSpinner();
             }
         });
     });

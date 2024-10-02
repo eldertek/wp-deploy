@@ -107,3 +107,28 @@ $(document).ready(function() {
         }
     });
 });
+
+function showLoadingSpinner() {
+    $('#loadingSpinner').show();
+    $('#deploymentsTableContainer').hide();
+}
+
+function hideLoadingSpinner() {
+    $('#loadingSpinner').hide();
+    $('#deploymentsTableContainer').show();
+}
+
+function deleteLogs(url) {
+    showLoadingSpinner();
+    $.ajax({
+        url: url,
+        type: 'POST',
+        success: function(response) {
+            location.reload();
+        },
+        error: function(xhr, status, error) {
+            alert('Erreur lors de la suppression des logs: ' + error);
+            hideLoadingSpinner();
+        }
+    });
+}

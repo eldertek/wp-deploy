@@ -134,3 +134,42 @@ def check_dns_route():
         return jsonify({"status": "error"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+@deployment_bp.route("/delete_logs_yesterday", methods=["POST"])
+@login_required
+def delete_logs_yesterday():
+    log_path = "data/deployments.json"
+    if os.path.exists(log_path):
+        with open(log_path, "r") as log_file:
+            logs = json.load(log_file)
+        yesterday = datetime.datetime.now() - datetime.timedelta(days=1)
+        logs = [log for log in logs if datetime.datetime.fromtimestamp(log["timestamp"]) > yesterday]
+        with open(log_path, "w") as log_file:
+            json.dump(logs, log_file, indent=4)
+    return jsonify({"status": "success"})
+
+@deployment_bp.route("/delete_logs_last_week", methods=["POST"])
+@login_required
+def delete_logs_last_week():
+    log_path = "data/deployments.json"
+    if os.path.exists(log_path):
+        with open(log_path, "r") as log_file:
+            logs = json.load(log_file)
+        last_week = datetime.datetime.now() - datetime.timedelta(weeks=1)
+        logs = [log for log in logs if datetime.datetime.fromtimestamp(log["timestamp"]) > last_week]
+        with open(log_path, "w") as log_file:
+            json.dump(logs, log_file, indent=4)
+    return jsonify({"status": "success"})
+
+@deployment_bp.route("/delete_logs_last_month", methods=["POST"])
+@login_required
+def delete_logs_last_month():
+    log_path = "data/deployments.json"
+    if os.path.exists(log_path):
+        with open(log_path, "r") as log_file:
+            logs = json.load(log_file)
+        last_month = datetime.datetime.now() - datetime.timedelta(days=30)
+        logs = [log for log in logs if datetime.datetime.fromtimestamp(log["timestamp"]) > last_month]
+        with open(log_path, "w") as log_file:
+            json.dump(logs, log_file, indent=4)
+    return jsonify({"status": "success"})
