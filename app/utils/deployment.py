@@ -120,6 +120,18 @@ def log_deployment(domain_name, success, duration):
     run_command(
         "chown www-data:www-data data/deployments.json", elevated=True
     )  # Ensure ownership
+    delete_old_deployment_logs()  # Call the function to delete old logs
+
+def delete_old_deployment_logs():
+    log_path = "data/deployments.json"
+    if os.path.exists(log_path):
+        with open(log_path, "r") as log_file:
+            logs = json.load(log_file)
+        one_month_ago = datetime.datetime.now() - datetime.timedelta(days=30)
+        logs = [log for log in logs if datetime.datetime.fromtimestamp(log["timestamp"]) > one_month_ago]
+        with open(log_path, "w") as log_file:
+            json.dump(logs, log_file, indent=4)
+        run_command("chown www-data:www-data data/deployments.json", elevated=True)
 
 def get_indexed_articles(domain_name):
     api_key = "33cef647-1f76-4604-927d-e7f0d5b93205"
