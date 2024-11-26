@@ -22,6 +22,9 @@ server {{
     root /var/www/{domain_name};
     index index.php index.html index.htm;
 
+    access_log /var/log/nginx/website/{domain_name}/bo_access.log;
+    error_log /var/log/nginx/website/{domain_name}/bo_error.log;
+
     location / {{
         try_files $uri $uri/ /index.php?$args;
     }}
@@ -47,8 +50,11 @@ server {{
     listen 80;
     server_name {domain_name};
 
-    root /var/www/{domain_name}-static;  # Configuration pour le domaine principal
+    root /var/www/{domain_name}-static;
     index index.html index.htm;
+
+    access_log /var/log/nginx/website/{domain_name}/access.log;
+    error_log /var/log/nginx/website/{domain_name}/error.log;
 
     location / {{
         try_files $uri $uri/ =404;
@@ -65,6 +71,10 @@ server {{
 server {{
     listen 80;
     server_name www.{domain_name};
+    
+    access_log /var/log/nginx/website/{domain_name}/www_access.log;
+    error_log /var/log/nginx/website/{domain_name}/www_error.log;
+    
     return 301 http://{domain_name}$request_uri;
 }}
                 """
@@ -82,6 +92,11 @@ server {{
         )
         run_command("systemctl reload nginx", elevated=True)
         socketio.emit("message", f"Configuration Nginx pour {domain_name} créée.")
+
+        # Create log directory
+        log_dir = f"/var/log/nginx/website/{domain_name}"
+        run_command(f"mkdir -p {log_dir}", elevated=True)
+        run_command(f"chown www-data:www-data {log_dir}", elevated=True)
 
         return True
     except Exception as e:
