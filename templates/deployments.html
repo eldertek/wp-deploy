@@ -6,9 +6,7 @@
 <div class="container mt-5">
     <h2 class="mb-4">Historique des déploiements</h2>
     <div class="mb-4">
-        <button id="deleteLogsYesterday" class="btn btn-danger">Supprimer les logs jusqu'à hier</button>
-        <button id="deleteLogsLastWeek" class="btn btn-danger">Supprimer les logs jusqu'à la semaine dernière</button>
-        <button id="deleteLogsLastMonth" class="btn btn-danger">Supprimer les logs jusqu'au mois dernier</button>
+        <button id="deleteAllLogs" class="btn btn-danger">Supprimer tous les logs</button>
     </div>
     <div id="loadingSpinner" class="spinner-border text-primary" role="status" style="display: none;">
         <span class="sr-only">Chargement...</span>
@@ -58,31 +56,21 @@
             $('#deploymentsTableContainer').show();
         }
 
-        function deleteLogs(url) {
-            showLoadingSpinner();
-            $.ajax({
-                url: url,
-                type: 'POST',
-                success: function(response) {
-                    location.reload();
-                },
-                error: function(xhr, status, error) {
-                    alert('Erreur lors de la suppression des logs: ' + error);
-                    hideLoadingSpinner();
-                }
-            });
-        }
-
-        $('#deleteLogsYesterday').click(function() {
-            deleteLogs('{{ url_for("deployment.delete_logs_yesterday") }}');
-        });
-
-        $('#deleteLogsLastWeek').click(function() {
-            deleteLogs('{{ url_for("deployment.delete_logs_last_week") }}');
-        });
-
-        $('#deleteLogsLastMonth').click(function() {
-            deleteLogs('{{ url_for("deployment.delete_logs_last_month") }}');
+        $('#deleteAllLogs').click(function() {
+            if (confirm('Êtes-vous sûr de vouloir supprimer tous les logs ?')) {
+                showLoadingSpinner();
+                $.ajax({
+                    url: '{{ url_for("deployment.delete_all_logs") }}',
+                    type: 'POST',
+                    success: function(response) {
+                        location.reload();
+                    },
+                    error: function(xhr, status, error) {
+                        alert('Erreur lors de la suppression des logs: ' + error);
+                        hideLoadingSpinner();
+                    }
+                });
+            }
         });
 
         $('#deploymentsTable').DataTable({

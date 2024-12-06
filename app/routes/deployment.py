@@ -136,79 +136,16 @@ def check_dns_route():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-@deployment_bp.route("/delete_logs_yesterday", methods=["POST"])
+@deployment_bp.route("/delete_all_logs", methods=["POST"])
 @login_required
-def delete_logs_yesterday():
+def delete_all_logs():
     log_path = "data/deployments.json"
     try:
         if os.path.exists(log_path):
-            # Assurer les permissions de lecture
-            run_command("chown www-data:www-data data/deployments.json", elevated=True)
-            
-            with open(log_path, "r") as log_file:
-                logs = json.load(log_file)
-            
-            yesterday = datetime.datetime.now() - datetime.timedelta(days=1)
-            logs = [log for log in logs if datetime.datetime.fromtimestamp(log["timestamp"]) > yesterday]
-            
-            # Assurer les permissions d'écriture
-            run_command("chown www-data:www-data data/deployments.json", elevated=True)
+            # Vider le fichier avec une liste vide
             with open(log_path, "w") as log_file:
-                json.dump(logs, log_file, indent=4)
-            
-            socketio.emit("message", "Logs supprimés jusqu'à hier")
-        return jsonify({"status": "success"})
-    except Exception as e:
-        socketio.emit("error", f"Erreur lors de la suppression des logs: {str(e)}")
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-@deployment_bp.route("/delete_logs_last_week", methods=["POST"])
-@login_required
-def delete_logs_last_week():
-    log_path = "data/deployments.json"
-    try:
-        if os.path.exists(log_path):
-            # Assurer les permissions de lecture
-            run_command("chown www-data:www-data data/deployments.json", elevated=True)
-            
-            with open(log_path, "r") as log_file:
-                logs = json.load(log_file)
-            
-            last_week = datetime.datetime.now() - datetime.timedelta(weeks=1)
-            logs = [log for log in logs if datetime.datetime.fromtimestamp(log["timestamp"]) > last_week]
-            
-            # Assurer les permissions d'écriture
-            run_command("chown www-data:www-data data/deployments.json", elevated=True)
-            with open(log_path, "w") as log_file:
-                json.dump(logs, log_file, indent=4)
-            
-            socketio.emit("message", "Logs supprimés jusqu'à la semaine dernière")
-        return jsonify({"status": "success"})
-    except Exception as e:
-        socketio.emit("error", f"Erreur lors de la suppression des logs: {str(e)}")
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-@deployment_bp.route("/delete_logs_last_month", methods=["POST"])
-@login_required
-def delete_logs_last_month():
-    log_path = "data/deployments.json"
-    try:
-        if os.path.exists(log_path):
-            # Assurer les permissions de lecture
-            run_command("chown www-data:www-data data/deployments.json", elevated=True)
-            
-            with open(log_path, "r") as log_file:
-                logs = json.load(log_file)
-            
-            last_month = datetime.datetime.now() - datetime.timedelta(days=30)
-            logs = [log for log in logs if datetime.datetime.fromtimestamp(log["timestamp"]) > last_month]
-            
-            # Assurer les permissions d'écriture
-            run_command("chown www-data:www-data data/deployments.json", elevated=True)
-            with open(log_path, "w") as log_file:
-                json.dump(logs, log_file, indent=4)
-            
-            socketio.emit("message", "Logs supprimés jusqu'au mois dernier")
+                json.dump([], log_file, indent=4)
+            socketio.emit("message", "Tous les logs ont été supprimés")
         return jsonify({"status": "success"})
     except Exception as e:
         socketio.emit("error", f"Erreur lors de la suppression des logs: {str(e)}")
