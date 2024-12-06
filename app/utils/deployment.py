@@ -5,7 +5,7 @@ import requests
 from app import socketio
 from .system import run_command
 from .wordpress import get_published_articles
-from .settings import save_sites_data
+from .settings import load_sites_data, save_sites_data
 
 def deploy_static(domain_name):
     start_time = datetime.datetime.now()
@@ -150,42 +150,45 @@ def check_site_status(domain):
         socketio.emit("console", f"Erreur lors de la vérification du statut pour le domaine : {domain}, Erreur : {str(e)}")
         return False
 
-def update_sites_data(indexed=False):
-    data_path = "data/sites_data.json"
-    if os.path.exists(data_path):
-        with open(data_path, "r") as f:
-            sites_data = json.load(f)
-    else:
-        sites_data = {"sites": []}
+def update_sites_data(indexed=False, specific_domain=None):
+    try:
+        existing_data = load_sites_data()
+        existing_domains = {site['domain']: site for site in existing_data.get('sites', [])}
+        
+        # Si un domaine spécifique est fourni, ne traiter que celui-là
+        domains = [specific_domain] if specific_domain else [
+            domain for domain in os.listdir('/var/www/')
+            if os.path.isdir(os.path.join('/var/www/', domain))
+            and not domain.startswith('.')
+            and not domain.endswith('-static')
+        ]
 
-    existing_domains = {site["domain"]: site for site in sites_data["sites"]}
+        sites = []
+        for domain in domains:
+            published_articles = get_published_articles(domain)
+            if indexed:
+                indexed_articles = get_indexed_articles(domain)
+                indexed_percentage = (indexed_articles / published_articles * 100) if published_articles > 0 else 0
+            else:
+                indexed_articles = existing_domains.get(domain, {}).get("indexed_articles", 0)
+                indexed_percentage = existing_domains.get(domain, {}).get("indexed_percentage", 0)
 
-    domains = [
-        domain for domain in os.listdir("/var/www/")
-        if os.path.isdir(os.path.join("/var/www/", domain)) and not domain.startswith(".") and not domain.endswith("-static")
-    ]
+            status = "online" if check_site_status(domain) else "offline"
 
-    for domain in domains:
-        published_articles = get_published_articles(domain)
-        if indexed:
-            indexed_articles = get_indexed_articles(domain)
-            indexed_percentage = (indexed_articles / published_articles * 100) if published_articles > 0 else 0
-        else:
-            indexed_articles = existing_domains.get(domain, {}).get("indexed_articles", 0)
-            indexed_percentage = existing_domains.get(domain, {}).get("indexed_percentage", 0)
+            existing_domains[domain] = {
+                "domain": domain,
+                "published_articles": published_articles,
+                "indexed_articles": indexed_articles,
+                "indexed_percentage": round(indexed_percentage, 2),
+                "status": status,
+                "category": existing_domains.get(domain, {}).get("category", "Aucune catégorie"),
+                "language": existing_domains.get(domain, {}).get("language", "Aucune langue")
+            }
 
-        status = "online" if check_site_status(domain) else "offline"
-
-        existing_domains[domain] = {
-            "domain": domain,
-            "published_articles": published_articles,
-            "indexed_articles": indexed_articles,
-            "indexed_percentage": round(indexed_percentage, 2),
-            "status": status,
-            "category": existing_domains.get(domain, {}).get("category", "Aucune catégorie"),
-            "language": existing_domains.get(domain, {}).get("language", "Aucune langue")
+        sites_data = {
+            "sites": list(existing_domains.values()),
+            "last_update": datetime.datetime.now().strftime("%d/%m/%Y - %Hh%M")
         }
-
-    sites_data["sites"] = list(existing_domains.values())
-    sites_data['last_update'] = datetime.datetime.now().strftime("%d/%m/%Y - %Hh%M")
-    save_sites_data(sites_data)
+        save_sites_data(sites_data)
+    except Exception as e:
+        socketio.emit("error", f"Erreur lors de la mise à jour des données des sites: {str(e)}")

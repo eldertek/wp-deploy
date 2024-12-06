@@ -1,6 +1,7 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 from concurrent.futures import ThreadPoolExecutor
 import pytz
+import socketio
 from .deployment import deploy_static, update_sites_data, delete_old_deployment_logs
 import datetime
 import os
@@ -31,7 +32,50 @@ def update_indexed_articles():
     update_sites_data(indexed=True)
 
 def update_sites_basic_data():
-    update_sites_data(indexed=False)
+    task_logger.log_task_start("update_sites_basic_data")
+    start_time = time.time()
+    
+    try:
+        # Récupérer la liste des domaines
+        domains = [domain for domain in os.listdir('/var/www/') 
+                  if os.path.isdir(os.path.join('/var/www/', domain)) 
+                  and not domain.startswith('.') 
+                  and not domain.endswith('-static')]
+        
+        total_domains = len(domains)
+        socketio.emit("console", f"Mise à jour des données pour {total_domains} sites")
+        task_logger.access_logger.info(f"Début de la mise à jour pour {total_domains} sites")
+
+        for index, domain in enumerate(domains, 1):
+            try:
+                progress = (index / total_domains) * 100
+                status_msg = f"[{index}/{total_domains}] ({progress:.1f}%) Traitement de {domain}"
+                socketio.emit("console", status_msg)
+                task_logger.access_logger.info(status_msg)
+                
+                # Mesurer le temps pour chaque domaine
+                domain_start = time.time()
+                update_sites_data(indexed=False, specific_domain=domain)
+                domain_duration = time.time() - domain_start
+                
+                task_logger.access_logger.info(f"Domaine {domain} traité en {domain_duration:.2f}s")
+                
+            except Exception as e:
+                error_msg = f"Erreur lors du traitement de {domain}: {str(e)}"
+                socketio.emit("error", error_msg)
+                task_logger.log_error("update_sites_basic_data", error_msg, domain)
+                continue
+
+        duration = time.time() - start_time
+        success_msg = f"Mise à jour terminée en {duration:.2f}s"
+        socketio.emit("console", success_msg)
+        task_logger.log_task_end("update_sites_basic_data", duration=duration)
+        
+    except Exception as e:
+        error_msg = f"Erreur critique: {str(e)}"
+        socketio.emit("error", error_msg)
+        task_logger.log_error("update_sites_basic_data", error_msg)
+        raise
 
 def run_job(job_name):
     start_time = time.time()
