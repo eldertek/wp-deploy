@@ -1,7 +1,7 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 from concurrent.futures import ThreadPoolExecutor
 import pytz
-import socketio
+from app import socketio
 from .deployment import deploy_static, update_sites_data, delete_old_deployment_logs
 import datetime
 import os
