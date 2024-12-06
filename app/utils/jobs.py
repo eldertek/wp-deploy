@@ -4,6 +4,8 @@ import pytz
 from .deployment import deploy_static, update_sites_data, delete_old_deployment_logs
 import datetime
 import os
+from app.utils.logger import task_logger
+import time
 
 def create_scheduler():
     scheduler = BackgroundScheduler(timezone=pytz.timezone('Europe/Paris'))
@@ -32,19 +34,36 @@ def update_sites_basic_data():
     update_sites_data(indexed=False)
 
 def run_job(job_name):
-    job = scheduler.get_job(job_name)
-    if job:
-        job.func(*job.args, **job.kwargs)  # Exécutez la fonction du job
-    else:
-        # Si le job n'est pas trouvé, essayez de l'exécuter manuellement
-        if job_name == "update_indexed_articles":
-            update_indexed_articles()
-        elif job_name == "deploy_all_websites":
-            deploy_all_websites()
-        elif job_name == "update_sites_basic_data":
-            update_sites_basic_data()
+    start_time = time.time()
+    task_logger.log_task_start(job_name)
+    
+    try:
+        job = scheduler.get_job(job_name)
+        if job:
+            task_logger.log_task_start(f"Exécution via scheduler: {job_name}")
+            result = job.func(*job.args, **job.kwargs)
         else:
-            raise ValueError("Job non reconnu.")
+            task_logger.log_task_start(f"Exécution directe: {job_name}")
+            if job_name == "update_indexed_articles":
+                result = update_indexed_articles()
+            elif job_name == "deploy_all_websites":
+                result = deploy_all_websites()
+            elif job_name == "update_sites_basic_data":
+                result = update_sites_basic_data()
+            else:
+                error_msg = f"Job non reconnu: {job_name}"
+                task_logger.log_error(job_name, error_msg)
+                raise ValueError(error_msg)
+
+        duration = time.time() - start_time
+        task_logger.log_task_end(job_name, duration=duration, success=True)
+        return result
+        
+    except Exception as e:
+        duration = time.time() - start_time
+        task_logger.log_error(job_name, str(e))
+        task_logger.log_task_end(job_name, duration=duration, success=False)
+        raise
 
 # Initialize the scheduler
 scheduler = create_scheduler()
