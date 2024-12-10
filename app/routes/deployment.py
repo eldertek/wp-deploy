@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required
 from app.routes.domains import load_domains
-from app.utils.deployment import deploy_static
+from app.utils.deployment import deploy_static, update_sites_data
 from app.utils.domain import configure_dns, check_dns
 from app.utils.wordpress import create_nginx_config, setup_ssl, install_wordpress
 from app import socketio
@@ -92,7 +92,6 @@ def install_wordpress_route():
     backup_file = request.files.get("backupFile")
     
     if backup_file:
-        # Sauvegarder temporairement le fichier
         backup_file_path = f"/tmp/{domain_name}_backup.wpress"
         backup_file.save(backup_file_path)
     else:
@@ -101,12 +100,14 @@ def install_wordpress_route():
     try:
         if install_wordpress(domain_name, backup_file_path):
             if backup_file_path:
-                os.remove(backup_file_path)  # Nettoyer le fichier temporaire
+                os.remove(backup_file_path)
+            # Actualiser les données pour ce domaine spécifique
+            update_sites_data(indexed=False, specific_domain=domain_name)
             return jsonify({"status": "success"})
         return jsonify({"status": "error"})
     except Exception as e:
         if backup_file_path:
-            os.remove(backup_file_path)  # Nettoyer le fichier temporaire en cas d'erreur
+            os.remove(backup_file_path)
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @deployment_bp.route("/deploy_static", methods=["POST"])
