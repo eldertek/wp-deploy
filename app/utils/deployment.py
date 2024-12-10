@@ -10,9 +10,15 @@ from .settings import load_sites_data, save_sites_data
 def deploy_static(domain_name):
     start_time = datetime.datetime.now()
     try:
-        wp_path = f"/var/www/{domain_name}"
-        static_path = f"{wp_path}/wp-content/uploads/simply-static/temp-files/"
-        destination_path = f"/var/www/{domain_name}-static"
+        # Verify paths before proceeding
+        if not verify_paths(domain_name):
+            raise Exception("Path verification failed")
+            
+        # Resolve the real paths
+        base_path = os.path.realpath("/var/www")
+        wp_path = os.path.join(base_path, domain_name)
+        static_path = os.path.join(wp_path, "wp-content/uploads/simply-static/temp-files/")
+        destination_path = os.path.join(base_path, f"{domain_name}-static")
 
         socketio.emit("message", f"Début du déploiement pour {domain_name}.")
 
@@ -192,3 +198,25 @@ def update_sites_data(indexed=False, specific_domain=None):
         save_sites_data(sites_data)
     except Exception as e:
         socketio.emit("error", f"Erreur lors de la mise à jour des données des sites: {str(e)}")
+
+def verify_paths(domain_name):
+    try:
+        base_path = os.path.realpath("/var/www")
+        wp_path = os.path.join(base_path, domain_name)
+        static_path = os.path.join(wp_path, "wp-content/uploads/simply-static/temp-files/")
+        destination_path = os.path.join(base_path, f"{domain_name}-static")
+
+        # Verify paths exist and have correct permissions
+        paths_to_check = [base_path, wp_path]
+        for path in paths_to_check:
+            if not os.path.exists(path):
+                raise Exception(f"Path does not exist: {path}")
+            
+            # Check if www-data has access
+            if not run_command(f"test -r {path} && test -w {path}", elevated=True):
+                raise Exception(f"Insufficient permissions on path: {path}")
+
+        return True
+    except Exception as e:
+        socketio.emit("error", f"Path verification failed: {str(e)}")
+        return False

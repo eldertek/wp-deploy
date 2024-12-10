@@ -5,7 +5,8 @@ import tempfile
 
 def run_command(command, elevated=False, return_output=False, ignore_errors=False):
     if elevated:
-        command = f"sudo -s {command}"
+        # Use readlink to resolve symlinks in the command path
+        command = f"sudo -s bash -c '{command}'"
     
     # Create a temporary directory specifically for this command
     with tempfile.TemporaryDirectory(prefix='wp_deploy_', dir='/var/tmp') as tmp_dir:
