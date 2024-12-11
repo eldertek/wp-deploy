@@ -1,6 +1,6 @@
 # WordPress Multi-Site Management System
 
-This application is a comprehensive solution for managing multiple WordPress sites, including deployment via Simply Static Pro.
+This application is a comprehensive solution for managing multiple WordPress sites, including deployment via Staatic.
 
 ## Features
 
@@ -8,7 +8,7 @@ This application is a comprehensive solution for managing multiple WordPress sit
 - **WordPress Installation**: Automated WordPress setup with required plugins
 - **Article Editor**: Built-in TinyMCE editor for writing and publishing articles across multiple sites
 - **Site Monitoring**: Dashboard to monitor site status, published articles, and indexed articles
-- **Static Site Deployment**: Nightly deployment of static sites to GitHub Pages using Simply Static Pro
+- **Static Site Deployment**: Nightly deployment of static sites to GitHub Pages using Staatic
 - **SEO Monitoring**: Integration with SpaceSERP API for tracking indexed articles
 
 ## Key Components
@@ -23,7 +23,7 @@ This application is a comprehensive solution for managing multiple WordPress sit
 
 - Backend: Python
 - Frontend: HTML, CSS, JavaScript
-- Static Site Generator: Simply Static Pro
+- Static Site Generator: Staatic
 - Deployment: GitHub Pages
 - Domain Management: InternetBS API
 - SEO Tracking: SpaceSERP API

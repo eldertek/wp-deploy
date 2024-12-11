@@ -46,8 +46,8 @@ def deploy_static(domain_name):
         except Exception:
             socketio.emit("console", "Erreur lors de l'activation des plugins, mais on continue.")
 
-        # Run Simply Static export
-        socketio.emit("console", "Exécution de l'exportation Simply Static.")
+        # Run Staatic export
+        socketio.emit("console", "Exécution de l'exportation Staatic.")
         result = run_command(f"wp staatic publish --path={wp_path}", return_output=True)  # Store result
         if "Success: Publication finished" in result:
             socketio.emit("console", "Exportation réussie.")
@@ -90,7 +90,7 @@ def deploy_static(domain_name):
                 socketio.emit("error", f"Aucun fichier ZIP trouvé dans {static_path}.")
                 success = False
         else:
-            socketio.emit("error", f"Erreur lors de l'exportation Simply Static: {result}")
+            socketio.emit("error", f"Erreur lors de l'exportation Staatic: {result}")
             success = False
 
         duration = (datetime.datetime.now() - start_time).total_seconds()
