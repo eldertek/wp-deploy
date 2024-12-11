@@ -185,14 +185,13 @@ def install_wordpress(domain_name, backup_file_path=None):
             if not run_command(f"wp plugin activate {plugin_name} --path={wp_path}"):
                 raise Exception(f"Échec de l'activation du plugin {plugin_name}")
 
-        # Copy wpocopo.wpress to wp-content/ai1wm-backups
-        if not run_command(f"mv ../wpocopo.wpress {wp_path}/wp-content/ai1wm-backups/backup.wpress"):
-            raise Exception("Échec de la copie de wpocopo.wpress")
-        
-        # Copy backup_file_path to wp-content/ai1wm-backups if it exists
+        # Copy backup file to wp-content/ai1wm-backups
         if backup_file_path:
             if not run_command(f"mv {backup_file_path} {wp_path}/wp-content/ai1wm-backups/backup.wpress"):
                 raise Exception("Échec de la copie de backup.wpress")
+        else:
+            if not run_command(f"mv ../wpocopo.wpress {wp_path}/wp-content/ai1wm-backups/backup.wpress"):
+                raise Exception("Échec de la copie de wpocopo.wpress")
 
         # Restore
         if run_command(f"wp ai1wm restore backup.wpress --yes --path={wp_path}"):
