@@ -32,7 +32,6 @@ def deploy_all():
         for domain in os.listdir("/var/www/")
         if os.path.isdir(os.path.join("/var/www/", domain))
         and not domain.startswith(".")
-        and not domain.endswith("-static")  # Exclude domains ending with -static
     ]
     for domain in domains:
         try:

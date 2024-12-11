@@ -50,7 +50,7 @@ server {{
     listen 80;
     server_name {domain_name};
 
-    root /var/www/{domain_name}-static;
+    root /var/www/static/{domain_name};
     index index.html index.htm;
 
     access_log /var/log/nginx/website/{domain_name}/access.log;

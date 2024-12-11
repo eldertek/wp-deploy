@@ -18,7 +18,7 @@ def deploy_static(domain_name):
         base_path = os.path.realpath("/var/www")
         wp_path = os.path.join(base_path, domain_name)
         static_path = os.path.join(wp_path, "wp-content/uploads/staatic/deploy/")
-        destination_path = os.path.join(base_path, f"{domain_name}-static")
+        destination_path = os.path.join("/var/www/static", domain_name)
 
         socketio.emit("message", f"Début du déploiement pour {domain_name}.")
 
