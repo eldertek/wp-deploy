@@ -17,7 +17,7 @@ def deploy_static(domain_name):
         # Resolve the real paths
         base_path = os.path.realpath("/var/www")
         wp_path = os.path.join(base_path, domain_name)
-        static_path = os.path.join(wp_path, "wp-content/uploads/simply-static/temp-files/")
+        static_path = os.path.join(wp_path, "wp-content/uploads/staatic/deploy/")
         destination_path = os.path.join(base_path, f"{domain_name}-static")
 
         socketio.emit("message", f"Début du déploiement pour {domain_name}.")
@@ -38,20 +38,18 @@ def deploy_static(domain_name):
             else:
                 raise Exception("Failed to update Elementor data")
 
-        # Try to activate Simply Static plugin
+        # Try to activate Staatic plugin
         try:
-            socketio.emit("console", "Activation du plugin Simply Static.")
-            result = run_command(f"wp plugin activate simply-static --path={wp_path}", return_output=True)
-            socketio.emit("console", f"Activation de Simply Static: {result}")
-            result = run_command(f"wp plugin activate simply-static-pro --path={wp_path}", return_output=True)
-            socketio.emit("console", f"Activation de Simply Static Pro: {result}")
+            socketio.emit("console", "Activation du plugin Staatic.")
+            result = run_command(f"wp plugin activate staatic --path={wp_path}", return_output=True)
+            socketio.emit("console", f"Activation de Staatic: {result}")
         except Exception:
             socketio.emit("console", "Erreur lors de l'activation des plugins, mais on continue.")
 
         # Run Simply Static export
         socketio.emit("console", "Exécution de l'exportation Simply Static.")
-        result = run_command(f"wp simply-static run --path={wp_path}", return_output=True)  # Store result
-        if "Success: Export Completed" in result:
+        result = run_command(f"wp staatic publish --path={wp_path}", return_output=True)  # Store result
+        if "Success: Publication finished" in result:
             socketio.emit("console", "Exportation réussie.")
             # Move the first zip file in static path to the destination and copy content if folder exists
             zip_files = [f for f in os.listdir(static_path) if f.endswith(".zip")]
@@ -87,9 +85,6 @@ def deploy_static(domain_name):
                     raise Exception("Failed to clear static path")
 
                 socketio.emit("success", f"Déploiement réussi pour {domain_name}.")
-                # Vérifier et corriger la structure si nécessaire
-                if not verify_and_fix_static_deployment(domain_name, destination_path):
-                    raise Exception("Failed to verify/fix static deployment structure")
                 success = True
             else:
                 socketio.emit("error", f"Aucun fichier ZIP trouvé dans {static_path}.")
@@ -206,8 +201,6 @@ def verify_paths(domain_name):
     try:
         base_path = os.path.realpath("/var/www")
         wp_path = os.path.join(base_path, domain_name)
-        static_path = os.path.join(wp_path, "wp-content/uploads/simply-static/temp-files/")
-        destination_path = os.path.join(base_path, f"{domain_name}-static")
 
         # Verify paths exist and have correct permissions
         paths_to_check = [base_path, wp_path]
@@ -222,47 +215,4 @@ def verify_paths(domain_name):
         return True
     except Exception as e:
         socketio.emit("error", f"Path verification failed: {str(e)}")
-        return False
-
-def verify_and_fix_static_deployment(domain_name, destination_path):
-    try:
-        # Vérifier si le dossier contient une structure incorrecte
-        problematic_paths = ['mnt/disk2/www/', 'disk2/www/', 'www/']
-        found_wrong_path = None
-        
-        for path in problematic_paths:
-            full_path = os.path.join(destination_path, path, domain_name)
-            if os.path.exists(full_path):
-                found_wrong_path = full_path
-                break
-        
-        if found_wrong_path:
-            socketio.emit("console", f"Structure de dossier incorrecte détectée pour {domain_name}, correction en cours...")
-            
-            # Créer un dossier temporaire
-            temp_path = f"/tmp/{domain_name}_fix"
-            if not run_command(f"rm -rf {temp_path} && mkdir -p {temp_path}", elevated=True):
-                raise Exception("Failed to create temporary directory")
-            
-            # Copier le contenu au bon endroit
-            if not run_command(f"cp -r {found_wrong_path}/* {temp_path}/", elevated=True):
-                raise Exception("Failed to copy files to temp directory")
-            
-            # Nettoyer le dossier de destination
-            if not run_command(f"rm -rf {destination_path}/*", elevated=True):
-                raise Exception("Failed to clean destination directory")
-            
-            # Déplacer le contenu corrigé
-            if not run_command(f"cp -r {temp_path}/* {destination_path}/", elevated=True):
-                raise Exception("Failed to move corrected files")
-            
-            # Nettoyer le dossier temporaire
-            run_command(f"rm -rf {temp_path}", elevated=True)
-            
-            socketio.emit("console", "Structure de dossier corrigée avec succès.")
-            return True
-            
-        return True
-    except Exception as e:
-        socketio.emit("error", f"Erreur lors de la vérification/correction de la structure: {str(e)}")
         return False
