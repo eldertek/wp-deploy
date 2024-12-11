@@ -14,7 +14,7 @@ def create_scheduler():
     # Add jobs to the scheduler
     scheduler.add_job(deploy_all_websites, 'cron', hour=0, minute=0)
     scheduler.add_job(update_indexed_articles, 'cron', hour=0, minute=0)
-    scheduler.add_job(update_sites_basic_data, 'cron', minute=0)
+    scheduler.add_job(update_sites_basic_data, 'cron', hour='6-23', minute=0)
     
     return scheduler
 
