@@ -11,10 +11,3 @@ timeout = 3600
 errorlog = '/var/log/wp-deploy/error.log'
 accesslog = '/var/log/wp-deploy/access.log'
 loglevel = 'info'
-
-# Temp file configuration
-worker_tmp_dir = '/var/tmp/gunicorn'
-tmp_upload_dir = '/var/tmp/gunicorn'
-
-# Cleanup configuration
-clean_workers_tmp = True
