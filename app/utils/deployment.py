@@ -48,7 +48,7 @@ def deploy_static(domain_name):
 
         # Run Staatic export
         socketio.emit("console", "Exécution de l'exportation Staatic.")
-        result = run_command(f"wp staatic publish --path={wp_path}", return_output=True)  # Store result
+        result = run_command(f"wp staatic publish --force --path={wp_path}", return_output=True)  # Store result
         if "Success: Publication finished" in result:
             socketio.emit("console", "Exportation réussie.")
             # Déplacement des fichiers vers le répertoire de destination.
