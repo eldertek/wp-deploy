@@ -51,43 +51,34 @@ def deploy_static(domain_name):
         result = run_command(f"wp staatic publish --path={wp_path}", return_output=True)  # Store result
         if "Success: Publication finished" in result:
             socketio.emit("console", "Exportation réussie.")
-            # Move the first zip file in static path to the destination and copy content if folder exists
-            zip_files = [f for f in os.listdir(static_path) if f.endswith(".zip")]
-            if zip_files:
-                first_zip = zip_files[0]
-                socketio.emit("console", f"Déplacement de {first_zip} vers le répertoire de destination.")
+            # Déplacement des fichiers vers le répertoire de destination.
+            socketio.emit("console", "Déplacement des fichiers vers le répertoire de destination.")
 
-                # Ensure the destination path exists and set permissions
-                if not os.path.exists(destination_path):
-                    socketio.emit("console", "Création du répertoire de destination.")
-                    if not run_command(f"mkdir -p {destination_path}", elevated=True):
-                        raise Exception("Failed to create destination path")
-                    if not run_command(f"chown -R www-data:www-data {destination_path}", elevated=True):
-                        raise Exception("Failed to change ownership of destination path")
+            # Ensure the destination path exists and set permissions
+            if not os.path.exists(destination_path):
+                socketio.emit("console", "Création du répertoire de destination.")
+                if not run_command(f"mkdir -p {destination_path}", elevated=True):
+                    raise Exception("Failed to create destination path")
 
-                # Unzip the file to the destination path
-                if not run_command(f"unzip -o {os.path.join(static_path, first_zip)} -d {destination_path}"):
-                    raise Exception("Failed to unzip file to destination path")
-
+            # Move the content from static_path to destination_path
+            if os.path.exists(static_path) and os.listdir(static_path):
+                # Remove existing content in destination path if it exists
+                if os.path.exists(destination_path):
+                    if not run_command(f"rm -rf {destination_path}/*", elevated=True):
+                        raise Exception("Failed to clean destination path")
+                
+                # Move all content from static_path to destination_path
+                if not run_command(f"mv {static_path}/* {destination_path}/", elevated=True):
+                    raise Exception("Failed to move files to destination path")
+                
                 # Set ownership of the destination path to www-data
                 if not run_command(f"chown -R www-data:www-data {destination_path}", elevated=True):
                     raise Exception("Failed to change ownership of destination path to www-data")
-
-                # Create Readme.md with deployment details
-                readme_content = f"# Deployment Info\n\nDomain: {domain_name}\n\nDate: {datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n"
-                with open(os.path.join(destination_path, "Readme.md"), "w") as readme_file:
-                    readme_file.write(readme_content)
-
-                socketio.emit("console", "Création de Readme.md avec les détails du déploiement.")
-
-                # Clear the static path
-                if not run_command(f"rm -rf {static_path}"):
-                    raise Exception("Failed to clear static path")
-
+                
                 socketio.emit("success", f"Déploiement réussi pour {domain_name}.")
                 success = True
             else:
-                socketio.emit("error", f"Aucun fichier ZIP trouvé dans {static_path}.")
+                socketio.emit("error", f"Aucun fichier trouvé dans {static_path}.")
                 success = False
         else:
             socketio.emit("error", f"Erreur lors de l'exportation Staatic: {result}")
