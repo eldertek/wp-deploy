@@ -17,7 +17,8 @@ def debug():
         if domain == "*":
             domains = [domain for domain in os.listdir('/var/www/') 
                       if os.path.isdir(os.path.join('/var/www/', domain)) 
-                      and not domain.startswith('.')]
+                      and not domain.startswith('.')
+                      and not domain == 'static']
             results = []
             for domain in domains:
                 result = execute_action(domain, action)

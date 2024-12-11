@@ -21,7 +21,8 @@ def create_scheduler():
 def deploy_all_websites():
     domains = [domain for domain in os.listdir('/var/www/') 
               if os.path.isdir(os.path.join('/var/www/', domain)) 
-              and not domain.startswith('.')]
+              and not domain.startswith('.')
+              and not domain == 'static']
     
     # Use ThreadPoolExecutor to deploy websites in parallel
     with ThreadPoolExecutor() as executor:
@@ -37,10 +38,10 @@ def update_sites_basic_data():
     start_time = time.time()
     
     try:
-        # Récupérer la liste des domaines
         domains = [domain for domain in os.listdir('/var/www/') 
                   if os.path.isdir(os.path.join('/var/www/', domain)) 
-                  and not domain.startswith('.')]
+                  and not domain.startswith('.')
+                  and not domain == 'static']
         
         total_domains = len(domains)
         socketio.emit("console", f"Mise à jour des données pour {total_domains} sites")
