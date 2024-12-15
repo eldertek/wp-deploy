@@ -51,6 +51,9 @@ def deploy_static(domain_name):
         result = run_command(f"wp staatic publish --force --path={wp_path}", return_output=True)  # Store result
         if "Success: Publication finished" in result:
             socketio.emit("console", "Exportation réussie.")
+            socketio.emit("console", "Mise à jour des liens canoniques.")
+            update_canonical_links(static_path, domain_name)
+
             # Déplacement des fichiers vers le répertoire de destination.
             socketio.emit("console", "Déplacement des fichiers vers le répertoire de destination.")
 
@@ -207,3 +210,27 @@ def verify_paths(domain_name):
     except Exception as e:
         socketio.emit("error", f"Path verification failed: {str(e)}")
         return False
+
+def update_canonical_links(static_path, domain_name):
+    """Update canonical links in all HTML files to include the full domain."""
+    for root, _, files in os.walk(static_path):
+        for file in files:
+            if file.endswith('.html'):
+                file_path = os.path.join(root, file)
+                try:
+                    # Lire le contenu du fichier
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                    
+                    # Remplacer les liens canoniques relatifs par des liens absolus
+                    updated_content = content.replace(
+                        '<link rel="canonical" href="/',
+                        f'<link rel="canonical" href="https://{domain_name}/'
+                    )
+                    
+                    # Écrire le contenu mis à jour
+                    with open(file_path, 'w', encoding='utf-8') as f:
+                        f.write(updated_content)
+                        
+                except Exception as e:
+                    socketio.emit("console", f"Erreur lors de la mise à jour des liens canoniques dans {file}: {str(e)}")
