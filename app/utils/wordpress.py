@@ -130,12 +130,16 @@ def setup_ssl(domain_name):
         settings = load_settings()
         registrant_email = settings["registrant"]["email"]
 
-        # Install Certbot and obtain SSL certificate for both bo.domain_name and domain_name
-        result = run_command(
-            f"certbot --nginx --expand -d www.{domain_name} -d bo.{domain_name} -d {domain_name} --non-interactive --agree-tos -m {registrant_email}",
-            elevated=True,
-            return_output=True
-        )
+        # Install Certbot and obtain SSL certificates individually
+        domains = [f"www.{domain_name}", f"bo.{domain_name}", domain_name]
+        result = ""
+        for domain in domains:
+            cmd_result = run_command(
+                f"certbot --nginx -d {domain} --non-interactive --agree-tos -m {registrant_email}",
+                elevated=True,
+                return_output=True
+            )
+            result += cmd_result
         if "Some challenges have failed" in result:
             raise Exception("Les défis ont échoué")
         
