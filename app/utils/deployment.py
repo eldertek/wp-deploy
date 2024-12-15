@@ -213,24 +213,17 @@ def verify_paths(domain_name):
 
 def update_canonical_links(static_path, domain_name):
     """Update canonical links in all HTML files to include the full domain."""
-    for root, _, files in os.walk(static_path):
-        for file in files:
-            if file.endswith('.html'):
-                file_path = os.path.join(root, file)
-                try:
-                    # Lire le contenu du fichier
-                    with open(file_path, 'r', encoding='utf-8') as f:
-                        content = f.read()
-                    
-                    # Remplacer les liens canoniques relatifs par des liens absolus
-                    updated_content = content.replace(
-                        '<link rel="canonical" href="/',
-                        f'<link rel="canonical" href="https://{domain_name}/'
-                    )
-                    
-                    # Écrire le contenu mis à jour
-                    with open(file_path, 'w', encoding='utf-8') as f:
-                        f.write(updated_content)
-                        
-                except Exception as e:
-                    socketio.emit("console", f"Erreur lors de la mise à jour des liens canoniques dans {file}: {str(e)}")
+    try:
+        # Vérifier d'abord les liens canoniques existants
+        check_cmd = f"grep -l '<link rel=\"canonical\" href=\"/' `find {static_path} -type f -name '*.html'` || true"
+        files_to_update = run_command(check_cmd, return_output=True, elevated=True)
+        
+        if files_to_update:
+            # Remplacer uniquement les liens canoniques qui commencent par "/"
+            sed_cmd = f"sed -i 's|<link rel=\"canonical\" href=\"/|<link rel=\"canonical\" href=\"https://{domain_name}/|g' "
+            for file in files_to_update.strip().split('\n'):
+                if file:  # Ignorer les lignes vides
+                    run_command(f"{sed_cmd} {file}", elevated=True)
+                    socketio.emit("console", f"Mise à jour des liens canoniques dans {os.path.basename(file)}")
+    except Exception as e:
+        socketio.emit("error", f"Erreur lors de la mise à jour des liens canoniques: {str(e)}")
