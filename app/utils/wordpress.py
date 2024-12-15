@@ -8,11 +8,11 @@ import shlex
 
 def create_nginx_config(domain_name):
     try:
-        config_path = f"/etc/nginx/sites-available/{domain_name}"
-
-        # Create a temporary file for the Nginx config
-        temp_config_path = f"/tmp/nginx_config_{domain_name}.conf"
-        with open(temp_config_path, "w") as temp_config_file:
+        # Backend configuration (bo.)
+        bo_config_path = f"/etc/nginx/sites-available/bo.{domain_name}"
+        bo_temp_config_path = f"/tmp/nginx_config_bo_{domain_name}.conf"
+        
+        with open(bo_temp_config_path, "w") as temp_config_file:
             temp_config_file.write(
                 f"""
 server {{
@@ -45,7 +45,16 @@ server {{
     add_header Referrer-Policy "no-referrer-when-downgrade" always;
     add_header Permissions-Policy "geolocation=(), microphone=(), camera=()" always;
 }}
+"""
+            )
 
+        # Frontend configuration (main domain)
+        frontend_config_path = f"/etc/nginx/sites-available/{domain_name}"
+        frontend_temp_config_path = f"/tmp/nginx_config_{domain_name}.conf"
+        
+        with open(frontend_temp_config_path, "w") as temp_config_file:
+            temp_config_file.write(
+                f"""
 server {{
     listen 80;
     server_name {domain_name};
@@ -77,19 +86,29 @@ server {{
     
     return 301 http://{domain_name}$request_uri;
 }}
-                """
+"""
             )
 
-        # Move the temporary file to the Nginx config directory with elevated privileges
-        run_command(f"mv {temp_config_path} {config_path}", elevated=True)
+        # Move configurations and set up symlinks
+        run_command(f"mv {bo_temp_config_path} {bo_config_path}", elevated=True)
+        run_command(f"mv {frontend_temp_config_path} {frontend_config_path}", elevated=True)
 
+        # Remove existing symlinks if they exist
+        if os.path.exists(f"/etc/nginx/sites-enabled/bo.{domain_name}"):
+            run_command(f"rm /etc/nginx/sites-enabled/bo.{domain_name}", elevated=True)
         if os.path.exists(f"/etc/nginx/sites-enabled/{domain_name}"):
             run_command(f"rm /etc/nginx/sites-enabled/{domain_name}", elevated=True)
 
+        # Create new symlinks
         run_command(
-            f"ln -s {config_path} /etc/nginx/sites-enabled/{domain_name}",
+            f"ln -s {bo_config_path} /etc/nginx/sites-enabled/bo.{domain_name}",
             elevated=True,
         )
+        run_command(
+            f"ln -s {frontend_config_path} /etc/nginx/sites-enabled/{domain_name}",
+            elevated=True,
+        )
+        
         run_command("systemctl reload nginx", elevated=True)
         socketio.emit("message", f"Configuration Nginx pour {domain_name} créée.")
 
