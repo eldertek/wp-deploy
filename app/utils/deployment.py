@@ -51,9 +51,6 @@ def deploy_static(domain_name):
         result = run_command(f"wp staatic publish --force --path={wp_path}", return_output=True)  # Store result
         if "Success: Publication finished" in result:
             socketio.emit("console", "Exportation réussie.")
-            socketio.emit("console", "Mise à jour des liens canoniques.")
-            update_canonical_links(static_path, domain_name)
-
             # Déplacement des fichiers vers le répertoire de destination.
             socketio.emit("console", "Déplacement des fichiers vers le répertoire de destination.")
 
@@ -70,6 +67,10 @@ def deploy_static(domain_name):
                     if not run_command(f"rm -rf {destination_path}/*", elevated=True):
                         raise Exception("Failed to clean destination path")
                 
+                # Update canonical links
+                socketio.emit("console", "Mise à jour des liens canoniques.")
+                update_canonical_links(static_path, domain_name)
+
                 # Move all content from static_path to destination_path
                 if not run_command(f"mv {static_path}/* {destination_path}/", elevated=True):
                     raise Exception("Failed to move files to destination path")
@@ -214,16 +215,6 @@ def verify_paths(domain_name):
 def update_canonical_links(static_path, domain_name):
     """Update canonical links in all HTML files to include the full domain."""
     try:
-        # Vérifier d'abord les liens canoniques existants
-        check_cmd = f"grep -l '<link rel=\"canonical\" href=\"/' `find {static_path} -type f -name '*.html'` || true"
-        files_to_update = run_command(check_cmd, return_output=True, elevated=True)
-        
-        if files_to_update:
-            # Remplacer uniquement les liens canoniques qui commencent par "/"
-            sed_cmd = f"sed -i 's|<link rel=\"canonical\" href=\"/|<link rel=\"canonical\" href=\"https://{domain_name}/|g' "
-            for file in files_to_update.strip().split('\n'):
-                if file:  # Ignorer les lignes vides
-                    run_command(f"{sed_cmd} {file}", elevated=True)
-                    socketio.emit("console", f"Mise à jour des liens canoniques dans {os.path.basename(file)}")
+        run_command(f'find {static_path} -type f -name "*.html" -exec sed -i "s|<link rel=\\"canonical\\" href=\\"/|<link rel=\\"canonical\\" href=\\"https://{domain_name}/|g" {{}} \\;', elevated=True)
     except Exception as e:
-        socketio.emit("error", f"Erreur lors de la mise à jour des liens canoniques: {str(e)}")
+        socketio.emit("console", f"Erreur lors de la mise à jour des liens canoniques: {str(e)}")
