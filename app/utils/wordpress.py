@@ -208,13 +208,12 @@ def install_wordpress(domain_name, backup_file_path=None):
             if not run_command(f"wp plugin activate {plugin_name} --path={wp_path}"):
                 raise Exception(f"Échec de l'activation du plugin {plugin_name}")
 
-        # Copy backup file to wp-content/ai1wm-backups
+        # Si un fichier de backup est fourni, le déplacer vers le nouveau répertoire temporaire
         if backup_file_path:
-            if not run_command(f"mv {backup_file_path} {wp_path}/wp-content/ai1wm-backups/backup.wpress"):
-                raise Exception("Échec de la copie de backup.wpress")
-        else:
-            if not run_command(f"mv ../wpocopo.wpress {wp_path}/wp-content/ai1wm-backups/backup.wpress"):
-                raise Exception("Échec de la copie de wpocopo.wpress")
+            tmp_backup = os.path.join("/mnt/disk2/tmp", f"{domain_name}_backup.wpress")
+            if not run_command(f"mv {backup_file_path} {tmp_backup}", elevated=True):
+                raise Exception("Failed to move backup file to temporary directory")
+            backup_file_path = tmp_backup
 
         # Restore
         if run_command(f"wp ai1wm restore backup.wpress --yes --path={wp_path}"):
@@ -302,6 +301,11 @@ def install_wordpress(domain_name, backup_file_path=None):
         # Emit success message with user details
         socketio.emit("message", f"WordPress installé pour {domain_name}. Utilisateur créé: {simple_username} avec l'email {wordpress_admin_email} et le mot de passe {simple_password}.")
         
+        # Nettoyer les fichiers temporaires à la fin
+        if os.path.exists(backup_file_path):
+            if not run_command(f"rm -f {backup_file_path}", elevated=True):
+                socketio.emit("console", f"[{domain_name}] Warning: Failed to cleanup temporary backup file")
+
         return True
     except Exception as e:
         socketio.emit("error", f"Erreur lors de l'installation de WordPress pour {domain_name}")

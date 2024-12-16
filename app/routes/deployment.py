@@ -90,8 +90,11 @@ def install_wordpress_route():
     backup_file = request.files.get("backupFile")
     
     if backup_file:
-        backup_file_path = f"/tmp/{domain_name}_backup.wpress"
+        tmp_dir = "/mnt/disk2/tmp"
+        backup_file_path = os.path.join(tmp_dir, f"{domain_name}_backup.wpress")
         backup_file.save(backup_file_path)
+        if not run_command(f"chown www-data:www-data {backup_file_path}", elevated=True):
+            return jsonify({"status": "error", "message": "Failed to set permissions on backup file"}), 500
     else:
         backup_file_path = None
 

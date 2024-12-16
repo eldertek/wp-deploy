@@ -23,19 +23,20 @@ def deploy_static(domain_name):
         destination_path = os.path.join("/var/www/static", domain_name)
         tmp_static_path = os.path.join("/mnt/disk2/tmpstatic", domain_name)
         tmp_staging_path = os.path.join("/mnt/disk2/staging", domain_name)
+        tmp_dir = "/mnt/disk2/tmp"
 
         socketio.emit("message", f"[{domain_name}] Début du déploiement.")
 
         # Créer et configurer les répertoires temporaires principaux si nécessaire
-        for tmp_dir in ["/mnt/disk2/tmpstatic", "/mnt/disk2/staging"]:
-            if not os.path.exists(tmp_dir):
-                socketio.emit("console", f"[{domain_name}] Création du répertoire temporaire {tmp_dir}")
-                if not run_command(f"mkdir -p {tmp_dir}", elevated=True):
-                    raise Exception(f"Failed to create temporary directory: {tmp_dir}")
-                if not run_command(f"chown www-data:www-data {tmp_dir}", elevated=True):
-                    raise Exception(f"Failed to set ownership on temporary directory: {tmp_dir}")
-                if not run_command(f"chmod 755 {tmp_dir}", elevated=True):
-                    raise Exception(f"Failed to set permissions on temporary directory: {tmp_dir}")
+        for tmp_path in ["/mnt/disk2/tmpstatic", "/mnt/disk2/staging", tmp_dir]:
+            if not os.path.exists(tmp_path):
+                socketio.emit("console", f"[{domain_name}] Création du répertoire temporaire {tmp_path}")
+                if not run_command(f"mkdir -p {tmp_path}", elevated=True):
+                    raise Exception(f"Failed to create temporary directory: {tmp_path}")
+                if not run_command(f"chown www-data:www-data {tmp_path}", elevated=True):
+                    raise Exception(f"Failed to set ownership on temporary directory: {tmp_path}")
+                if not run_command(f"chmod 755 {tmp_path}", elevated=True):
+                    raise Exception(f"Failed to set permissions on temporary directory: {tmp_path}")
 
         # S'assurer que le répertoire parent de Staatic existe
         socketio.emit("console", f"[{domain_name}] Configuration des répertoires Staatic")
@@ -46,12 +47,17 @@ def deploy_static(domain_name):
         if not run_command(f"chmod 755 {staatic_base}", elevated=True):
             raise Exception("Failed to set permissions on Staatic base directory")
 
-        # Supprimer les anciens liens symboliques s'ils existent
-        for path in [static_path, staging_path]:
-            if os.path.exists(path):
-                socketio.emit("console", f"[{domain_name}] Suppression de l'ancien lien symbolique: {os.path.basename(path)}")
-                if not run_command(f"rm -rf {path}", elevated=True):
-                    raise Exception(f"Failed to remove old symlink: {path}")
+        # Supprimer uniquement l'ancien lien symbolique deploy s'il existe
+        if os.path.exists(static_path):
+            socketio.emit("console", f"[{domain_name}] Suppression de l'ancien lien symbolique: deploy")
+            if not run_command(f"rm -rf {static_path}", elevated=True):
+                raise Exception("Failed to remove old deploy symlink")
+
+        # Ne pas supprimer le lien symbolique staging s'il existe déjà
+        if os.path.exists(staging_path) and not os.path.islink(staging_path):
+            socketio.emit("console", f"[{domain_name}] Configuration initiale du staging")
+            if not run_command(f"rm -rf {staging_path}", elevated=True):
+                raise Exception("Failed to remove old staging directory")
 
         # Supprimer l'ancien répertoire temporaire deploy s'il existe
         if os.path.exists(tmp_static_path):
