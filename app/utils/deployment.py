@@ -18,15 +18,69 @@ def deploy_static(domain_name):
         base_path = os.path.realpath("/var/www")
         wp_path = os.path.join(base_path, domain_name)
         static_path = os.path.join(wp_path, "wp-content/uploads/staatic/deploy/")
+        staging_path = os.path.join(wp_path, "wp-content/uploads/staatic/staging/")
         destination_path = os.path.join("/var/www/static", domain_name)
+        tmp_static_path = os.path.join("/mnt/disk2/tmpstatic", domain_name)
+        tmp_staging_path = os.path.join("/mnt/disk2/staging", domain_name)
 
         socketio.emit("message", f"Début du déploiement pour {domain_name}.")
 
-        # Supprimer les fichiers temporaires
+        # Créer et configurer les répertoires temporaires principaux si nécessaire
+        for tmp_dir in ["/mnt/disk2/tmpstatic", "/mnt/disk2/staging"]:
+            if not os.path.exists(tmp_dir):
+                if not run_command(f"mkdir -p {tmp_dir}", elevated=True):
+                    raise Exception(f"Failed to create temporary directory: {tmp_dir}")
+                # Set permissions on main temp directories
+                if not run_command(f"chown www-data:www-data {tmp_dir}", elevated=True):
+                    raise Exception(f"Failed to set ownership on temporary directory: {tmp_dir}")
+                if not run_command(f"chmod 755 {tmp_dir}", elevated=True):
+                    raise Exception(f"Failed to set permissions on temporary directory: {tmp_dir}")
+
+        # Supprimer l'ancien lien symbolique deploy et le répertoire temporaire s'ils existent
         if os.path.exists(static_path):
-            socketio.emit("console", "Suppression des fichiers temporaires.")
+            socketio.emit("console", "Suppression de l'ancien lien symbolique deploy.")
             if not run_command(f"rm -rf {static_path}", elevated=True):
-                raise Exception("Failed to remove static path")
+                raise Exception("Failed to remove old deploy symlink")
+        if os.path.exists(tmp_static_path):
+            if not run_command(f"rm -rf {tmp_static_path}", elevated=True):
+                raise Exception("Failed to remove old temporary deploy directory")
+
+        # Configurer le répertoire de staging seulement s'il existe et n'est pas un lien symbolique
+        if os.path.exists(staging_path) and not os.path.islink(staging_path):
+            socketio.emit("console", "Configuration du répertoire de staging.")
+            if not run_command(f"rm -rf {staging_path}", elevated=True):
+                raise Exception("Failed to remove old staging directory")
+        
+        # Créer le répertoire de staging temporaire s'il n'existe pas
+        if not os.path.exists(tmp_staging_path):
+            if not run_command(f"mkdir -p {tmp_staging_path}", elevated=True):
+                raise Exception("Failed to create staging temporary directory")
+            if not run_command(f"chown www-data:www-data {tmp_staging_path}", elevated=True):
+                raise Exception("Failed to set ownership on staging temporary directory")
+            if not run_command(f"chmod 755 {tmp_staging_path}", elevated=True):
+                raise Exception("Failed to set permissions on staging temporary directory")
+
+        # Créer le répertoire temporaire deploy
+        if not run_command(f"mkdir -p {tmp_static_path}", elevated=True):
+            raise Exception("Failed to create deploy temporary directory")
+        if not run_command(f"chown www-data:www-data {tmp_static_path}", elevated=True):
+            raise Exception("Failed to set ownership on deploy temporary directory")
+        if not run_command(f"chmod 755 {tmp_static_path}", elevated=True):
+            raise Exception("Failed to set permissions on deploy temporary directory")
+
+        # Créer les liens symboliques
+        if not run_command(f"ln -s {tmp_static_path} {static_path}", elevated=True):
+            raise Exception("Failed to create deploy symlink")
+        # Créer le lien symbolique staging seulement s'il n'existe pas déjà
+        if not os.path.exists(staging_path):
+            if not run_command(f"ln -s {tmp_staging_path} {staging_path}", elevated=True):
+                raise Exception("Failed to create staging symlink")
+        
+        # S'assurer que les liens symboliques ont les bonnes permissions
+        if not run_command(f"chown -h www-data:www-data {static_path}", elevated=True):
+            raise Exception("Failed to set ownership on deploy symlink")
+        if not run_command(f"chown -h www-data:www-data {staging_path}", elevated=True):
+            raise Exception("Failed to set ownership on staging symlink")
 
         # Force Elementor data update
         try:
