@@ -120,14 +120,15 @@ def deploy_static(domain_name):
                 if os.path.exists(destination_path):
                     if not run_command(f"rm -rf {destination_path}/*", elevated=True):
                         raise Exception("Failed to clean destination path")
-                
-                # Update canonical links
-                socketio.emit("console", f"[{domain_name}] Mise à jour des liens canoniques")
-                update_canonical_links(static_path, domain_name)
 
                 if not run_command(f"mv {static_path}/* {destination_path}/", elevated=True):
                     raise Exception("Failed to move files to destination path")
                 
+                # Update canonical links
+                socketio.emit("console", f"[{domain_name}] Mise à jour des liens canoniques dans {destination_path}")
+                update_canonical_links(destination_path, domain_name)
+
+
                 if not run_command(f"chown -R www-data:www-data {destination_path}", elevated=True):
                     raise Exception("Failed to change ownership of destination path to www-data")
                 
