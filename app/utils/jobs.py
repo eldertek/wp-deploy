@@ -31,7 +31,49 @@ def deploy_all_websites():
     delete_old_deployment_logs()
 
 def update_indexed_articles():
-    update_sites_data(indexed=True)
+    task_logger.log_task_start("update_indexed_articles")
+    start_time = time.time()
+    
+    try:
+        domains = [domain for domain in os.listdir('/var/www/') 
+                  if os.path.isdir(os.path.join('/var/www/', domain)) 
+                  and not domain.startswith('.')
+                  and not domain == 'static']
+        
+        total_domains = len(domains)
+        socketio.emit("console", f"Mise à jour des données d'indexation pour {total_domains} sites")
+        task_logger.access_logger.info(f"Début de la mise à jour d'indexation pour {total_domains} sites")
+
+        for index, domain in enumerate(domains, 1):
+            try:
+                progress = (index / total_domains) * 100
+                status_msg = f"[{index}/{total_domains}] ({progress:.1f}%) Indexation de {domain}"
+                socketio.emit("console", status_msg)
+                task_logger.access_logger.info(status_msg)
+                
+                # Mesurer le temps pour chaque domaine
+                domain_start = time.time()
+                update_sites_data(indexed=True, specific_domain=domain)
+                domain_duration = time.time() - domain_start
+                
+                task_logger.access_logger.info(f"Indexation de {domain} terminée en {domain_duration:.2f}s")
+                
+            except Exception as e:
+                error_msg = f"Erreur lors de l'indexation de {domain}: {str(e)}"
+                socketio.emit("error", error_msg)
+                task_logger.log_error("update_indexed_articles", error_msg, domain)
+                continue
+
+        duration = time.time() - start_time
+        success_msg = f"Mise à jour des indexations terminée en {duration:.2f}s"
+        socketio.emit("console", success_msg)
+        task_logger.log_task_end("update_indexed_articles", duration=duration)
+        
+    except Exception as e:
+        error_msg = f"Erreur critique lors de l'indexation: {str(e)}"
+        socketio.emit("error", error_msg)
+        task_logger.log_error("update_indexed_articles", error_msg)
+        raise
 
 def update_sites_basic_data():
     task_logger.log_task_start("update_sites_basic_data")

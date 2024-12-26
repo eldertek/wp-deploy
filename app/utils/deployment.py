@@ -215,8 +215,7 @@ def update_sites_data(indexed=False, specific_domain=None):
             and not domain.startswith('.')
             and not domain.endswith('-static')
         ]
-
-        sites = []
+        
         for domain in domains:
             try:
                 published_articles = get_published_articles(domain)
