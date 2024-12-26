@@ -203,6 +203,9 @@ def check_site_status(domain):
 def update_sites_data(indexed=False, specific_domain=None):
     try:
         existing_data = load_sites_data()
+        if not isinstance(existing_data, dict):
+            existing_data = {"sites": [], "last_update": ""}
+            
         existing_domains = {site['domain']: site for site in existing_data.get('sites', [])}
         
         # Si un domaine spécifique est fourni, ne traiter que celui-là
@@ -215,25 +218,29 @@ def update_sites_data(indexed=False, specific_domain=None):
 
         sites = []
         for domain in domains:
-            published_articles = get_published_articles(domain)
-            if indexed:
-                indexed_articles = get_indexed_articles(domain)
-                indexed_percentage = (indexed_articles / published_articles * 100) if published_articles > 0 else 0
-            else:
-                indexed_articles = existing_domains.get(domain, {}).get("indexed_articles", 0)
-                indexed_percentage = existing_domains.get(domain, {}).get("indexed_percentage", 0)
+            try:
+                published_articles = get_published_articles(domain)
+                if indexed:
+                    indexed_articles = get_indexed_articles(domain)
+                    indexed_percentage = (indexed_articles / published_articles * 100) if published_articles > 0 else 0
+                else:
+                    indexed_articles = existing_domains.get(domain, {}).get("indexed_articles", 0)
+                    indexed_percentage = existing_domains.get(domain, {}).get("indexed_percentage", 0)
 
-            status = "online" if check_site_status(domain) else "offline"
+                status = "online" if check_site_status(domain) else "offline"
 
-            existing_domains[domain] = {
-                "domain": domain,
-                "published_articles": published_articles,
-                "indexed_articles": indexed_articles,
-                "indexed_percentage": round(indexed_percentage, 2),
-                "status": status,
-                "category": existing_domains.get(domain, {}).get("category", "Aucune catégorie"),
-                "language": existing_domains.get(domain, {}).get("language", "Aucune langue")
-            }
+                existing_domains[domain] = {
+                    "domain": domain,
+                    "published_articles": published_articles,
+                    "indexed_articles": indexed_articles,
+                    "indexed_percentage": round(indexed_percentage, 2),
+                    "status": status,
+                    "category": existing_domains.get(domain, {}).get("category", "Aucune catégorie"),
+                    "language": existing_domains.get(domain, {}).get("language", "Aucune langue")
+                }
+            except Exception as e:
+                socketio.emit("error", f"Erreur lors de la mise à jour du domaine {domain}: {str(e)}")
+                continue
 
         sites_data = {
             "sites": list(existing_domains.values()),
