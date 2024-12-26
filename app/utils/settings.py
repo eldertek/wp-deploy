@@ -74,19 +74,15 @@ def load_sites_data():
                 return data
     except (json.JSONDecodeError, ValueError) as e:
         socketio.emit("console", f"Réinitialisation du fichier sites_data.json : {str(e)}")
-        # Si le fichier est corrompu ou vide, on le réinitialise
+        # Si le fichier est corrompu ou vide, on le réinitialise avec la structure de base
         save_sites_data(default_data)
-        from .deployment import update_sites_data
-        update_sites_data()
         return default_data
     except Exception as e:
         socketio.emit("error", f"Erreur lors du chargement des données des sites: {str(e)}")
         return default_data
 
-    # Si le fichier n'existe pas, on le crée
+    # Si le fichier n'existe pas, on le crée avec la structure de base
     save_sites_data(default_data)
-    from .deployment import update_sites_data
-    update_sites_data()
     return default_data
 
 def save_sites_data(data):
