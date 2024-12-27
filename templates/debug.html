@@ -28,19 +28,18 @@
 </div>
 
 <script>
-    document.getElementById('debugForm').addEventListener('submit', function(event) {
-        event.preventDefault();
-        var formData = new FormData(this);
-        var executeButton = document.getElementById('executeButton');
-        var actionSelect = document.getElementById('action');
-
-        // Disable buttons
-        executeButton.disabled = true;
-        actionSelect.disabled = true;
-
-        // Clear previous messages
-        document.getElementById('result').innerHTML = '';
-        document.getElementById('socket-messages').innerHTML = '';
+    document.getElementById('debugForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Récupérer les éléments du formulaire
+        const form = this;
+        const formData = new FormData(form);
+        const executeButton = document.getElementById('executeButton');
+        const actionSelect = form.querySelector('select[name="action"]');
+        
+        // Désactiver les boutons pendant l'exécution
+        if (executeButton) executeButton.disabled = true;
+        if (actionSelect) actionSelect.disabled = true;
 
         fetch("{{ url_for('debug.debug') }}", {
             method: "POST",
@@ -54,9 +53,9 @@
             document.getElementById('result').innerHTML = `<div class="alert alert-danger">Erreur: ${error}</div>`;
         })
         .finally(() => {
-            // Re-enable buttons
-            executeButton.disabled = false;
-            actionSelect.disabled = false;
+            // Réactiver les boutons
+            if (executeButton) executeButton.disabled = false;
+            if (actionSelect) actionSelect.disabled = false;
         });
     });
 </script>
