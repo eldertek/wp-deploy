@@ -12,11 +12,13 @@
         </div>
         <div class="form-group">
             <label for="action">Action</label>
-            <select class="form-control" id="action" name="action" required>
-                <option value="dns">Configurer DNS</option>
-                <option value="nginx">Configurer Nginx</option>
-                <option value="ssl">Configurer SSL</option>
-                <option value="deploy">Déployer</option>
+            <select name="action" class="form-control" required>
+                <option value="nginx">Configuration Nginx</option>
+                <option value="ssl">Configuration SSL</option>
+                <option value="deploy">Déploiement forcé</option>
+                <option value="dns">Configuration DNS</option>
+                <option value="update_basic">Mise à jour basique</option>
+                <option value="update_indexed">Mise à jour indexation</option>
             </select>
         </div>
         <button type="submit" class="btn btn-primary" id="executeButton">Exécuter</button>

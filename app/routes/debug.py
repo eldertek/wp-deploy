@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required
 from app.utils.wordpress import create_nginx_config, setup_ssl
-from app.utils.deployment import deploy_static
+from app.utils.deployment import deploy_static, update_sites_data
 from app.utils.domain import configure_dns
 import os
 
@@ -43,3 +43,15 @@ def execute_action(domain, action):
     elif action == "dns":
         success = configure_dns(domain)
         return {"status": "success" if success else "error", "message": f"DNS configuré pour {domain}."}
+    elif action == "update_basic":
+        try:
+            update_sites_data(indexed=False, specific_domain=domain)
+            return {"status": "success", "message": f"Mise à jour basique effectuée pour {domain}."}
+        except Exception as e:
+            return {"status": "error", "message": f"Erreur lors de la mise à jour basique de {domain}: {str(e)}"}
+    elif action == "update_indexed":
+        try:
+            update_sites_data(indexed=True, specific_domain=domain)
+            return {"status": "success", "message": f"Mise à jour de l'indexation effectuée pour {domain}."}
+        except Exception as e:
+            return {"status": "error", "message": f"Erreur lors de la mise à jour de l'indexation de {domain}: {str(e)}"}
