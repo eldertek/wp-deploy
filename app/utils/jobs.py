@@ -19,15 +19,48 @@ def create_scheduler():
     return scheduler
 
 def deploy_all_websites():
-    domains = [domain for domain in os.listdir('/var/www/') 
-              if os.path.isdir(os.path.join('/var/www/', domain)) 
-              and not domain.startswith('.')
-              and not domain == 'static']
+    task_logger.log_task_start("deploy_all_websites")
+    start_time = time.time()
     
-    # Use ThreadPoolExecutor to deploy websites in parallel
-    with ThreadPoolExecutor() as executor:
-        futures = {executor.submit(deploy_static, domain): domain for domain in domains}
-    
+    try:
+        domains = [domain for domain in os.listdir('/var/www/') 
+                  if os.path.isdir(os.path.join('/var/www/', domain)) 
+                  and not domain.startswith('.')
+                  and not domain == 'static']
+        
+        total_domains = len(domains)
+        socketio.emit("console", f"Déploiement de {total_domains} sites")
+        task_logger.access_logger.info(f"Début du déploiement pour {total_domains} sites")
+
+        # Utiliser ThreadPoolExecutor avec max_workers=3
+        with ThreadPoolExecutor(max_workers=3) as executor:
+            for index, domain in enumerate(domains, 1):
+                try:
+                    progress = (index / total_domains) * 100
+                    status_msg = f"[{index}/{total_domains}] ({progress:.1f}%) Déploiement de {domain}"
+                    socketio.emit("console", status_msg)
+                    task_logger.access_logger.info(status_msg)
+                    
+                    # Soumettre le travail à l'executor
+                    future = executor.submit(deploy_static, domain)
+                    
+                except Exception as e:
+                    error_msg = f"Erreur lors du déploiement de {domain}: {str(e)}"
+                    socketio.emit("error", error_msg)
+                    task_logger.log_error("deploy_all_websites", error_msg, domain)
+                    continue
+
+        duration = time.time() - start_time
+        success_msg = f"Déploiement de tous les sites terminé en {duration:.2f}s"
+        socketio.emit("console", success_msg)
+        task_logger.log_task_end("deploy_all_websites", duration=duration)
+        
+    except Exception as e:
+        error_msg = f"Erreur critique lors du déploiement: {str(e)}"
+        socketio.emit("error", error_msg)
+        task_logger.log_error("deploy_all_websites", error_msg)
+        raise
+
     delete_old_deployment_logs()
 
 def update_indexed_articles():
