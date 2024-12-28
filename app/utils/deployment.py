@@ -188,11 +188,19 @@ def deploy_static(domain_name):
 
         duration = (datetime.datetime.now() - start_time).total_seconds()
         log_deployment(domain_name, success, duration, logger.logs)
+        
+        # Nettoyage final des répertoires temporaires
+        cleanup_temp_dirs(domain_name, logger)
+        
         return success
     except Exception as e:
         error_message = f"Erreur lors du déploiement statique: {str(e)}"
         logger.log_message(error_message)
         log_deployment(domain_name, False, 0, logger.logs)
+        
+        # Nettoyage même en cas d'erreur
+        cleanup_temp_dirs(domain_name, logger)
+        
         return False
 
 def log_deployment(domain_name, success, duration, console_logs=None):
@@ -341,3 +349,20 @@ def verify_static_files(static_path, domain_name, logger):
         return True, files
     except Exception as e:
         return False, str(e)
+
+def cleanup_temp_dirs(domain_name, logger):
+    """Nettoie tous les répertoires temporaires utilisés pendant le déploiement."""
+    try:
+        tmp_paths = [
+            os.path.join("/mnt/disk2/tmpstatic", domain_name),
+            os.path.join("/mnt/disk2/staging", domain_name),
+            f"/mnt/disk2/tmp/{domain_name}_temp"
+        ]
+        
+        for tmp_path in tmp_paths:
+            if os.path.exists(tmp_path):
+                logger.log_message(f"Nettoyage du répertoire temporaire: {tmp_path}")
+                if not run_command(f"rm -rf {tmp_path}", elevated=True):
+                    logger.log_message(f"Attention: Impossible de nettoyer {tmp_path}")
+    except Exception as e:
+        logger.log_message(f"Erreur lors du nettoyage des répertoires temporaires: {str(e)}")
