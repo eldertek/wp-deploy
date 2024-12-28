@@ -33,9 +33,15 @@
                     <td style="display:none;">{{ deployment.timestamp }}</td>
                     <td>{{ '{:.2f}'.format(deployment.duration) }}</td>
                     <td>
+                        {% if deployment.console_logs is defined and deployment.console_logs %}
                         <button class="btn btn-sm btn-info view-logs" data-logs='{{ deployment.console_logs|tojson }}'>
                             Voir les logs
                         </button>
+                        {% else %}
+                        <button class="btn btn-sm btn-secondary" disabled>
+                            Pas de logs
+                        </button>
+                        {% endif %}
                     </td>
                 </tr>
                 {% endfor %}
@@ -102,9 +108,13 @@
         $('.view-logs').click(function() {
             const logs = $(this).data('logs');
             let logsHtml = '';
-            logs.forEach(log => {
-                logsHtml += `[${log.time}] ${log.message}\n`;
-            });
+            if (logs && logs.length) {
+                logs.forEach(log => {
+                    logsHtml += `[${log.time}] ${log.message}\n`;
+                });
+            } else {
+                logsHtml = 'Aucun log disponible';
+            }
             $('#logsContent').text(logsHtml);
             $('#logsModal').modal('show');
         });
@@ -123,12 +133,16 @@
                 logsText += `Durée: ${duration} secondes\n\n`;
                 
                 const logsBtn = $(row[5]).find('.view-logs');
-                const logs = logsBtn.data('logs');
-                if (logs && logs.length) {
-                    logsText += "Logs détaillés:\n";
-                    logs.forEach(log => {
-                        logsText += `[${log.time}] ${log.message}\n`;
-                    });
+                if (logsBtn.length) {
+                    const logs = logsBtn.data('logs');
+                    if (logs && logs.length) {
+                        logsText += "Logs détaillés:\n";
+                        logs.forEach(log => {
+                            logsText += `[${log.time}] ${log.message}\n`;
+                        });
+                    }
+                } else {
+                    logsText += "Pas de logs détaillés disponibles\n";
                 }
                 logsText += "\n---\n\n";
             });
