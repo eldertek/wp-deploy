@@ -117,13 +117,11 @@ def deploy_static(domain_name):
 
             # Move the content
             if os.path.exists(static_path) and os.listdir(static_path):
-                if os.path.exists(destination_path):
-                    if not run_command(f"rm -rf {destination_path}/*", elevated=True):
-                        raise Exception("Failed to clean destination path")
-
-                if not run_command(f"mv {static_path}/* {destination_path}/", elevated=True):
-                    raise Exception("Failed to move files to destination path")
-                
+                if not run_command(f"cp -rf {static_path}/* {destination_path}/", elevated=True):
+                    raise Exception("Failed to copy files to destination path")
+                    
+                if not run_command(f"rm -rf {static_path}/*", elevated=True):
+                    raise Exception("Failed to clean static path")
                 # Update canonical links
                 socketio.emit("console", f"[{domain_name}] Mise à jour des liens canoniques dans {destination_path}")
                 update_canonical_links(destination_path, domain_name)
