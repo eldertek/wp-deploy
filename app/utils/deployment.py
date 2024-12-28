@@ -112,34 +112,38 @@ def deploy_static(domain_name):
         result = run_command(f"wp staatic publish --force --path={wp_path}", return_output=True)
         if "Success: Publication finished" in result:
             log_message(f"[{domain_name}] Exportation réussie")
-            log_message(f"[{domain_name}] Déplacement des fichiers vers le répertoire de destination")
+            
+            # Vérification des fichiers avant la copie
+            files_ok, files_info = verify_static_files(static_path, domain_name)
+            if not files_ok:
+                log_message(f"[{domain_name}] Erreur lors de la vérification des fichiers: {files_info}")
+                success = False
+            else:
+                log_message(f"[{domain_name}] {len(files_info)} fichiers prêts à être déployés")
+                log_message(f"[{domain_name}] Déplacement des fichiers vers le répertoire de destination")
 
-            # Ensure the destination path exists
-            if not os.path.exists(destination_path):
-                log_message(f"[{domain_name}] Création du répertoire de destination")
-                if not run_command(f"mkdir -p {destination_path}", elevated=True):
-                    raise Exception("Failed to create destination path")
+                # Ensure the destination path exists
+                if not os.path.exists(destination_path):
+                    log_message(f"[{domain_name}] Création du répertoire de destination")
+                    if not run_command(f"mkdir -p {destination_path}", elevated=True):
+                        raise Exception("Failed to create destination path")
 
-            # Move the content
-            if os.path.exists(static_path) and os.listdir(static_path):
+                # Move the content
                 if not run_command(f"cp -rf {static_path}/* {destination_path}/", elevated=True):
                     raise Exception("Failed to copy files to destination path")
                     
                 if not run_command(f"rm -rf {static_path}/*", elevated=True):
                     raise Exception("Failed to clean static path")
+                
                 # Update canonical links
                 log_message(f"[{domain_name}] Mise à jour des liens canoniques dans {destination_path}")
                 update_canonical_links(destination_path, domain_name)
-
 
                 if not run_command(f"chown -R www-data:www-data {destination_path}", elevated=True):
                     raise Exception("Failed to change ownership of destination path to www-data")
                 
                 log_message(f"[{domain_name}] Déploiement réussi")
                 success = True
-            else:
-                log_message(f"[{domain_name}] Aucun fichier trouvé dans {static_path}")
-                success = False
         else:
             log_message(f"[{domain_name}] Erreur lors de l'exportation Staatic: {result}")
             success = False
@@ -281,3 +285,25 @@ def update_canonical_links(static_path, domain_name):
         run_command(f'find {static_path} -type f -name "*.html" -exec sed -i "s|<link rel=\\"canonical\\" href=\\"/|<link rel=\\"canonical\\" href=\\"https://{domain_name}/|g" {{}} \\;', elevated=True)
     except Exception as e:
         socketio.emit("console", f"Erreur lors de la mise à jour des liens canoniques: {str(e)}")
+
+def verify_static_files(static_path, domain_name):
+    """Vérifie l'existence et la validité des fichiers statiques avant la copie."""
+    try:
+        if not os.path.exists(static_path):
+            raise Exception(f"Le répertoire source n'existe pas: {static_path}")
+        
+        if not os.path.isdir(static_path):
+            raise Exception(f"Le chemin source n'est pas un répertoire: {static_path}")
+            
+        files = os.listdir(static_path)
+        if not files:
+            raise Exception("Aucun fichier trouvé dans le répertoire source")
+            
+        # Vérifier la présence de fichiers HTML (minimum attendu)
+        html_files = [f for f in files if f.endswith('.html')]
+        if not html_files:
+            raise Exception("Aucun fichier HTML trouvé dans l'export")
+            
+        return True, files
+    except Exception as e:
+        return False, str(e)
