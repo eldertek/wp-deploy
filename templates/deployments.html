@@ -120,19 +120,22 @@
         });
 
         $('#downloadLogs').click(function() {
-            const rows = $('#deploymentsTable').DataTable().rows().data();
+            const table = $('#deploymentsTable').DataTable();
             let logsText = '';
-            rows.each(function(row) {
-                const domain = row[0];
-                const success = row[1];
-                const date = row[2];
-                const duration = row[4];
+            
+            table.rows().every(function() {
+                const rowNode = this.node();
+                const domain = $(rowNode).find('td:eq(0)').text();
+                const success = $(rowNode).find('td:eq(1)').text();
+                const date = $(rowNode).find('td:eq(2)').text();
+                const duration = $(rowNode).find('td:eq(4)').text();
+                const logsBtn = $(rowNode).find('.view-logs');
+                
                 logsText += `=== Déploiement de ${domain} ===\n`;
                 logsText += `Date: ${date}\n`;
                 logsText += `Succès: ${success}\n`;
                 logsText += `Durée: ${duration} secondes\n\n`;
                 
-                const logsBtn = $(row[5]).find('.view-logs');
                 if (logsBtn.length) {
                     const logs = logsBtn.data('logs');
                     if (logs && logs.length) {
@@ -141,8 +144,6 @@
                             logsText += `[${log.time}] ${log.message}\n`;
                         });
                     }
-                } else {
-                    logsText += "Pas de logs détaillés disponibles\n";
                 }
                 logsText += "\n---\n\n";
             });
