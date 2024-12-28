@@ -7,25 +7,23 @@ from .system import run_command
 from .wordpress import get_published_articles
 from .settings import load_sites_data, save_sites_data
 
-def log_message(domain_name, message):
-    """Log a message both to console and to the logs list."""
-    formatted_message = f"[{domain_name}] {message}" if domain_name else message
-    console_logs.append({"time": datetime.datetime.now().strftime('%H:%M:%S'), "message": formatted_message})
-    socketio.emit("console", formatted_message)
+class DeploymentLogger:
+    def __init__(self, domain_name):
+        self.domain_name = domain_name
+        self.logs = []
 
-console_logs = []
+    def log_message(self, message):
+        """Log a message both to console and to the logs list."""
+        formatted_message = f"[{self.domain_name}] {message}"
+        self.logs.append({"time": datetime.datetime.now().strftime('%H:%M:%S'), "message": formatted_message})
+        socketio.emit("console", formatted_message)
 
 def deploy_static(domain_name):
-    global console_logs
-    console_logs = []
+    logger = DeploymentLogger(domain_name)
     start_time = datetime.datetime.now()
     try:
-        def log_message(message):
-            console_logs.append({"time": datetime.datetime.now().strftime('%H:%M:%S'), "message": message})
-            socketio.emit("console", message)
-
         # Verify paths before proceeding
-        if not verify_paths(domain_name):
+        if not verify_paths(domain_name, logger):
             raise Exception("Path verification failed")
             
         # Resolve the real paths
@@ -39,12 +37,12 @@ def deploy_static(domain_name):
         tmp_staging_path = os.path.join("/mnt/disk2/staging", domain_name)
         tmp_dir = "/mnt/disk2/tmp"
 
-        log_message(f"[{domain_name}] Début du déploiement.")
+        logger.log_message("Début du déploiement.")
 
         # Créer et configurer les répertoires temporaires principaux si nécessaire
         for tmp_path in ["/mnt/disk2/tmpstatic", "/mnt/disk2/staging", tmp_dir]:
             if not os.path.exists(tmp_path):
-                log_message(f"[{domain_name}] Création du répertoire temporaire {tmp_path}")
+                logger.log_message(f"Création du répertoire temporaire {tmp_path}")
                 if not run_command(f"mkdir -p {tmp_path}", elevated=True):
                     raise Exception(f"Failed to create temporary directory: {tmp_path}")
                 if not run_command(f"chown www-data:www-data {tmp_path}", elevated=True):
@@ -53,7 +51,7 @@ def deploy_static(domain_name):
                     raise Exception(f"Failed to set permissions on temporary directory: {tmp_path}")
 
         # S'assurer que le répertoire parent de Staatic existe
-        log_message(f"[{domain_name}] Configuration des répertoires Staatic")
+        logger.log_message("Configuration des répertoires Staatic")
         if not run_command(f"mkdir -p {staatic_base}", elevated=True):
             raise Exception("Failed to create Staatic base directory")
         if not run_command(f"chown www-data:www-data {staatic_base}", elevated=True):
@@ -63,26 +61,26 @@ def deploy_static(domain_name):
 
         # Supprimer uniquement l'ancien lien symbolique deploy s'il existe
         if os.path.exists(static_path):
-            log_message(f"[{domain_name}] Suppression de l'ancien lien symbolique: deploy")
+            logger.log_message("Suppression de l'ancien lien symbolique: deploy")
             if not run_command(f"rm -rf {static_path}", elevated=True):
                 raise Exception("Failed to remove old deploy symlink")
 
         # Ne pas supprimer le lien symbolique staging s'il existe déjà
         if os.path.exists(staging_path) and not os.path.islink(staging_path):
-            log_message(f"[{domain_name}] Configuration initiale du staging")
+            logger.log_message("Configuration initiale du staging")
             if not run_command(f"rm -rf {staging_path}", elevated=True):
                 raise Exception("Failed to remove old staging directory")
 
         # Supprimer l'ancien répertoire temporaire deploy s'il existe
         if os.path.exists(tmp_static_path):
-            log_message(f"[{domain_name}] Nettoyage de l'ancien répertoire temporaire")
+            logger.log_message("Nettoyage de l'ancien répertoire temporaire")
             if not run_command(f"rm -rf {tmp_static_path}", elevated=True):
                 raise Exception("Failed to remove old temporary deploy directory")
 
         # Créer les répertoires temporaires avec les bonnes permissions
         for tmp_path in [tmp_static_path, tmp_staging_path]:
             if not os.path.exists(tmp_path):
-                log_message(f"[{domain_name}] Création du répertoire temporaire: {os.path.basename(tmp_path)}")
+                logger.log_message(f"Création du répertoire temporaire: {os.path.basename(tmp_path)}")
                 if not run_command(f"mkdir -p {tmp_path}", elevated=True):
                     raise Exception(f"Failed to create temporary directory: {tmp_path}")
                 if not run_command(f"chown www-data:www-data {tmp_path}", elevated=True):
@@ -91,7 +89,7 @@ def deploy_static(domain_name):
                     raise Exception(f"Failed to set permissions on: {tmp_path}")
 
         # Créer les liens symboliques
-        log_message(f"[{domain_name}] Création des liens symboliques")
+        logger.log_message("Création des liens symboliques")
         if not run_command(f"ln -s {tmp_static_path} {static_path}", elevated=True):
             raise Exception("Failed to create deploy symlink")
         if not os.path.exists(staging_path):
@@ -102,34 +100,34 @@ def deploy_static(domain_name):
         try:
             result = run_command(f"wp elementor update db --path={wp_path}", return_output=True)
             if "is not a registered wp command" not in result:
-                log_message(f"[{domain_name}] Mise à jour de la base de données Elementor")
+                logger.log_message("Mise à jour de la base de données Elementor")
             else:
-                log_message(f"[{domain_name}] Erreur: {result}")
+                logger.log_message(f"Erreur: {result}")
         except Exception as e:
-            log_message(f"[{domain_name}] Erreur: {str(e)}")
+            logger.log_message(f"Erreur: {str(e)}")
 
         # Try to activate Staatic plugin
         try:
-            log_message(f"[{domain_name}] Activation du plugin Staatic")
+            logger.log_message("Activation du plugin Staatic")
             result = run_command(f"wp plugin activate staatic --path={wp_path}", return_output=True)
-            log_message(f"[{domain_name}] Activation de Staatic: {result}")
+            logger.log_message(f"Activation de Staatic: {result}")
         except Exception as e:
-            log_message(f"[{domain_name}] Erreur lors de l'activation des plugins: {str(e)}")
+            logger.log_message(f"Erreur lors de l'activation des plugins: {str(e)}")
 
         # Run Staatic export
-        log_message(f"[{domain_name}] Exécution de l'exportation Staatic")
+        logger.log_message("Exécution de l'exportation Staatic")
         result = run_command(f"wp staatic publish --force --path={wp_path}", return_output=True)
         if "Success: Publication finished" in result:
-            log_message(f"[{domain_name}] Exportation réussie")
+            logger.log_message("Exportation réussie")
             
             # Vérification des fichiers avant la copie
-            files_ok, files_info = verify_static_files(static_path, domain_name)
+            files_ok, files_info = verify_static_files(static_path, domain_name, logger)
             if not files_ok:
-                log_message(f"[{domain_name}] Erreur lors de la vérification des fichiers: {files_info}")
+                logger.log_message(f"Erreur lors de la vérification des fichiers: {files_info}")
                 success = False
             else:
-                log_message(f"[{domain_name}] {len(files_info)} fichiers prêts à être déployés")
-                log_message(f"[{domain_name}] Déplacement des fichiers vers le répertoire de destination")
+                logger.log_message(f"{len(files_info)} fichiers prêts à être déployés")
+                logger.log_message("Déplacement des fichiers vers le répertoire de destination")
 
                 try:
                     # Ensure the destination path exists and is not a symlink
@@ -151,14 +149,14 @@ def deploy_static(domain_name):
                     # Copier les fichiers vers le répertoire temporaire
                     result = run_command(f"cp -rf {static_path}/* {temp_dest}/", elevated=True, return_output=True)
                     if result:
-                        log_message(f"[{domain_name}] Résultat de la copie: {result}")
+                        logger.log_message(f"Résultat de la copie: {result}")
                     
                     # Déplacer les fichiers vers la destination finale
                     if not run_command(f"rm -rf {destination_path}/*", elevated=True):
                         raise Exception("Failed to clean destination directory")
                     result = run_command(f"mv {temp_dest}/* {destination_path}/", elevated=True, return_output=True)
                     if result:
-                        log_message(f"[{domain_name}] Résultat du déplacement: {result}")
+                        logger.log_message(f"Résultat du déplacement: {result}")
                     
                     if not run_command(f"rm -rf {temp_dest}", elevated=True):
                         raise Exception("Failed to clean temporary directory")
@@ -168,33 +166,33 @@ def deploy_static(domain_name):
                         raise Exception("Failed to clean static path")
                     
                     # Update canonical links
-                    log_message(f"[{domain_name}] Mise à jour des liens canoniques dans {destination_path}")
+                    logger.log_message("Mise à jour des liens canoniques dans destination_path")
                     try:
                         result = run_command(f'find {destination_path} -type f -name "*.html" -exec sed -i "s|<link rel=\\"canonical\\" href=\\"/|<link rel=\\"canonical\\" href=\\"https://{domain_name}/|g" {{}} \\;', elevated=True, return_output=True)
                         if result:
-                            log_message(f"[{domain_name}] Résultat de la mise à jour des liens: {result}")
+                            logger.log_message(f"Résultat de la mise à jour des liens: {result}")
                     except Exception as e:
-                        log_message(f"[{domain_name}] Erreur lors de la mise à jour des liens canoniques: {str(e)}")
+                        logger.log_message(f"Erreur lors de la mise à jour des liens canoniques: {str(e)}")
 
                     if not run_command(f"chown -R www-data:www-data {destination_path}", elevated=True):
                         raise Exception("Failed to change ownership of destination path to www-data")
                     
-                    log_message(f"[{domain_name}] Déploiement réussi")
+                    logger.log_message("Déploiement réussi")
                     success = True
                 except Exception as e:
-                    log_message(f"[{domain_name}] Erreur lors du déploiement: {str(e)}")
+                    logger.log_message(f"Erreur lors du déploiement: {str(e)}")
                     success = False
         else:
-            log_message(f"[{domain_name}] Erreur lors de l'exportation Staatic: {result}")
+            logger.log_message(f"Erreur lors de l'exportation Staatic: {result}")
             success = False
 
         duration = (datetime.datetime.now() - start_time).total_seconds()
-        log_deployment(domain_name, success, duration, console_logs)
+        log_deployment(domain_name, success, duration, logger.logs)
         return success
     except Exception as e:
-        error_message = f"[{domain_name}] Erreur lors du déploiement statique: {str(e)}"
-        log_message(error_message)
-        log_deployment(domain_name, False, 0, console_logs)
+        error_message = f"Erreur lors du déploiement statique: {str(e)}"
+        logger.log_message(error_message)
+        log_deployment(domain_name, False, 0, logger.logs)
         return False
 
 def log_deployment(domain_name, success, duration, console_logs=None):
@@ -298,37 +296,33 @@ def update_sites_data(indexed=False, specific_domain=None):
     except Exception as e:
         socketio.emit("error", f"Erreur lors de la mise à jour des données des sites: {str(e)}")
 
-def verify_paths(domain_name):
+def verify_paths(domain_name, logger):
     try:
         base_path = os.path.realpath("/var/www")
         wp_path = os.path.join(base_path, domain_name)
 
-        # Verify paths exist and have correct permissions
         paths_to_check = [base_path, wp_path]
         for path in paths_to_check:
             if not os.path.exists(path):
                 raise Exception(f"Path does not exist: {path}")
             
-            # Check if www-data has access
             if not run_command(f"test -r {path} && test -w {path}", elevated=True):
                 raise Exception(f"Insufficient permissions on path: {path}")
 
         return True
     except Exception as e:
-        socketio.emit("error", f"Path verification failed: {str(e)}")
+        logger.log_message(f"Path verification failed: {str(e)}")
         return False
 
-def update_canonical_links(static_path, domain_name):
-    """Update canonical links in all HTML files to include the full domain."""
+def update_canonical_links(static_path, domain_name, logger):
     try:
         result = run_command(f'find {static_path} -type f -name "*.html" -exec sed -i "s|<link rel=\\"canonical\\" href=\\"/|<link rel=\\"canonical\\" href=\\"https://{domain_name}/|g" {{}} \\;', elevated=True, return_output=True)
         if result:
-            log_message(f"[{domain_name}] Résultat de la mise à jour des liens: {result}")
+            logger.log_message(f"Résultat de la mise à jour des liens: {result}")
     except Exception as e:
-        log_message(f"[{domain_name}] Erreur lors de la mise à jour des liens canoniques: {str(e)}")
+        logger.log_message(f"Erreur lors de la mise à jour des liens canoniques: {str(e)}")
 
-def verify_static_files(static_path, domain_name):
-    """Vérifie l'existence et la validité des fichiers statiques avant la copie."""
+def verify_static_files(static_path, domain_name, logger):
     try:
         if not os.path.exists(static_path):
             raise Exception(f"Le répertoire source n'existe pas: {static_path}")
@@ -340,7 +334,6 @@ def verify_static_files(static_path, domain_name):
         if not files:
             raise Exception("Aucun fichier trouvé dans le répertoire source")
             
-        # Vérifier la présence de fichiers HTML (minimum attendu)
         html_files = [f for f in files if f.endswith('.html')]
         if not html_files:
             raise Exception("Aucun fichier HTML trouvé dans l'export")
