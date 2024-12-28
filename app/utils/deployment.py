@@ -7,9 +7,18 @@ from .system import run_command
 from .wordpress import get_published_articles
 from .settings import load_sites_data, save_sites_data
 
+def log_message(domain_name, message):
+    """Log a message both to console and to the logs list."""
+    formatted_message = f"[{domain_name}] {message}" if domain_name else message
+    console_logs.append({"time": datetime.datetime.now().strftime('%H:%M:%S'), "message": formatted_message})
+    socketio.emit("console", formatted_message)
+
+console_logs = []
+
 def deploy_static(domain_name):
-    start_time = datetime.datetime.now()
+    global console_logs
     console_logs = []
+    start_time = datetime.datetime.now()
     try:
         def log_message(message):
             console_logs.append({"time": datetime.datetime.now().strftime('%H:%M:%S'), "message": message})
@@ -91,21 +100,21 @@ def deploy_static(domain_name):
 
         # Force Elementor data update
         try:
-            log_message(f"[{domain_name}] Mise à jour de la base de données Elementor")
-            run_command(f"wp elementor update db --path={wp_path}")
-        except Exception as e:
-            if "is not a registered wp command" in str(e):
-                log_message(f"[{domain_name}] Elementor command not found, skipping Elementor data update")
+            result = run_command(f"wp elementor update db --path={wp_path}", return_output=True)
+            if "is not a registered wp command" not in result:
+                log_message(f"[{domain_name}] Mise à jour de la base de données Elementor")
             else:
-                raise Exception("Failed to update Elementor data")
+                log_message(f"[{domain_name}] Erreur: {result}")
+        except Exception as e:
+            log_message(f"[{domain_name}] Erreur: {str(e)}")
 
         # Try to activate Staatic plugin
         try:
             log_message(f"[{domain_name}] Activation du plugin Staatic")
             result = run_command(f"wp plugin activate staatic --path={wp_path}", return_output=True)
             log_message(f"[{domain_name}] Activation de Staatic: {result}")
-        except Exception:
-            log_message(f"[{domain_name}] Erreur lors de l'activation des plugins, mais on continue")
+        except Exception as e:
+            log_message(f"[{domain_name}] Erreur lors de l'activation des plugins: {str(e)}")
 
         # Run Staatic export
         log_message(f"[{domain_name}] Exécution de l'exportation Staatic")
@@ -122,47 +131,59 @@ def deploy_static(domain_name):
                 log_message(f"[{domain_name}] {len(files_info)} fichiers prêts à être déployés")
                 log_message(f"[{domain_name}] Déplacement des fichiers vers le répertoire de destination")
 
-                # Ensure the destination path exists and is not a symlink
-                if os.path.islink(destination_path):
-                    if not run_command(f"rm -f {destination_path}", elevated=True):
-                        raise Exception("Failed to remove old destination symlink")
-                
-                if not os.path.exists(destination_path):
-                    if not run_command(f"mkdir -p {destination_path}", elevated=True):
-                        raise Exception("Failed to create destination path")
+                try:
+                    # Ensure the destination path exists and is not a symlink
+                    if os.path.islink(destination_path):
+                        if not run_command(f"rm -f {destination_path}", elevated=True):
+                            raise Exception("Failed to remove old destination symlink")
+                    
+                    if not os.path.exists(destination_path):
+                        if not run_command(f"mkdir -p {destination_path}", elevated=True):
+                            raise Exception("Failed to create destination path")
 
-                # Copier d'abord vers un répertoire temporaire
-                temp_dest = f"/mnt/disk2/tmp/{domain_name}_temp"
-                if not run_command(f"rm -rf {temp_dest}", elevated=True):
-                    raise Exception("Failed to clean temporary directory")
-                if not run_command(f"mkdir -p {temp_dest}", elevated=True):
-                    raise Exception("Failed to create temporary directory")
-                
-                # Copier les fichiers vers le répertoire temporaire
-                if not run_command(f"cp -rf {static_path}/* {temp_dest}/", elevated=True):
-                    raise Exception("Failed to copy files to temporary directory")
-                
-                # Déplacer les fichiers vers la destination finale
-                if not run_command(f"rm -rf {destination_path}/*", elevated=True):
-                    raise Exception("Failed to clean destination directory")
-                if not run_command(f"mv {temp_dest}/* {destination_path}/", elevated=True):
-                    raise Exception("Failed to move files to destination")
-                if not run_command(f"rm -rf {temp_dest}", elevated=True):
-                    raise Exception("Failed to clean temporary directory")
-                
-                # Nettoyer le répertoire source
-                if not run_command(f"rm -rf {static_path}/*", elevated=True):
-                    raise Exception("Failed to clean static path")
-                
-                # Update canonical links
-                log_message(f"[{domain_name}] Mise à jour des liens canoniques dans {destination_path}")
-                update_canonical_links(destination_path, domain_name)
+                    # Copier d'abord vers un répertoire temporaire
+                    temp_dest = f"/mnt/disk2/tmp/{domain_name}_temp"
+                    if not run_command(f"rm -rf {temp_dest}", elevated=True):
+                        raise Exception("Failed to clean temporary directory")
+                    if not run_command(f"mkdir -p {temp_dest}", elevated=True):
+                        raise Exception("Failed to create temporary directory")
+                    
+                    # Copier les fichiers vers le répertoire temporaire
+                    result = run_command(f"cp -rf {static_path}/* {temp_dest}/", elevated=True, return_output=True)
+                    if result:
+                        log_message(f"[{domain_name}] Résultat de la copie: {result}")
+                    
+                    # Déplacer les fichiers vers la destination finale
+                    if not run_command(f"rm -rf {destination_path}/*", elevated=True):
+                        raise Exception("Failed to clean destination directory")
+                    result = run_command(f"mv {temp_dest}/* {destination_path}/", elevated=True, return_output=True)
+                    if result:
+                        log_message(f"[{domain_name}] Résultat du déplacement: {result}")
+                    
+                    if not run_command(f"rm -rf {temp_dest}", elevated=True):
+                        raise Exception("Failed to clean temporary directory")
+                    
+                    # Nettoyer le répertoire source
+                    if not run_command(f"rm -rf {static_path}/*", elevated=True):
+                        raise Exception("Failed to clean static path")
+                    
+                    # Update canonical links
+                    log_message(f"[{domain_name}] Mise à jour des liens canoniques dans {destination_path}")
+                    try:
+                        result = run_command(f'find {destination_path} -type f -name "*.html" -exec sed -i "s|<link rel=\\"canonical\\" href=\\"/|<link rel=\\"canonical\\" href=\\"https://{domain_name}/|g" {{}} \\;', elevated=True, return_output=True)
+                        if result:
+                            log_message(f"[{domain_name}] Résultat de la mise à jour des liens: {result}")
+                    except Exception as e:
+                        log_message(f"[{domain_name}] Erreur lors de la mise à jour des liens canoniques: {str(e)}")
 
-                if not run_command(f"chown -R www-data:www-data {destination_path}", elevated=True):
-                    raise Exception("Failed to change ownership of destination path to www-data")
-                
-                log_message(f"[{domain_name}] Déploiement réussi")
-                success = True
+                    if not run_command(f"chown -R www-data:www-data {destination_path}", elevated=True):
+                        raise Exception("Failed to change ownership of destination path to www-data")
+                    
+                    log_message(f"[{domain_name}] Déploiement réussi")
+                    success = True
+                except Exception as e:
+                    log_message(f"[{domain_name}] Erreur lors du déploiement: {str(e)}")
+                    success = False
         else:
             log_message(f"[{domain_name}] Erreur lors de l'exportation Staatic: {result}")
             success = False
@@ -172,8 +193,7 @@ def deploy_static(domain_name):
         return success
     except Exception as e:
         error_message = f"[{domain_name}] Erreur lors du déploiement statique: {str(e)}"
-        console_logs.append({"time": datetime.datetime.now().strftime('%H:%M:%S'), "message": error_message})
-        socketio.emit("error", error_message)
+        log_message(error_message)
         log_deployment(domain_name, False, 0, console_logs)
         return False
 
@@ -301,9 +321,11 @@ def verify_paths(domain_name):
 def update_canonical_links(static_path, domain_name):
     """Update canonical links in all HTML files to include the full domain."""
     try:
-        run_command(f'find {static_path} -type f -name "*.html" -exec sed -i "s|<link rel=\\"canonical\\" href=\\"/|<link rel=\\"canonical\\" href=\\"https://{domain_name}/|g" {{}} \\;', elevated=True)
+        result = run_command(f'find {static_path} -type f -name "*.html" -exec sed -i "s|<link rel=\\"canonical\\" href=\\"/|<link rel=\\"canonical\\" href=\\"https://{domain_name}/|g" {{}} \\;', elevated=True, return_output=True)
+        if result:
+            log_message(f"[{domain_name}] Résultat de la mise à jour des liens: {result}")
     except Exception as e:
-        socketio.emit("console", f"Erreur lors de la mise à jour des liens canoniques: {str(e)}")
+        log_message(f"[{domain_name}] Erreur lors de la mise à jour des liens canoniques: {str(e)}")
 
 def verify_static_files(static_path, domain_name):
     """Vérifie l'existence et la validité des fichiers statiques avant la copie."""
