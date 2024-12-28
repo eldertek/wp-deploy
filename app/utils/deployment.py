@@ -122,16 +122,35 @@ def deploy_static(domain_name):
                 log_message(f"[{domain_name}] {len(files_info)} fichiers prêts à être déployés")
                 log_message(f"[{domain_name}] Déplacement des fichiers vers le répertoire de destination")
 
-                # Ensure the destination path exists
+                # Ensure the destination path exists and is not a symlink
+                if os.path.islink(destination_path):
+                    if not run_command(f"rm -f {destination_path}", elevated=True):
+                        raise Exception("Failed to remove old destination symlink")
+                
                 if not os.path.exists(destination_path):
-                    log_message(f"[{domain_name}] Création du répertoire de destination")
                     if not run_command(f"mkdir -p {destination_path}", elevated=True):
                         raise Exception("Failed to create destination path")
 
-                # Move the content
-                if not run_command(f"cp -rf {static_path}/* {destination_path}/", elevated=True):
-                    raise Exception("Failed to copy files to destination path")
-                    
+                # Copier d'abord vers un répertoire temporaire
+                temp_dest = f"/mnt/disk2/tmp/{domain_name}_temp"
+                if not run_command(f"rm -rf {temp_dest}", elevated=True):
+                    raise Exception("Failed to clean temporary directory")
+                if not run_command(f"mkdir -p {temp_dest}", elevated=True):
+                    raise Exception("Failed to create temporary directory")
+                
+                # Copier les fichiers vers le répertoire temporaire
+                if not run_command(f"cp -rf {static_path}/* {temp_dest}/", elevated=True):
+                    raise Exception("Failed to copy files to temporary directory")
+                
+                # Déplacer les fichiers vers la destination finale
+                if not run_command(f"rm -rf {destination_path}/*", elevated=True):
+                    raise Exception("Failed to clean destination directory")
+                if not run_command(f"mv {temp_dest}/* {destination_path}/", elevated=True):
+                    raise Exception("Failed to move files to destination")
+                if not run_command(f"rm -rf {temp_dest}", elevated=True):
+                    raise Exception("Failed to clean temporary directory")
+                
+                # Nettoyer le répertoire source
                 if not run_command(f"rm -rf {static_path}/*", elevated=True):
                     raise Exception("Failed to clean static path")
                 
