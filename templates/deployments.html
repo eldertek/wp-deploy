@@ -7,6 +7,7 @@
     <h2 class="mb-4">Historique des déploiements</h2>
     <div class="mb-4">
         <button id="deleteAllLogs" class="btn btn-danger">Supprimer tous les logs</button>
+        <button id="downloadLogs" class="btn btn-primary">Télécharger les logs</button>
     </div>
     <div id="loadingSpinner" class="spinner-border text-primary" role="status" style="display: none;">
         <span class="sr-only">Chargement...</span>
@@ -20,6 +21,7 @@
                     <th>Date</th>
                     <th style="display:none;">Date (timestamp)</th>
                     <th>Durée (secondes)</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -30,10 +32,34 @@
                     <td>{{ deployment.time }}</td>
                     <td style="display:none;">{{ deployment.timestamp }}</td>
                     <td>{{ '{:.2f}'.format(deployment.duration) }}</td>
+                    <td>
+                        <button class="btn btn-sm btn-info view-logs" data-logs='{{ deployment.console_logs|tojson }}'>
+                            Voir les logs
+                        </button>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
+    </div>
+</div>
+
+<!-- Modal pour afficher les logs -->
+<div class="modal fade" id="logsModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Logs de déploiement</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="logs-container" style="max-height: 500px; overflow-y: auto;">
+                    <pre id="logsContent" style="white-space: pre-wrap;"></pre>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -71,6 +97,51 @@
                     }
                 });
             }
+        });
+
+        $('.view-logs').click(function() {
+            const logs = $(this).data('logs');
+            let logsHtml = '';
+            logs.forEach(log => {
+                logsHtml += `[${log.time}] ${log.message}\n`;
+            });
+            $('#logsContent').text(logsHtml);
+            $('#logsModal').modal('show');
+        });
+
+        $('#downloadLogs').click(function() {
+            const rows = $('#deploymentsTable').DataTable().rows().data();
+            let logsText = '';
+            rows.each(function(row) {
+                const domain = row[0];
+                const success = row[1];
+                const date = row[2];
+                const duration = row[4];
+                logsText += `=== Déploiement de ${domain} ===\n`;
+                logsText += `Date: ${date}\n`;
+                logsText += `Succès: ${success}\n`;
+                logsText += `Durée: ${duration} secondes\n\n`;
+                
+                const logsBtn = $(row[5]).find('.view-logs');
+                const logs = logsBtn.data('logs');
+                if (logs && logs.length) {
+                    logsText += "Logs détaillés:\n";
+                    logs.forEach(log => {
+                        logsText += `[${log.time}] ${log.message}\n`;
+                    });
+                }
+                logsText += "\n---\n\n";
+            });
+
+            const blob = new Blob([logsText], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `deployment_logs_${new Date().toISOString().slice(0,10)}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
         });
 
         $('#deploymentsTable').DataTable({
